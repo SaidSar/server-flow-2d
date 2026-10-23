@@ -22,9 +22,25 @@ Simulador *tycoon* 2D en el que eres el **SysAdmin** de una startup y tu trabajo
 3. En Godot: *Importar* → selecciona `project.godot`. La primera importación de texturas tarda un poco.
 4. Ejecuta con **F5**. La escena principal es `scenes/main/main.tscn`.
 
-Flujo para probar: *Nueva partida* → nombre del avatar → nombre de la empresa → garage → botón de pincel (personalizar) → clic en el monitor de la PC → dashboard → *Volver al cuarto*.
+Flujo para probar: *Nueva partida* → nombre del avatar → nombre de la empresa → garage → botón de pincel (personalizar) → clic en el monitor de la PC → dashboard (empieza la oleada 1) → compra mejoras en la consola → post-mortem → *Siguiente oleada* → *← Cuarto*.
 
-**Atajo de depuración:** en builds de depuración, **F9** fuerza una sobrecarga del servidor. Así puedes ver el rack saturado y a Alex estresado sin esperar a que suba la carga.
+**Atajos de depuración** (solo en builds de depuración):
+- **F9:** fuerza una sobrecarga (×2 tráfico), para ver el rack saturado, a Alex estresado y los paquetes rojos.
+- **F10:** acelera la simulación ×8, para llegar rápido al post-mortem, al game over o a la victoria.
+
+## Dashboard
+
+El monitor de la PC es donde se juega:
+
+- **Monitor de tráfico:** Clientes → [Firewall] → [Load Balancer] → Servidores Web → Base de datos, con barras de utilización y paquetes de colores.
+  - Verde: 200 OK. Amarillo: latencia alta. Rojo: timeout o error 500. Morado: DDoS.
+  - El Load Balancer aparece con 2 o más servidores, y el Firewall cuando se instala.
+- **Consola de administración:** una mejora por cada `UpgradeData`. Se resalta en rojo la que arregla el cuello de botella actual.
+- **Oleadas:** son 5 por etapa. Entre oleadas aparece el post-mortem con la causa principal y su explicación educativa.
+- **Game over y victoria:** con el SLA en 0 la empresa quiebra, y se puede reintentar la oleada. Al llegar a la meta de usuarios se completa la etapa, con estrellas y una ronda de inversión.
+- **BYTE:** el asistente da el tutorial y avisa la primera vez que un recurso pasa del 85 %.
+
+La simulación (`Simulation`) sigue corriendo aunque vuelvas al garage. La vista solo escucha sus señales. El modelo y los números de balance están en [docs/balance.md](docs/balance.md).
 
 La partida se guarda en `user://savegame.cfg`. En Windows está en `%APPDATA%\Godot\app_userdata\Server Flow 2D\`.
 
@@ -35,6 +51,9 @@ Desde la raíz del proyecto (`godot` = tu ejecutable de Godot 4.6):
 ```bash
 # Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana
 godot --headless --path . -s res://tests/smoke_test.gd
+
+# Pruebas del modelo de simulación (semilla fija) + resumen de balance por oleada
+godot --headless --path . -s res://tests/test_simulation.gd
 
 # Regenera resources/customization/customization_catalog.tres después de editar paleta.json
 godot --headless --path . -s res://scripts/tools/build_customization_catalog.gd
@@ -55,15 +74,15 @@ La prueba de humo usa su propio archivo de guardado; no toca tu partida.
 | `scripts/` | GDScript. `autoload/` contiene los singletons globales. |
 | `source_art/` | Archivos fuente de Blender y scripts. Godot la ignora (`.gdignore`). |
 | `docs/` | Documentación del proyecto. |
-| `tests/` | Pruebas automáticas (`smoke_test.gd`). |
+| `tests/` | Pruebas automáticas (`smoke_test.gd`, `test_simulation.gd`). |
 
 ### Autoloads
 
 | Nombre | Responsabilidad |
 |---|---|
-| `GameState` | Datos de la partida en curso (avatar, empresa, colores, etapa, oleada, monedas, usuarios, SLA). |
-| `SaveSystem` | Guarda y carga `user://savegame.cfg` con `ConfigFile`. |
-| `Simulation` | Bucle de simulación (`tick`) con CPU, RAM, red, disco y SLA. |
+| `Simulation` | Modelo de tráfico, infraestructura, economía, SLA, oleadas y mejoras, en pasos fijos de 0.1 s. Guarda un checkpoint al inicio de cada oleada. |
+| `GameState` | Identidad de la partida (avatar, empresa y colores del cuarto). |
+| `SaveSystem` | Guarda y carga `user://savegame.cfg` con `ConfigFile`: identidad + checkpoint de `Simulation`. Guarda solo al empezar y al terminar cada oleada, y al salir. |
 | `Customization` | Catálogo de colores leído de `paleta.json` y resolución de texturas. |
 | `SceneRouter` | Cambios de escena y transiciones. Todas las rutas de escenas están en `scripts/paths.gd`. |
 
