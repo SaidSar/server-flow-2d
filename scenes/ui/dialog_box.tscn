@@ -1,0 +1,125 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/dialog_box.gd" id="1_dialog"]
+
+[node name="DialogBox" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dialog")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0431373, 0.0666667, 0.109804, 0.75)
+
+[node name="Window" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -620.0
+offset_top = -330.0
+offset_right = 620.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Row" type="HBoxContainer" parent="Window"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="Portrait" type="Control" parent="Window/Row"]
+custom_minimum_size = Vector2(150, 150)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+
+[node name="PortraitCircle" type="Panel" parent="Window/Row/Portrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="InitialsLabel" type="Label" parent="Window/Row/Portrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 56
+text = "V"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PortraitTexture" type="TextureRect" parent="Window/Row/Portrait"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Text" type="VBoxContainer" parent="Window/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Window/Row/Text"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="SpeakerLabel" type="Label" parent="Window/Row/Text/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "Valeria"
+
+[node name="RoleLabel" type="Label" parent="Window/Row/Text/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_colors/font_color = Color(0.541176, 0.607843, 0.709804, 1)
+theme_override_font_sizes/font_size = 22
+text = "CEO"
+
+[node name="TextLabel" type="Label" parent="Window/Row/Text"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
+theme_override_font_sizes/font_size = 28
+text = "¡Said, lo logramos!"
+autowrap_mode = 3
+
+[node name="ContinueButton" type="Button" parent="Window/Row/Text"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 72)
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 26
+text = "¡Vamos!"
