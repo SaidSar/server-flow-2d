@@ -1,0 +1,143 @@
+[gd_resource type="Resource" script_class="CustomizationCatalog" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/customization_option.gd" id="1_ms8yi"]
+[ext_resource type="Script" path="res://scripts/resources/customization_catalog.gd" id="2_hooc6"]
+
+[sub_resource type="Resource" id="Resource_f2a5m"]
+script = ExtResource("1_ms8yi")
+id = &"roble"
+display_name = "Roble"
+color = Color(0.70980394, 0.46666667, 0.24705882, 1)
+
+[sub_resource type="Resource" id="Resource_xcbe3"]
+script = ExtResource("1_ms8yi")
+id = &"nogal"
+display_name = "Nogal"
+color = Color(0.41960785, 0.2901961, 0.18431373, 1)
+
+[sub_resource type="Resource" id="Resource_4nulg"]
+script = ExtResource("1_ms8yi")
+id = &"blanca"
+display_name = "Blanca"
+color = Color(0.9137255, 0.89411765, 0.84705883, 1)
+
+[sub_resource type="Resource" id="Resource_m53is"]
+script = ExtResource("1_ms8yi")
+id = &"blanca"
+display_name = "Blanca"
+color = Color(0.9098039, 0.9098039, 0.9098039, 1)
+
+[sub_resource type="Resource" id="Resource_m6rld"]
+script = ExtResource("1_ms8yi")
+id = &"madera_natural"
+display_name = "Madera natural"
+color = Color(0.70980394, 0.46666667, 0.24705882, 1)
+
+[sub_resource type="Resource" id="Resource_u4ckd"]
+script = ExtResource("1_ms8yi")
+id = &"madera_oscura"
+display_name = "Madera oscura"
+color = Color(0.41960785, 0.2901961, 0.18431373, 1)
+
+[sub_resource type="Resource" id="Resource_oaxse"]
+script = ExtResource("1_ms8yi")
+id = &"negra"
+display_name = "Negro mate"
+color = Color(0.16862746, 0.18431373, 0.21176471, 1)
+
+[sub_resource type="Resource" id="Resource_do2sw"]
+script = ExtResource("1_ms8yi")
+id = &"roja"
+display_name = "Rojo"
+color = Color(0.72156864, 0.2627451, 0.22745098, 1)
+
+[sub_resource type="Resource" id="Resource_yt5kb"]
+script = ExtResource("1_ms8yi")
+id = &"petroleo"
+display_name = "Azul petróleo"
+color = Color(0.18431373, 0.43529412, 0.47843137, 1)
+
+[sub_resource type="Resource" id="Resource_8p22s"]
+script = ExtResource("1_ms8yi")
+id = &"concreto_gris"
+display_name = "Concreto gris"
+color = Color(0.6039216, 0.627451, 0.6509804, 1)
+
+[sub_resource type="Resource" id="Resource_b855p"]
+script = ExtResource("1_ms8yi")
+id = &"concreto_calido"
+display_name = "Concreto cálido"
+color = Color(0.7019608, 0.6666667, 0.6117647, 1)
+
+[sub_resource type="Resource" id="Resource_uvkda"]
+script = ExtResource("1_ms8yi")
+id = &"concreto_oscuro"
+display_name = "Concreto pulido oscuro"
+color = Color(0.43137255, 0.45490196, 0.4862745, 1)
+
+[sub_resource type="Resource" id="Resource_agg8e"]
+script = ExtResource("1_ms8yi")
+id = &"verde_salvia"
+display_name = "Verde salvia"
+color = Color(0.56078434, 0.654902, 0.47843137, 1)
+
+[sub_resource type="Resource" id="Resource_slpty"]
+script = ExtResource("1_ms8yi")
+id = &"gris_calido"
+display_name = "Gris cálido"
+color = Color(0.7254902, 0.69803923, 0.6509804, 1)
+
+[sub_resource type="Resource" id="Resource_p28vv"]
+script = ExtResource("1_ms8yi")
+id = &"blanco_hueso"
+display_name = "Blanco hueso"
+color = Color(0.9019608, 0.88235295, 0.83137256, 1)
+
+[sub_resource type="Resource" id="Resource_17pmt"]
+script = ExtResource("1_ms8yi")
+id = &"azul_acero"
+display_name = "Azul acero"
+color = Color(0.49019608, 0.5764706, 0.6784314, 1)
+
+[sub_resource type="Resource" id="Resource_7kok7"]
+script = ExtResource("1_ms8yi")
+id = &"azul_marino"
+display_name = "Azul marino"
+color = Color(0.24313726, 0.32156864, 0.44705883, 1)
+
+[sub_resource type="Resource" id="Resource_tx486"]
+script = ExtResource("1_ms8yi")
+id = &"terracota"
+display_name = "Terracota"
+color = Color(0.7529412, 0.47843137, 0.3529412, 1)
+
+[sub_resource type="Resource" id="Resource_eqnle"]
+script = ExtResource("1_ms8yi")
+id = &"mostaza"
+display_name = "Mostaza"
+color = Color(0.81960785, 0.6509804, 0.27450982, 1)
+
+[sub_resource type="Resource" id="Resource_pi2e0"]
+script = ExtResource("1_ms8yi")
+id = &"menta"
+display_name = "Menta"
+color = Color(0.62352943, 0.8039216, 0.72156864, 1)
+
+[sub_resource type="Resource" id="Resource_6oa8f"]
+script = ExtResource("1_ms8yi")
+id = &"lavanda"
+display_name = "Lavanda"
+color = Color(0.6627451, 0.6117647, 0.78431374, 1)
+
+[sub_resource type="Resource" id="Resource_hm613"]
+script = ExtResource("1_ms8yi")
+id = &"grafito"
+display_name = "Grafito"
+color = Color(0.2901961, 0.30980393, 0.3529412, 1)
+
+[resource]
+script = ExtResource("2_hooc6")
+walls = Array[ExtResource("1_ms8yi")]([SubResource("Resource_agg8e"), SubResource("Resource_slpty"), SubResource("Resource_p28vv"), SubResource("Resource_17pmt"), SubResource("Resource_7kok7"), SubResource("Resource_tx486"), SubResource("Resource_eqnle"), SubResource("Resource_pi2e0"), SubResource("Resource_6oa8f"), SubResource("Resource_hm613")])
+floors = Array[ExtResource("1_ms8yi")]([SubResource("Resource_8p22s"), SubResource("Resource_b855p"), SubResource("Resource_uvkda")])
+doors = Array[ExtResource("1_ms8yi")]([SubResource("Resource_m53is"), SubResource("Resource_m6rld"), SubResource("Resource_u4ckd"), SubResource("Resource_oaxse"), SubResource("Resource_do2sw"), SubResource("Resource_yt5kb")])
+desks = Array[ExtResource("1_ms8yi")]([SubResource("Resource_f2a5m"), SubResource("Resource_xcbe3"), SubResource("Resource_4nulg")])

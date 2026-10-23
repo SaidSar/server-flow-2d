@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"firewall"
+display_name = "Firewall"
+description = "El firewall bloquea tráfico malicioso antes de que llegue a tu servidor."
+cost = 350
+target = &"sla"
+amount = 5.0
+required_stage = &"scale_up"

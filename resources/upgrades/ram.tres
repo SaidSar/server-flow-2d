@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"ram"
+display_name = "Memoria RAM"
+description = "Más memoria permite atender más peticiones al mismo tiempo sin usar el disco como respaldo lento."
+cost = 150
+target = &"ram"
+amount = 15.0
+required_stage = &"startup"
