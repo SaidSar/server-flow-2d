@@ -24,6 +24,26 @@ Simulador *tycoon* 2D en el que eres el **SysAdmin** de una startup y tu trabajo
 
 Flujo para probar: *Nueva partida* → nombre del avatar → nombre de la empresa → garage → botón de pincel (personalizar) → clic en el monitor de la PC → dashboard → *Volver al cuarto*.
 
+**Atajo de depuración:** en builds de depuración, **F9** fuerza una sobrecarga del servidor. Así puedes ver el rack saturado y a Alex estresado sin esperar a que suba la carga.
+
+La partida se guarda en `user://savegame.cfg`. En Windows está en `%APPDATA%\Godot\app_userdata\Server Flow 2D\`.
+
+## Pruebas y herramientas
+
+Desde la raíz del proyecto (`godot` = tu ejecutable de Godot 4.6):
+
+```bash
+# Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana
+godot --headless --path . -s res://tests/smoke_test.gd
+
+# Regenera resources/customization/customization_catalog.tres después de editar paleta.json
+godot --headless --path . -s res://scripts/tools/build_customization_catalog.gd
+```
+
+La prueba de humo usa su propio archivo de guardado; no toca tu partida.
+
+> **Al exportar:** `customization.gd` lee `data/customization/paleta.json` en tiempo de ejecución. En cada preset de exportación agrega `data/*.json` en *Recursos → Filtros para exportar archivos que no son recursos*.
+
 ## Estructura
 
 | Carpeta | Contenido |
@@ -35,7 +55,7 @@ Flujo para probar: *Nueva partida* → nombre del avatar → nombre de la empres
 | `scripts/` | GDScript. `autoload/` contiene los singletons globales. |
 | `source_art/` | Archivos fuente de Blender y scripts. Godot la ignora (`.gdignore`). |
 | `docs/` | Documentación del proyecto. |
-| `tests/` | Pruebas (pendiente). |
+| `tests/` | Pruebas automáticas (`smoke_test.gd`). |
 
 ### Autoloads
 
@@ -50,6 +70,10 @@ Flujo para probar: *Nueva partida* → nombre del avatar → nombre de la empres
 ### Arte del cuarto
 
 Todas las capas del cuarto están renderizadas sobre el **mismo lienzo a 2x (1592×1318)**. Se apilan en la misma posición, sin offsets, con `centered = false`, dentro de un nodo raíz con `scale = (0.5, 0.5)`. Orden de dibujo (de atrás hacia adelante): piso, pared_izq, pared_der, puerta, rack, mesa, alex, cajas.
+
+`scenes/rooms/room_base.tscn` tiene esa pila de capas, la cámara, el HUD y el panel de personalización. Cada cuarto **hereda** de ella; `garage.tscn` asigna sus texturas, el área clicable del monitor (`PcArea`) y el punto de zoom (`MonitorFocus`), en coordenadas del lienzo 2x.
+
+Las texturas se importan con mipmaps, y el filtro por defecto del proyecto es *Linear Mipmap*, para que el zoom de la cámara se vea suave.
 
 ## Convenciones
 
