@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"web_server"
+display_name = "+ Servidor web"
+short_effect = "+1 servidor"
+description = "Agrega un servidor igual a los actuales. Con 2 se activa el Load Balancer."
+concept = "Balanceo de carga: con 2 o más servidores, el Load Balancer reparte las peticiones."
+target = &"add_server"
+effect_mode = 0
+effect_per_level = 1.0
+max_level = 9
+base_cost = 300
+cost_growth = 1.4
+unlock_stage = 2
+fixes = Array[StringName]([&"cpu", &"ram", &"net"])

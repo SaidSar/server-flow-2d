@@ -5,9 +5,15 @@
 [resource]
 script = ExtResource("1_upgrade")
 id = &"ram"
-display_name = "Memoria RAM"
-description = "Más memoria permite atender más peticiones al mismo tiempo sin usar el disco como respaldo lento."
-cost = 150
-target = &"ram"
-amount = 15.0
-required_stage = &"startup"
+display_name = "RAM"
+short_effect = "+50 % concurrencia"
+description = "Más memoria para atender más peticiones simultáneas."
+concept = "Concurrencia: la RAM limita cuántas peticiones se atienden al mismo tiempo."
+target = &"ram_slots"
+effect_mode = 1
+effect_per_level = 0.5
+max_level = 10
+base_cost = 30
+cost_growth = 1.6
+unlock_stage = 1
+fixes = Array[StringName]([&"ram"])

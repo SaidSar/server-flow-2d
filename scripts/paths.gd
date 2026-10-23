@@ -13,7 +13,11 @@ const DASHBOARD := "res://scenes/dashboard/dashboard.tscn"
 # Datos y recursos
 const PALETTE_JSON := "res://data/customization/paleta.json"
 const CUSTOMIZATION_CATALOG := "res://resources/customization/customization_catalog.tres"
-const UPGRADES_DIR := "res://resources/upgrades"
+const SIMULATION_CONFIG := "res://resources/simulation/simulation_config.tres"
+## Mejora por id: resources/upgrades/<id>.tres
+const UPGRADE := "res://resources/upgrades/%s.tres"
+## Etapas en orden de juego.
+const STAGE_ORDER: Array[StringName] = [&"startup", &"scale_up", &"enterprise"]
 const STAGES := {
 	&"startup": "res://resources/stages/startup.tres",
 	&"scale_up": "res://resources/stages/scale_up.tres",

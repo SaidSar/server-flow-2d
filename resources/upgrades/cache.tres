@@ -5,9 +5,15 @@
 [resource]
 script = ExtResource("1_upgrade")
 id = &"cache"
-display_name = "Caché"
-description = "La caché guarda respuestas frecuentes para no recalcularlas en cada petición."
-cost = 250
-target = &"cpu"
-amount = 20.0
-required_stage = &"startup"
+display_name = "Optimizar caché"
+short_effect = "+15 % aciertos"
+description = "Más lecturas se responden desde la caché sin tocar la base de datos."
+concept = "Caché: guardar las respuestas frecuentes evita repetir consultas a la base de datos."
+target = &"cache_hit"
+effect_mode = 0
+effect_per_level = 0.15
+max_level = 6
+base_cost = 80
+cost_growth = 1.6
+unlock_stage = 2
+fixes = Array[StringName]([&"db"])

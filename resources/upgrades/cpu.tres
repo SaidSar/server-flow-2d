@@ -5,9 +5,15 @@
 [resource]
 script = ExtResource("1_upgrade")
 id = &"cpu"
-display_name = "Procesador (CPU)"
-description = "Un procesador más rápido calcula cada respuesta en menos tiempo."
-cost = 200
-target = &"cpu"
-amount = 15.0
-required_stage = &"startup"
+display_name = "CPU"
+short_effect = "+50 % proceso"
+description = "Un procesador más rápido atiende más peticiones por segundo."
+concept = "Latencia: un procesador más rápido calcula cada respuesta en menos tiempo."
+target = &"cpu_cap"
+effect_mode = 1
+effect_per_level = 0.5
+max_level = 10
+base_cost = 35
+cost_growth = 1.6
+unlock_stage = 1
+fixes = Array[StringName]([&"cpu"])

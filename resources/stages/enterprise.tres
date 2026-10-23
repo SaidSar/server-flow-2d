@@ -1,14 +1,26 @@
 [gd_resource type="Resource" script_class="StageData" format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="7_wave_script"]
+[ext_resource type="Resource" path="res://resources/waves/enterprise_1.tres" id="2_w1"]
+[ext_resource type="Resource" path="res://resources/waves/enterprise_2.tres" id="3_w2"]
+[ext_resource type="Resource" path="res://resources/waves/enterprise_3.tres" id="4_w3"]
+[ext_resource type="Resource" path="res://resources/waves/enterprise_4.tres" id="5_w4"]
+[ext_resource type="Resource" path="res://resources/waves/enterprise_5.tres" id="6_w5"]
 
 [resource]
 script = ExtResource("1_stage")
 id = &"enterprise"
+number = 3
 display_name = "Enterprise"
 room_name = "Data center"
 room_scene_path = ""
-wave_count = 5
-starting_coins = 2000
-starting_users = 1000
 description = "Operas un data center: alta disponibilidad, seguridad y escala."
+user_goal = 100000
+coin_per_req = 0.5
+investment_coins = 5000
+sla_target = 0.95
+base_rps = 180.0
+gb_per_write = 0.0005
+waves = Array[ExtResource("7_wave_script")]([ExtResource("2_w1"), ExtResource("3_w2"), ExtResource("4_w3"), ExtResource("5_w4"), ExtResource("6_w5")])
+unlocks = Array[StringName]([&"firewall"])
