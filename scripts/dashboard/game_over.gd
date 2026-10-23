@@ -1,6 +1,7 @@
 class_name GameOver
 extends Control
-## Game over: la empresa quebró (SLA en 0) o no llegó a la meta de la etapa.
+## Game over: la empresa quebró porque el SLA llegó a 0.
+## (No llegar a la meta no es quiebra: eso lo muestra GoalMissed.)
 
 signal retry_requested
 signal menu_requested
@@ -21,12 +22,8 @@ func _ready() -> void:
 
 
 func show_report(report: WaveReport, company_name: String) -> void:
-	if report.outcome == WaveReport.Outcome.GOAL_MISSED:
-		_title_label.text = "%s no alcanzó la meta" % company_name
-		_reason_label.text = "Terminaron las oleadas con %d de %d usuarios atendidos." % [report.stage_users_served, report.stage_user_goal]
-	else:
-		_title_label.text = "%s quebró" % company_name
-		_reason_label.text = "El SLA llegó a 0 %: los clientes dejaron de confiar en el servicio."
+	_title_label.text = "%s quebró" % company_name
+	_reason_label.text = "El SLA llegó a 0 %: los clientes dejaron de confiar en el servicio."
 	_summary.show_report(report)
 	show()
 	_retry_button.grab_focus()

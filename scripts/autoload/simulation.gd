@@ -15,6 +15,9 @@ signal wave_started(wave_number: int)
 ## La oleada terminó y la empresa sigue en pie (el post-mortem se muestra con este reporte).
 signal wave_finished(report: WaveReport)
 signal stage_completed(report: WaveReport)
+## Terminaron las oleadas con SLA > 0 pero sin llegar a la meta (no es quiebra).
+signal stage_failed(report: WaveReport)
+## El SLA llegó a 0: la empresa quebró.
 signal game_over(report: WaveReport)
 ## Cambió la infraestructura o las monedas por una compra, un respaldo o el firewall.
 signal infrastructure_changed
@@ -29,7 +32,10 @@ enum Phase {
 	RUNNING,
 	## Terminó una oleada; esperando "Siguiente oleada".
 	BETWEEN_WAVES,
+	## SLA en 0.
 	GAME_OVER,
+	## Terminó la última oleada sin llegar a la meta; esperando "Repetir etapa".
+	STAGE_FAILED,
 }
 
 ## Tope de pasos por frame para que una caída de FPS no congele el juego.
@@ -67,12 +73,18 @@ var last_snapshot := SimSnapshot.new()
 var report: WaveReport
 ## Etapa completada cuya victoria el jugador aún no ha visto (pudo terminar mientras estaba en el garage).
 var pending_stage_report: WaveReport
+## Ronda de inversión que se entrega cuando el jugador acepta la victoria (después del diálogo de Valeria).
+var pending_investment := 0
 var is_saturated := false
 var bottleneck: StringName = &""
 var bottleneck_node: StringName = &""
 
 ## Estado al inicio de la oleada actual. Es lo que se guarda y lo que restaura "Reintentar".
 var _checkpoint: Dictionary = {}
+## Estado al inicio de la etapa actual. Lo restaura "Repetir etapa".
+var _stage_checkpoint: Dictionary = {}
+## Fallos de toda la etapa por causa (para el consejo de "Meta no alcanzada").
+var _stage_failures: Dictionary[StringName, float] = {}
 var _upgrades: Dictionary[StringName, UpgradeData] = {}
 var _rng := RandomNumberGenerator.new()
 var _accumulator := 0.0
@@ -127,8 +139,10 @@ func new_game() -> void:
 	firewall_on = false
 	stage_stats.clear()
 	pending_stage_report = null
+	pending_investment = 0
 	_enter_stage(Paths.STAGE_ORDER[0])
 	_set_phase(Phase.READY)
+	_capture_stage_start()
 	_create_checkpoint()
 
 
@@ -168,9 +182,22 @@ func retry_wave() -> void:
 	start_wave()
 
 
-## El jugador ya vio la pantalla de victoria.
+## Vuelve al inicio de la oleada 1 de la etapa, con las monedas y mejoras con que empezó.
+func repeat_stage() -> void:
+	load_checkpoint(_stage_checkpoint)
+	start_wave()
+
+
+## El jugador ya vio la victoria (y el diálogo de la ronda de inversión): se entregan las monedas.
 func acknowledge_stage_report() -> void:
 	pending_stage_report = null
+	if pending_investment <= 0:
+		return
+	coins += pending_investment
+	pending_investment = 0
+	_capture_stage_start()
+	_create_checkpoint()
+	infrastructure_changed.emit()
 
 
 func set_paused(value: bool) -> void:
@@ -258,9 +285,9 @@ func step() -> void:
 	var ddos_failures := 0.0
 	if fail_rate > 0.0:
 		ddos_failures = timeouts * clampf((fail_rate - _fail_rate(legit_only_u)) / fail_rate, 0.0, 1.0)
-	report.add_failures(&"ddos", ddos_failures)
-	report.add_failures(_overload_cause(web), timeouts - ddos_failures)
-	report.add_failures(&"disk", errors_500)
+	_add_failures(&"ddos", ddos_failures)
+	_add_failures(_overload_cause(web), timeouts - ddos_failures)
+	_add_failures(&"disk", errors_500)
 
 	# 8. Economía
 	_coin_fraction += (green + yellow * 0.5) * stage.coin_per_req
@@ -323,6 +350,13 @@ func _load_server(server: ServerState, legit: float, malicious: float) -> void:
 
 func _peak_utilization(server: ServerState, load_rps: float) -> float:
 	return maxf(load_rps / server.cpu_cap, maxf(load_rps / server.net_cap, load_rps * config.service_time_s / server.ram_slots))
+
+
+func _add_failures(cause: StringName, amount: float) -> void:
+	if amount <= 0.0:
+		return
+	report.add_failures(cause, amount)
+	_stage_failures[cause] = _stage_failures.get(cause, 0.0) + amount
 
 
 static func _fail_rate(utilization: float) -> float:
@@ -389,11 +423,12 @@ func _set_bottleneck(resource: StringName, node: StringName) -> void:
 func _finish_wave() -> void:
 	report.sla_end = sla
 	_fill_stage_totals()
-	if users_served >= stage.user_goal:
-		_complete_stage()
-		return
+	# La etapa se decide al terminar la última oleada: se juegan todas aunque la meta llegue antes.
 	if wave_number >= stage.get_wave_count():
-		_finish_game_over(WaveReport.Outcome.GOAL_MISSED)
+		if users_served >= stage.user_goal:
+			_complete_stage()
+		else:
+			_fail_stage()
 		return
 	report.outcome = WaveReport.Outcome.SURVIVED
 	wave_number += 1
@@ -416,13 +451,21 @@ func _complete_stage() -> void:
 	var next_id := _next_stage_id()
 	# Después de la última etapa se puede volver a jugar desde su primera oleada.
 	_enter_stage(next_id if next_id != &"" else stage.id)
-	if next_id != &"":
-		coins += stage.investment_coins
+	pending_investment = stage.investment_coins if next_id != &"" else 0
 	_set_phase(Phase.READY)
 	_set_bottleneck(&"", &"")
+	_capture_stage_start()
 	_create_checkpoint()
 	pending_stage_report = report
 	stage_completed.emit(report)
+
+
+## Se acabaron las oleadas sin llegar a la meta. No es quiebra: se puede repetir la etapa.
+func _fail_stage() -> void:
+	report.outcome = WaveReport.Outcome.GOAL_MISSED
+	_set_phase(Phase.STAGE_FAILED)
+	_set_bottleneck(&"", &"")
+	stage_failed.emit(report)
 
 
 func _finish_game_over(outcome: WaveReport.Outcome) -> void:
@@ -438,6 +481,7 @@ func _fill_stage_totals() -> void:
 	report.stage_users_served = users_served
 	report.stage_avg_sla = _stage_sla_sum / _stage_time if _stage_time > 0.0 else sla
 	report.stage_avg_latency_ms = _stage_latency_sum / _stage_requests if _stage_requests > 0.0 else 0.0
+	report.stage_failures_by_cause = _stage_failures.duplicate()
 
 
 func _compute_stars(avg_sla: float, avg_latency_ms: float) -> int:
@@ -462,6 +506,7 @@ func _enter_stage(stage_id: StringName) -> void:
 	_stage_time = 0.0
 	_stage_latency_sum = 0.0
 	_stage_requests = 0.0
+	_stage_failures.clear()
 	_rebuild_infrastructure()
 	_reset_utilization()
 
@@ -640,23 +685,64 @@ func load_checkpoint(data: Dictionary) -> void:
 	for key: Variant in stats:
 		if stats[key] is Dictionary:
 			stage_stats[StringName(str(key))] = stats[key]
+	var failures: Dictionary = data.get("stage_failures", {})
+	for cause: Variant in failures:
+		_stage_failures[StringName(str(cause))] = float(failures[cause])
 	_coin_fraction = 0.0
 	_served_fraction = 0.0
 	pending_stage_report = null
+	pending_investment = 0
 	_checkpoint = data.duplicate(true)
+	var stage_start: Dictionary = data.get("stage_start", {})
+	# Sin "stage_start" el propio checkpoint es el inicio de la etapa (o una partida guardada antigua).
+	_stage_checkpoint = stage_start.duplicate(true) if not stage_start.is_empty() else _without_stage_start(data)
+	# Si se cerró el juego antes de aceptar la victoria, la ronda de inversión se entrega aquí.
+	var investment := maxi(int(data.get("pending_investment", 0)), 0)
+	if investment > 0:
+		coins += investment
+		_stage_checkpoint["coins"] = int(_stage_checkpoint.get("coins", 0)) + investment
+		_checkpoint["pending_investment"] = 0
+		_checkpoint["coins"] = coins
 	_set_bottleneck(&"", &"")
 	_set_phase(Phase.READY)
 	infrastructure_changed.emit()
 
 
 func _create_checkpoint() -> void:
+	_checkpoint = _build_checkpoint_data()
+	_checkpoint["stage_start"] = _stage_checkpoint.duplicate(true)
+	_checkpoint["pending_investment"] = pending_investment
+	checkpoint_created.emit()
+
+
+## Guarda el estado actual como inicio de la etapa (para "Repetir etapa").
+func _capture_stage_start() -> void:
+	_stage_checkpoint = _build_checkpoint_data()
+
+
+## Convierte un checkpoint en "inicio de etapa": oleada 1, sin usuarios ni estadísticas de la etapa.
+## Se usa con partidas guardadas que no traen "stage_start".
+func _without_stage_start(data: Dictionary) -> Dictionary:
+	var copy := data.duplicate(true)
+	for key: String in ["stage_start", "pending_investment", "stage_sla_sum", "stage_time", "stage_latency_sum", "stage_requests", "stage_failures"]:
+		copy.erase(key)
+	copy["wave"] = 1
+	copy["users_served"] = 0
+	copy["sla"] = config.start_sla
+	return copy
+
+
+func _build_checkpoint_data() -> Dictionary:
 	var levels: Dictionary = {}
 	for upgrade_id: StringName in upgrade_levels:
 		levels[String(upgrade_id)] = upgrade_levels[upgrade_id]
 	var stats: Dictionary = {}
 	for stage_id: StringName in stage_stats:
 		stats[String(stage_id)] = stage_stats[stage_id].duplicate()
-	_checkpoint = {
+	var failures: Dictionary = {}
+	for cause: StringName in _stage_failures:
+		failures[String(cause)] = _stage_failures[cause]
+	return {
 		"stage": String(stage.id),
 		"wave": wave_number,
 		"coins": coins,
@@ -670,7 +756,7 @@ func _create_checkpoint() -> void:
 		"stage_latency_sum": _stage_latency_sum,
 		"stage_requests": _stage_requests,
 		"stage_stats": stats,
+		"stage_failures": failures,
 	}
-	checkpoint_created.emit()
 
 #endregion

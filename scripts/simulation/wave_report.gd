@@ -22,6 +22,8 @@ const CAUSE_TITLES := {
 	&"ddos": "DDoS",
 }
 const NO_FAILURES_TEXT := "¡Sin fallos! Tu infraestructura aguantó toda la oleada."
+## Consejo de "Meta no alcanzada" cuando casi no hubo fallos.
+const GOAL_ADVICE_TEXT := "Tus servidores aguantaron, pero atendiste pocos usuarios. Mejora antes de los picos para que no se pierda ninguna petición."
 
 var stage_id: StringName
 var wave_number := 1
@@ -47,6 +49,8 @@ var stage_users_served := 0
 var stage_user_goal := 0
 var stage_avg_sla := 0.0
 var stage_avg_latency_ms := 0.0
+## Fallos de toda la etapa por causa.
+var stage_failures_by_cause: Dictionary[StringName, float] = {}
 var stars := 0
 
 
@@ -66,11 +70,25 @@ func add_failures(cause: StringName, amount: float) -> void:
 
 ## Causa con más fallos, o &"" si no hubo fallos que valga la pena reportar.
 func get_main_cause() -> StringName:
+	return _main_cause_of(failures_by_cause)
+
+
+## Causa con más fallos en toda la etapa.
+func get_stage_main_cause() -> StringName:
+	return _main_cause_of(stage_failures_by_cause)
+
+
+## Consejo para "Meta no alcanzada": la explicación de la causa principal de la etapa.
+func get_stage_advice() -> String:
+	return str(CAUSE_EXPLANATIONS.get(get_stage_main_cause(), GOAL_ADVICE_TEXT))
+
+
+static func _main_cause_of(failures: Dictionary[StringName, float]) -> StringName:
 	var main: StringName = &""
 	var most := 0.5
-	for cause: StringName in failures_by_cause:
-		if failures_by_cause[cause] > most:
-			most = failures_by_cause[cause]
+	for cause: StringName in failures:
+		if failures[cause] > most:
+			most = failures[cause]
 			main = cause
 	return main
 
