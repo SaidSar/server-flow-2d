@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dashboard/traffic_node.gd" id="1_node"]
+
+[node name="TrafficNode" type="PanelContainer"]
+custom_minimum_size = Vector2(290, 0)
+mouse_filter = 2
+script = ExtResource("1_node")
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
+theme_override_font_sizes/font_size = 22
+text = "Servidor Web #1"
+
+[node name="SubtitleLabel" type="Label" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541176, 0.607843, 0.709804, 1)
+theme_override_font_sizes/font_size = 17
+text = "1.2 req/s"
+
+[node name="MetricsBox" type="VBoxContainer" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6

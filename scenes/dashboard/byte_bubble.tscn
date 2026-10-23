@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dashboard/byte_bubble.gd" id="1_byte"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/byte.svg" id="2_byte"]
+
+[node name="ByteBubble" type="PanelContainer"]
+custom_minimum_size = Vector2(620, 0)
+script = ExtResource("1_byte")
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Avatar" type="TextureRect" parent="Row"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+texture = ExtResource("2_byte")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Text" type="VBoxContainer" parent="Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Row/Text"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "BYTE"
+
+[node name="TextLabel" type="Label" parent="Row/Text"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
+theme_override_font_sizes/font_size = 20
+text = "¡Hola! Soy BYTE."
+autowrap_mode = 3
+
+[node name="CloseButton" type="Button" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Cerrar"
+theme_override_font_sizes/font_size = 22
+text = "OK"

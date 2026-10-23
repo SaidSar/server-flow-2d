@@ -1,96 +1,302 @@
 extends Control
-## Panel de control (placeholder). Muestra la carga del servidor y regresa al cuarto.
+## Panel de control (el monitor de la PC de Alex): HUD, monitor de tráfico y consola de mejoras.
+## Solo escucha a Simulation y le manda órdenes (comprar, siguiente oleada...); no calcula nada.
 
-const METRIC_TITLES := {&"cpu": "CPU", &"ram": "RAM", &"network": "Red", &"disk": "Disco"}
-const OK_COLOR := Color(0.3, 0.73, 0.43)
-const SATURATED_COLOR := Color(0.88, 0.33, 0.29)
-const INTRO_SECONDS := 0.3
+const UPGRADE_BUTTON_SCENE := preload("res://scenes/dashboard/upgrade_button.tscn")
+const SPEEDS: Array[float] = [1.0, 2.0]
+const BACK_FADE_SECONDS := 0.15
+const RESOURCE_NAMES := {
+	&"cpu": "CPU",
+	&"ram": "RAM",
+	&"net": "Red",
+	&"db": "Consultas",
+	&"disk": "Disco",
+}
+const LEGEND := [
+	[DashboardColors.OK, "200 OK"],
+	[DashboardColors.WARNING, "Latencia alta"],
+	[DashboardColors.DANGER, "Timeout / Error 500"],
+	[DashboardColors.MALICIOUS, "Tráfico malicioso (DDoS)"],
+]
+const SLA_GOOD := 80.0
+const SLA_WARNING := 50.0
 
-@onready var _window: Control = %Window
-@onready var _metrics_box: VBoxContainer = %MetricsBox
+## Recursos de los que BYTE ya avisó en esta sesión del juego (solo la primera vez que pasan de 85 %).
+static var _warned_resources: Dictionary[StringName, bool] = {}
+
+@onready var _title_label: Label = %TitleLabel
+@onready var _wave_label: Label = %WaveLabel
+@onready var _coins_label: Label = %CoinsLabel
+@onready var _users_label: Label = %UsersLabel
+@onready var _sla_label: Label = %SlaLabel
+@onready var _sla_bar: ProgressBar = %SlaBar
+@onready var _speed_button: Button = %SpeedButton
 @onready var _back_button: Button = %BackButton
+@onready var _top_bar: PanelContainer = %TopBar
+@onready var _monitor_panel: PanelContainer = %MonitorPanel
+@onready var _console_panel: PanelContainer = %ConsolePanel
+@onready var _bottleneck_label: Label = %BottleneckLabel
+@onready var _legend_box: HBoxContainer = %LegendBox
+@onready var _byte: ByteBubble = %ByteBubble
+@onready var _upgrade_grid: GridContainer = %UpgradeGrid
+@onready var _firewall_check: CheckButton = %FirewallCheck
+@onready var _postmortem: Postmortem = %Postmortem
+@onready var _game_over: GameOver = %GameOver
+@onready var _victory: Victory = %Victory
 
-## Recurso → [ProgressBar, Label de valor].
-var _metric_rows: Dictionary[StringName, Array] = {}
-var _ok_style := _make_fill_style(OK_COLOR)
-var _saturated_style := _make_fill_style(SATURATED_COLOR)
+var _upgrade_buttons: Array[UpgradeButton] = []
+var _sla_fill := DashboardColors.bar_style(DashboardColors.OK)
 
 
 func _ready() -> void:
-	Simulation.start()
-	_build_metrics()
-	_back_button.pressed.connect(_on_back_pressed)
-	Simulation.tick.connect(_on_simulation_tick)
-	_refresh_metrics()
-	_back_button.grab_focus()
-	_play_intro()
+	# Abrir esta escena sola (F6) arranca una partida de prueba.
+	if not Simulation.has_session():
+		Simulation.new_game()
+
+	_top_bar.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 14.0))
+	_monitor_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 6.0))
+	_console_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 16.0))
+	_sla_bar.add_theme_stylebox_override(&"fill", _sla_fill)
+	_sla_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
+	_build_legend()
+	_build_console()
+
+	Simulation.tick.connect(_on_tick)
+	Simulation.bottleneck_changed.connect(_on_bottleneck_changed)
+	Simulation.wave_started.connect(_on_wave_started)
+	Simulation.wave_finished.connect(_on_wave_finished)
+	Simulation.stage_completed.connect(_on_stage_completed)
+	Simulation.game_over.connect(_on_game_over)
+	Simulation.infrastructure_changed.connect(_refresh)
+	Simulation.phase_changed.connect(_on_phase_changed)
+	_speed_button.pressed.connect(_on_speed_pressed)
+	_back_button.pressed.connect(_go_to_room)
+	_firewall_check.toggled.connect(Simulation.set_firewall_on)
+	_postmortem.next_wave_requested.connect(_on_next_wave_requested)
+	_postmortem.room_requested.connect(_go_to_room)
+	_game_over.retry_requested.connect(_on_retry_requested)
+	_game_over.menu_requested.connect(_on_menu_requested)
+	_victory.continue_requested.connect(_on_victory_continue)
+
+	_on_bottleneck_changed(Simulation.bottleneck, Simulation.bottleneck_node)
+	_refresh()
+	_resume()
+
+
+func _process(_delta: float) -> void:
+	if _bottleneck_label.visible:
+		_bottleneck_label.modulate.a = 0.6 + 0.4 * sin(Time.get_ticks_msec() * 0.006)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(&"ui_cancel"):
-		_on_back_pressed()
+	if event.is_action_pressed(&"ui_cancel") and not _game_over.visible and not _victory.visible:
+		_go_to_room()
 		get_viewport().set_input_as_handled()
 
 
-func _build_metrics() -> void:
-	for resource_id: StringName in ServerState.RESOURCE_IDS:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override(&"separation", 24)
-		var title := Label.new()
-		title.text = str(METRIC_TITLES.get(resource_id, resource_id))
-		title.custom_minimum_size = Vector2(140, 0)
-		row.add_child(title)
-		var bar := ProgressBar.new()
-		bar.custom_minimum_size = Vector2(0, 36)
-		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		bar.show_percentage = false
-		row.add_child(bar)
-		var value_label := Label.new()
-		value_label.custom_minimum_size = Vector2(120, 0)
-		value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		row.add_child(value_label)
-		_metrics_box.add_child(row)
-		_metric_rows[resource_id] = [bar, value_label]
-
-
-func _on_simulation_tick(_tick_index: int) -> void:
-	_refresh_metrics()
-
-
-func _refresh_metrics() -> void:
-	if Simulation.servers.is_empty():
+## Retoma lo que estaba pasando al abrir el dashboard (la simulación sigue aunque estés en el garage).
+func _resume() -> void:
+	if Simulation.pending_stage_report != null:
+		_show_victory(Simulation.pending_stage_report)
 		return
-	var server := Simulation.servers[0]
-	for resource_id: StringName in _metric_rows:
-		var value := server.get_load(resource_id)
-		var bar: ProgressBar = _metric_rows[resource_id][0]
-		var value_label: Label = _metric_rows[resource_id][1]
-		bar.value = value
-		var saturated := value > Simulation.SATURATION_THRESHOLD
-		bar.add_theme_stylebox_override(&"fill", _saturated_style if saturated else _ok_style)
-		value_label.text = "%d %%" % roundi(value)
+	match Simulation.phase:
+		Simulation.Phase.READY:
+			Simulation.start_wave()
+		Simulation.Phase.BETWEEN_WAVES:
+			_show_postmortem(Simulation.report)
+		Simulation.Phase.GAME_OVER:
+			_game_over.show_report(Simulation.report, GameState.company_name)
 
 
-func _on_back_pressed() -> void:
+#region HUD
+
+func _on_tick(_snapshot: SimSnapshot) -> void:
+	_refresh()
+
+
+func _refresh() -> void:
+	var stage := Simulation.stage
+	var company := GameState.company_name if not GameState.company_name.is_empty() else Hud.DEFAULT_COMPANY_NAME
+	_title_label.text = "%s · %s" % [company, stage.display_name]
+	var wave_text := "Oleada %d/%d" % [Simulation.wave_number, Simulation.get_wave_count()]
+	if Simulation.phase == Simulation.Phase.RUNNING:
+		wave_text += " · %d s" % maxi(ceili(Simulation.wave.duration_s - Simulation.wave_time), 0)
+	_wave_label.text = wave_text
+	_coins_label.text = "Monedas: %d" % Simulation.coins
+	_users_label.text = "Usuarios: %d / %d" % [Simulation.users_served, stage.user_goal]
+	_sla_label.text = "SLA %.1f %%" % Simulation.sla
+	_sla_bar.value = Simulation.sla
+	if Simulation.sla >= SLA_GOOD:
+		_sla_fill.bg_color = DashboardColors.OK
+	elif Simulation.sla >= SLA_WARNING:
+		_sla_fill.bg_color = DashboardColors.WARNING
+	else:
+		_sla_fill.bg_color = DashboardColors.DANGER
+	_speed_button.text = "%d×" % roundi(Simulation.speed)
+	_firewall_check.visible = Simulation.has_firewall
+	_firewall_check.set_pressed_no_signal(Simulation.firewall_on)
+	for button: UpgradeButton in _upgrade_buttons:
+		button.refresh()
+
+
+func _on_phase_changed(_phase: Simulation.Phase) -> void:
+	_refresh()
+
+
+func _on_speed_pressed() -> void:
+	var index := SPEEDS.find(Simulation.speed)
+	Simulation.set_speed(SPEEDS[(index + 1) % SPEEDS.size()])
+	_refresh()
+
+#endregion
+
+
+#region Monitor y BYTE
+
+func _build_legend() -> void:
+	for entry: Array in LEGEND:
+		var dot := Panel.new()
+		dot.custom_minimum_size = Vector2(18, 18)
+		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var style := StyleBoxFlat.new()
+		style.bg_color = entry[0]
+		style.set_corner_radius_all(9)
+		dot.add_theme_stylebox_override(&"panel", style)
+		_legend_box.add_child(dot)
+		var label := Label.new()
+		label.text = entry[1]
+		label.add_theme_font_size_override(&"font_size", 18)
+		label.add_theme_color_override(&"font_color", DashboardColors.TEXT_MUTED)
+		_legend_box.add_child(label)
+
+
+func _on_bottleneck_changed(resource: StringName, node: StringName) -> void:
+	_bottleneck_label.visible = resource != &""
+	if resource == &"":
+		_highlight_fixes(&"")
+		return
+	_bottleneck_label.text = _bottleneck_text(resource, node)
+	_highlight_fixes(resource)
+	if not _warned_resources.has(resource):
+		_warned_resources[resource] = true
+		_byte.say(_byte_warning(resource))
+
+
+func _bottleneck_text(resource: StringName, node: StringName) -> String:
+	if resource == &"ddos":
+		return "⚠ Ataque DDoS: tráfico malicioso saturando los servidores web"
+	var node_name := "de la base de datos"
+	if node == Simulation.NODE_WEB:
+		node_name = "de los servidores web" if Simulation.servers.size() > 1 else "del Servidor Web #1"
+	return "⚠ Cuello de botella: %s %s" % [RESOURCE_NAMES.get(resource, resource), node_name]
+
+
+func _byte_warning(resource: StringName) -> String:
+	var fixes := PackedStringArray()
+	for upgrade: UpgradeData in Simulation.get_upgrades():
+		if resource in upgrade.fixes and Simulation.is_unlocked(upgrade):
+			fixes.append(upgrade.display_name)
+	if resource == &"ddos":
+		return "¡Tráfico malicioso! Los paquetes morados son un ataque DDoS. %s" % (
+			"Enciende el Firewall para bloquearlos." if Simulation.has_firewall else "Instala el Firewall para bloquearlos.")
+	var advice := " Compra %s en la consola." % " o ".join(fixes) if not fixes.is_empty() else ""
+	return "%s pasó del 85 %%: es el cuello de botella.%s" % [RESOURCE_NAMES.get(resource, resource), advice]
+
+
+func _on_wave_started(_wave_number: int) -> void:
+	_postmortem.hide()
+	_game_over.hide()
+	_byte.say(Simulation.wave.tutorial_text)
+	_refresh()
+
+#endregion
+
+
+#region Consola
+
+func _build_console() -> void:
+	for upgrade: UpgradeData in Simulation.get_upgrades():
+		var button := UPGRADE_BUTTON_SCENE.instantiate() as UpgradeButton
+		_upgrade_grid.add_child(button)
+		button.setup(upgrade)
+		button.purchase_requested.connect(_on_purchase_requested)
+		_upgrade_buttons.append(button)
+
+
+func _highlight_fixes(resource: StringName) -> void:
+	for button: UpgradeButton in _upgrade_buttons:
+		button.set_highlighted(resource != &"" and resource in button.upgrade.fixes and Simulation.is_unlocked(button.upgrade))
+
+
+func _on_purchase_requested(upgrade_id: StringName) -> void:
+	Simulation.purchase(upgrade_id)
+
+
+func get_upgrade_button(upgrade_id: StringName) -> UpgradeButton:
+	for button: UpgradeButton in _upgrade_buttons:
+		if button.upgrade.id == upgrade_id:
+			return button
+	return null
+
+#endregion
+
+
+#region Fin de oleada
+
+func _on_wave_finished(report: WaveReport) -> void:
+	_show_postmortem(report)
+
+
+func _show_postmortem(report: WaveReport) -> void:
+	_byte.clear()
+	_postmortem.show_report(report, Simulation.wave_number, Simulation.get_wave_count())
+
+
+func _on_next_wave_requested() -> void:
+	Simulation.start_wave()
+
+
+func _on_game_over(report: WaveReport) -> void:
+	_byte.clear()
+	_game_over.show_report(report, GameState.company_name if not GameState.company_name.is_empty() else Hud.DEFAULT_COMPANY_NAME)
+
+
+func _on_retry_requested() -> void:
+	Simulation.retry_wave()
+
+
+func _on_menu_requested() -> void:
+	SceneRouter.goto(Paths.TITLE_MENU)
+
+
+func _on_stage_completed(report: WaveReport) -> void:
+	_show_victory(report)
+
+
+func _show_victory(report: WaveReport) -> void:
+	_byte.clear()
+	_postmortem.hide()
+	var completed_stage := Simulation.load_stage(report.stage_id)
+	var unlock_names := PackedStringArray()
+	var investment := 0
+	if Simulation.stage.id != report.stage_id:
+		investment = Simulation.stage.investment_coins
+		for upgrade_id: StringName in Simulation.stage.unlocks:
+			var upgrade := Simulation.get_upgrade(upgrade_id)
+			if upgrade != null:
+				unlock_names.append(upgrade.display_name)
+	_victory.show_report(report, completed_stage.display_name, unlock_names, investment)
+
+
+func _on_victory_continue() -> void:
+	Simulation.acknowledge_stage_report()
+	_go_to_room()
+
+#endregion
+
+
+func _go_to_room() -> void:
 	if SceneRouter.is_changing():
 		return
-	_back_button.disabled = true
 	SceneRouter.returning_from_dashboard = true
-	SceneRouter.goto_current_room(RoomBase.DASHBOARD_FADE_SECONDS)
-
-
-func _play_intro() -> void:
-	_window.pivot_offset = _window.size * 0.5
-	_window.scale = Vector2(0.9, 0.9)
-	_window.modulate.a = 0.0
-	var tween := create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(_window, "scale", Vector2.ONE, INTRO_SECONDS)
-	tween.tween_property(_window, "modulate:a", 1.0, INTRO_SECONDS)
-
-
-static func _make_fill_style(color: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.set_corner_radius_all(6)
-	return style
+	SceneRouter.goto_current_room(BACK_FADE_SECONDS)
