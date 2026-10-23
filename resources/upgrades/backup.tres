@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"backup"
+display_name = "Respaldo"
+short_effect = "Libera 40 % del disco"
+description = "Mueve datos viejos a un respaldo y libera espacio. Recarga de 20 s."
+concept = "Respaldos: mover datos viejos a otro lugar libera espacio y te protege si algo falla."
+target = &"backup"
+effect_mode = 0
+effect_per_level = 0.0
+max_level = 0
+base_cost = 15
+cost_growth = 1.0
+unlock_stage = 1
+fixes = Array[StringName]([&"disk"])

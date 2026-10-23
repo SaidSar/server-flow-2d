@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dashboard/report_summary.gd" id="1_summary"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cause"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(0.0431373, 0.0666667, 0.109804, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="ReportSummary" type="VBoxContainer"]
+theme_override_constants/separation = 16
+script = ExtResource("1_summary")
+
+[node name="StatsGrid" type="GridContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 40
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="CauseBox" type="PanelContainer" parent="."]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cause")
+
+[node name="Content" type="VBoxContainer" parent="CauseBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CauseTitle" type="Label" parent="CauseBox/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.301961, 0.368627, 1)
+theme_override_font_sizes/font_size = 24
+text = "Causa principal: Red"
+
+[node name="CauseText" type="Label" parent="CauseBox/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
+theme_override_font_sizes/font_size = 21
+text = "El ancho de banda se saturó: los paquetes hicieron fila."
+autowrap_mode = 3

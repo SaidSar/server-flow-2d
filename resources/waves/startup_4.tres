@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WaveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wave"]
+
+[resource]
+script = ExtResource("1_wave")
+duration_s = 80.0
+ramp = Vector2(2.5, 3.1)
+spikes = Array[Vector3]([Vector3(30, 15, 1.2)])
+ddos = Array[Vector3]([])
+tutorial_text = "Campaña en redes sociales: el tráfico crece rápido. Mantén todo debajo del 85 %."

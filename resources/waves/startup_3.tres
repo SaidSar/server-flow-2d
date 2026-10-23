@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WaveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wave"]
+
+[resource]
+script = ExtResource("1_wave")
+duration_s = 75.0
+ramp = Vector2(1.9, 2.5)
+spikes = Array[Vector3]([Vector3(20, 10, 0.8), Vector3(55, 12, 1)])
+ddos = Array[Vector3]([])
+tutorial_text = "Cada escritura ocupa espacio en el disco de la BD. Si se llena, las escrituras fallan: usa Respaldo o Ampliar disco."

@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/characters/avatar.tscn" id="2_avatar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/customize_panel.tscn" id="4_customize"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_button.tscn" id="5_settings"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pc"]
 size = Vector2(128, 128)
@@ -63,4 +64,7 @@ zoom = Vector2(1.5, 1.5)
 unique_name_in_owner = true
 
 [node name="CustomizePanel" parent="." instance=ExtResource("4_customize")]
+unique_name_in_owner = true
+
+[node name="SettingsButton" parent="." instance=ExtResource("5_settings")]
 unique_name_in_owner = true

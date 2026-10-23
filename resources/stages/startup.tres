@@ -1,14 +1,26 @@
 [gd_resource type="Resource" script_class="StageData" format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="7_wave_script"]
+[ext_resource type="Resource" path="res://resources/waves/startup_1.tres" id="2_w1"]
+[ext_resource type="Resource" path="res://resources/waves/startup_2.tres" id="3_w2"]
+[ext_resource type="Resource" path="res://resources/waves/startup_3.tres" id="4_w3"]
+[ext_resource type="Resource" path="res://resources/waves/startup_4.tres" id="5_w4"]
+[ext_resource type="Resource" path="res://resources/waves/startup_5.tres" id="6_w5"]
 
 [resource]
 script = ExtResource("1_stage")
 id = &"startup"
+number = 1
 display_name = "Startup"
 room_name = "Garage"
 room_scene_path = "res://scenes/rooms/garage.tscn"
-wave_count = 5
-starting_coins = 100
-starting_users = 10
 description = "Tu empresa nace en un garage con un solo servidor."
+user_goal = 1000
+coin_per_req = 0.57
+investment_coins = 0
+sla_target = 0.95
+base_rps = 2.1
+gb_per_write = 0.017
+waves = Array[ExtResource("7_wave_script")]([ExtResource("2_w1"), ExtResource("3_w2"), ExtResource("4_w3"), ExtResource("5_w4"), ExtResource("6_w5")])
+unlocks = Array[StringName]([&"ram", &"cpu", &"bandwidth", &"ssd", &"disk_expansion", &"backup"])

@@ -53,7 +53,6 @@ func _ready() -> void:
 	_customize_panel.opened.connect(_on_customize_opened)
 	_customize_panel.closed.connect(_on_customize_closed)
 
-	Simulation.start()
 	if SceneRouter.returning_from_dashboard:
 		SceneRouter.returning_from_dashboard = false
 		_zoom_out_from_monitor()

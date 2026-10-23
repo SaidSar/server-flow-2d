@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"bandwidth"
+display_name = "Ancho de banda"
+short_effect = "+50 % red"
+description = "Una conexión más ancha deja pasar más tráfico."
+concept = "Ancho de banda: cuántos datos caben por segundo en la conexión."
+target = &"net_cap"
+effect_mode = 1
+effect_per_level = 0.5
+max_level = 10
+base_cost = 25
+cost_growth = 1.6
+unlock_stage = 1
+fixes = Array[StringName]([&"net"])

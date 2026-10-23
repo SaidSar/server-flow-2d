@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WaveData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="1_wave"]
+
+[resource]
+script = ExtResource("1_wave")
+duration_s = 110.0
+ramp = Vector2(0.7, 1.0)
+spikes = Array[Vector3]([Vector3(30, 15, 0.5)])
+ddos = Array[Vector3]([Vector3(50, 25, 1.2)])
+tutorial_text = ""
