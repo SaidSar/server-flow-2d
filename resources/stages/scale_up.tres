@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+
+[resource]
+script = ExtResource("1_stage")
+id = &"scale_up"
+display_name = "Scale-up"
+room_name = "Oficina"
+room_scene_path = ""
+wave_count = 5
+starting_coins = 500
+starting_users = 100
+description = "La empresa crece: más usuarios, más servidores y una oficina de verdad."

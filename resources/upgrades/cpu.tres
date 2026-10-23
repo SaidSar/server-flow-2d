@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"cpu"
+display_name = "Procesador (CPU)"
+description = "Un procesador más rápido calcula cada respuesta en menos tiempo."
+cost = 200
+target = &"cpu"
+amount = 15.0
+required_stage = &"startup"

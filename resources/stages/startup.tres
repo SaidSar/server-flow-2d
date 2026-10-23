@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+
+[resource]
+script = ExtResource("1_stage")
+id = &"startup"
+display_name = "Startup"
+room_name = "Garage"
+room_scene_path = "res://scenes/rooms/garage.tscn"
+wave_count = 5
+starting_coins = 100
+starting_users = 10
+description = "Tu empresa nace en un garage con un solo servidor."

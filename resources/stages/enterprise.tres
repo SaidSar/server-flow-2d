@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StageData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+
+[resource]
+script = ExtResource("1_stage")
+id = &"enterprise"
+display_name = "Enterprise"
+room_name = "Data center"
+room_scene_path = ""
+wave_count = 5
+starting_coins = 2000
+starting_users = 1000
+description = "Operas un data center: alta disponibilidad, seguridad y escala."

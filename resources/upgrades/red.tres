@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"red"
+display_name = "Ancho de banda"
+description = "Más ancho de banda deja pasar más tráfico hacia y desde tu servidor."
+cost = 180
+target = &"network"
+amount = 15.0
+required_stage = &"startup"

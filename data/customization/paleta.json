@@ -1,0 +1,136 @@
+{
+ "canvas_2x": [
+  1592,
+  1318
+ ],
+ "paleta": {
+  "pared": [
+   {
+    "id": "verde_salvia",
+    "nombre": "Verde salvia",
+    "color": "#8fa77a"
+   },
+   {
+    "id": "gris_calido",
+    "nombre": "Gris cálido",
+    "color": "#b9b2a6"
+   },
+   {
+    "id": "blanco_hueso",
+    "nombre": "Blanco hueso",
+    "color": "#e6e1d4"
+   },
+   {
+    "id": "azul_acero",
+    "nombre": "Azul acero",
+    "color": "#7d93ad"
+   },
+   {
+    "id": "azul_marino",
+    "nombre": "Azul marino",
+    "color": "#3e5272"
+   },
+   {
+    "id": "terracota",
+    "nombre": "Terracota",
+    "color": "#c07a5a"
+   },
+   {
+    "id": "mostaza",
+    "nombre": "Mostaza",
+    "color": "#d1a646"
+   },
+   {
+    "id": "menta",
+    "nombre": "Menta",
+    "color": "#9fcdb8"
+   },
+   {
+    "id": "lavanda",
+    "nombre": "Lavanda",
+    "color": "#a99cc8"
+   },
+   {
+    "id": "grafito",
+    "nombre": "Grafito",
+    "color": "#4a4f5a"
+   }
+  ],
+  "piso": [
+   {
+    "id": "concreto_gris",
+    "nombre": "Concreto gris",
+    "color": "#9aa0a6"
+   },
+   {
+    "id": "concreto_calido",
+    "nombre": "Concreto cálido",
+    "color": "#b3aa9c"
+   },
+   {
+    "id": "concreto_oscuro",
+    "nombre": "Concreto pulido oscuro",
+    "color": "#6e747c"
+   }
+  ],
+  "puerta": [
+   {
+    "id": "blanca",
+    "nombre": "Blanca",
+    "color": "#e8e8e8"
+   },
+   {
+    "id": "madera_natural",
+    "nombre": "Madera natural",
+    "color": "#b5773f"
+   },
+   {
+    "id": "madera_oscura",
+    "nombre": "Madera oscura",
+    "color": "#6b4a2f"
+   },
+   {
+    "id": "negra",
+    "nombre": "Negro mate",
+    "color": "#2b2f36"
+   },
+   {
+    "id": "roja",
+    "nombre": "Rojo",
+    "color": "#b8433a"
+   },
+   {
+    "id": "petroleo",
+    "nombre": "Azul petróleo",
+    "color": "#2f6f7a"
+   }
+  ],
+  "mesa": [
+   {
+    "id": "roble",
+    "nombre": "Roble",
+    "color": "#b5773f"
+   },
+   {
+    "id": "nogal",
+    "nombre": "Nogal",
+    "color": "#6b4a2f"
+   },
+   {
+    "id": "blanca",
+    "nombre": "Blanca",
+    "color": "#e9e4d8"
+   }
+  ]
+ },
+ "orden_capas": [
+  "piso",
+  "pared_izq",
+  "pared_der",
+  "puerta",
+  "rack",
+  "mesa",
+  "alex",
+  "cajas"
+ ]
+}
