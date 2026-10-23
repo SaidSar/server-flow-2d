@@ -1,14 +1,26 @@
 [gd_resource type="Resource" script_class="StageData" format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/stage_data.gd" id="1_stage"]
+[ext_resource type="Script" path="res://scripts/resources/wave_data.gd" id="7_wave_script"]
+[ext_resource type="Resource" path="res://resources/waves/scale_up_1.tres" id="2_w1"]
+[ext_resource type="Resource" path="res://resources/waves/scale_up_2.tres" id="3_w2"]
+[ext_resource type="Resource" path="res://resources/waves/scale_up_3.tres" id="4_w3"]
+[ext_resource type="Resource" path="res://resources/waves/scale_up_4.tres" id="5_w4"]
+[ext_resource type="Resource" path="res://resources/waves/scale_up_5.tres" id="6_w5"]
 
 [resource]
 script = ExtResource("1_stage")
 id = &"scale_up"
+number = 2
 display_name = "Scale-up"
 room_name = "Oficina"
 room_scene_path = ""
-wave_count = 5
-starting_coins = 500
-starting_users = 100
 description = "La empresa crece: más usuarios, más servidores y una oficina de verdad."
+user_goal = 10000
+coin_per_req = 1.0
+investment_coins = 1500
+sla_target = 0.95
+base_rps = 24.0
+gb_per_write = 0.004
+waves = Array[ExtResource("7_wave_script")]([ExtResource("2_w1"), ExtResource("3_w2"), ExtResource("4_w3"), ExtResource("5_w4"), ExtResource("6_w5")])
+unlocks = Array[StringName]([&"cache", &"web_server"])

@@ -1,11 +1,21 @@
 extends SceneTree
-## Prueba de humo: instancia todas las escenas y recorre la lógica principal sin ventana.
+## Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana:
+## título → nombres → garage → pincel → PC → dashboard (ajustes, ficha de mejora, comprar) → post-mortem
+## → siguiente oleada → game over → reintentar → cuarto (ajustes) → Salir → continuar
+## → meta no alcanzada → repetir etapa → victoria → diálogo de Valeria.
 ## Uso: godot --headless --path . -s res://tests/smoke_test.gd
 ## Usa un archivo de guardado propio para no tocar la partida real.
 ## Nota: con -s los autoloads se registran después de compilar este script, así que aquí
 ## no se usan como identificadores globales ni se tipan clases que dependan de ellos.
 
 const TEST_SAVE_PATH := "user://smoke_test_save.cfg"
+const TEST_SETTINGS_PATH := "user://smoke_test_settings.cfg"
+const PHASE_READY := 1
+const PHASE_RUNNING := 2
+const PHASE_GAME_OVER := 4
+const PHASE_STAGE_FAILED := 5
+## Tope de pasos para terminar una oleada en la prueba.
+const MAX_WAVE_STEPS := 5000
 const SCENES: Array[String] = [
 	Paths.TITLE_MENU,
 	Paths.LOADING_SCREEN,
@@ -15,6 +25,18 @@ const SCENES: Array[String] = [
 	"res://scenes/ui/customize_panel.tscn",
 	"res://scenes/characters/avatar.tscn",
 	"res://scenes/rooms/garage.tscn",
+	"res://scenes/dashboard/postmortem.tscn",
+	"res://scenes/dashboard/game_over.tscn",
+	"res://scenes/dashboard/victory.tscn",
+	"res://scenes/dashboard/upgrade_button.tscn",
+	"res://scenes/dashboard/traffic_node.tscn",
+	"res://scenes/dashboard/byte_bubble.tscn",
+	"res://scenes/dashboard/goal_missed.tscn",
+	"res://scenes/dashboard/upgrade_info_card.tscn",
+	"res://scenes/dashboard/upgrade_info_panel.tscn",
+	"res://scenes/ui/dialog_box.tscn",
+	"res://scenes/ui/settings_menu.tscn",
+	"res://scenes/ui/settings_button.tscn",
 ]
 
 var _failures: Array[String] = []
@@ -31,6 +53,9 @@ func _run() -> void:
 	var customization: Node = root.get_node("Customization")
 	save_system.set("save_path", TEST_SAVE_PATH)
 	save_system.call("delete_save")
+	var settings: Node = root.get_node("Settings")
+	settings.set("settings_path", TEST_SETTINGS_PATH)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS_PATH))
 
 	# Catálogo
 	_check(customization.call("get_options", &"pared_izq").size() == 10, "10 colores de pared izquierda")
@@ -78,8 +103,8 @@ func _run() -> void:
 	game_state.call("set_color", &"pared_izq", &"lavanda")
 	_check(wall.texture.resource_path.ends_with("pared_izq/lavanda.png"), "la pared cambia en vivo")
 
-	simulation.call("stop")
-	simulation.call("set_overload", true)
+	simulation.call("start_wave")
+	simulation.set("overload_enabled", true)
 	for i in 15:
 		simulation.call("step")
 	var rack: Sprite2D = garage.get_node("%Rack")
@@ -87,7 +112,9 @@ func _run() -> void:
 	_check(simulation.get("is_saturated"), "la sobrecarga satura el servidor")
 	_check(rack.texture.resource_path.ends_with("rack_saturado.png"), "rack saturado")
 	_check(avatar.is_stressed(), "Alex estresado")
-	simulation.call("set_overload", false)
+	simulation.set("overload_enabled", false)
+	# La oleada 1 empieza con la red al 90 % (tutorial): con Ancho de banda baja de 85 %.
+	_check(simulation.call("purchase", &"bandwidth"), "comprar Ancho de banda desde código")
 	for i in 30:
 		simulation.call("step")
 	_check(not simulation.get("is_saturated"), "la carga regresa a normal")
@@ -107,9 +134,11 @@ func _run() -> void:
 	_check(not prompt.is_value_valid(), "solo espacios no es válido")
 	prompt.queue_free()
 
-	await _test_full_flow(game_state, save_system)
+	await _test_full_flow(game_state, save_system, simulation)
 
 	save_system.call("delete_save")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS_PATH))
+	paused = false
 	await process_frame
 	if _failures.is_empty():
 		print("SMOKE TEST OK")
@@ -120,7 +149,7 @@ func _run() -> void:
 
 
 ## Recorre el flujo real con las escenas y botones: título → nombres → garage → dashboard → título.
-func _test_full_flow(game_state: Node, save_system: Node) -> void:
+func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> void:
 	save_system.call("delete_save")
 	change_scene_to_file(Paths.TITLE_MENU)
 	_check(await _wait_for_scene(&"TitleMenu"), "abre el menú de título")
@@ -168,12 +197,76 @@ func _test_full_flow(game_state: Node, save_system: Node) -> void:
 	click.pressed = true
 	(garage.get_node("%PcArea") as Area2D).input_event.emit(root, click, 0)
 	_check(await _wait_for_scene(&"Dashboard"), "clic en la PC abre el dashboard")
+	await _test_dashboard(current_scene, simulation)
+
 	(current_scene.get_node("%BackButton") as Button).pressed.emit()
 	_check(await _wait_for_scene(&"Garage"), "Volver al cuarto regresa al garage")
+	_check(simulation.get("phase") == PHASE_RUNNING, "la simulación sigue corriendo en el garage (fase %d, oleada %d, SLA %.1f)" % [simulation.get("phase"), simulation.get("wave_number"), simulation.get("sla")])
 
-	change_scene_to_file(Paths.TITLE_MENU)
-	_check(await _wait_for_scene(&"TitleMenu"), "regresa al título")
-	_check(not (current_scene.get_node("%ContinueButton") as Button).disabled, "Continuar habilitado con partida")
+	_test_settings_in_room(current_scene)
+	_check(await _wait_for_scene(&"TitleMenu"), "Salir lleva al menú de título")
+	var continue_button := current_scene.get_node("%ContinueButton") as Button
+	_check(not continue_button.disabled, "Continuar habilitado con partida")
+	continue_button.pressed.emit()
+	_check(await _wait_for_scene(&"Garage"), "Continuar abre el garage")
+	_check(simulation.get("phase") == PHASE_READY and simulation.get("wave_number") == 2, "Continuar vuelve al inicio de la oleada 2")
+	_check(simulation.call("get_level", &"bandwidth") == 1, "Continuar conserva las mejoras")
+
+	await _test_goal_missed(simulation)
+	await _test_victory_and_investment(simulation)
+
+
+## Dashboard: comprar, terminar la oleada (acelerada), post-mortem, siguiente oleada, game over y reintentar.
+func _test_dashboard(dashboard: Node, simulation: Node) -> void:
+	_check(simulation.get("phase") == PHASE_RUNNING and simulation.get("wave_number") == 1, "el dashboard inicia la oleada 1")
+	var monitor: Node = dashboard.get_node("%TrafficMonitor")
+	_check(monitor.call("get_server_count") == 1, "el monitor muestra 1 servidor")
+	var byte: Control = dashboard.get_node("%ByteBubble")
+	_check(byte.visible and str(byte.call("get_text")).contains("BYTE"), "BYTE da el tutorial de la oleada 1")
+	await _test_settings_in_dashboard(dashboard, simulation)
+	await _test_upgrade_info(dashboard, simulation)
+	await create_timer(0.6).timeout
+	_check(monitor.call("get_packet_count") > 0, "viajan paquetes por el monitor")
+
+	var coins: int = simulation.get("coins")
+	var bandwidth: Button = dashboard.call("get_upgrade_button", &"bandwidth")
+	_check(bandwidth.call("is_highlighted"), "el botón del cuello de botella (Ancho de banda) está resaltado")
+	_check(not bandwidth.disabled, "Ancho de banda se puede comprar")
+	bandwidth.pressed.emit()
+	_check(simulation.call("get_level", &"bandwidth") == 1 and simulation.get("coins") < coins, "comprar Ancho de banda desde la consola")
+	var cache: Button = dashboard.call("get_upgrade_button", &"cache")
+	_check(cache.disabled, "Optimizar caché está bloqueada en la etapa 1")
+
+	_finish_wave(simulation)
+	await process_frame
+	var postmortem: Control = dashboard.get_node("%Postmortem")
+	_check(postmortem.visible, "al terminar la oleada aparece el post-mortem")
+	_check(not (postmortem.get_node("%Summary").get_node("%CauseText") as Label).text.is_empty(), "el post-mortem explica la causa")
+	(postmortem.get_node("%NextButton") as Button).pressed.emit()
+	await process_frame
+	_check(simulation.get("phase") == PHASE_RUNNING and simulation.get("wave_number") == 2, "Siguiente oleada inicia la oleada 2")
+	_check(not postmortem.visible, "el post-mortem se cierra")
+
+	# Game over forzado y reintento
+	simulation.set("sla", 0.5)
+	simulation.set("overload_enabled", true)
+	_finish_wave(simulation)
+	simulation.set("overload_enabled", false)
+	await process_frame
+	var game_over: Control = dashboard.get_node("%GameOver")
+	_check(simulation.get("phase") == PHASE_GAME_OVER and game_over.visible, "con SLA en 0 aparece el game over")
+	_check((game_over.get_node("%TitleLabel") as Label).text == "Nexus Test quebró", "el game over dice que la empresa quebró")
+	(game_over.get_node("%RetryButton") as Button).pressed.emit()
+	await process_frame
+	_check(simulation.get("phase") == PHASE_RUNNING and simulation.get("wave_number") == 2, "Reintentar vuelve a empezar la oleada 2")
+	_check(not game_over.visible, "el game over se cierra")
+
+
+func _finish_wave(simulation: Node) -> void:
+	var steps := 0
+	while simulation.get("phase") == PHASE_RUNNING and steps < MAX_WAVE_STEPS:
+		simulation.call("step")
+		steps += 1
 
 
 func _type_name(prompt: NamePrompt, value: String) -> void:
@@ -195,3 +288,135 @@ func _wait_for_scene(scene_name: StringName, timeout_seconds: float = 3.0) -> bo
 func _check(condition: bool, description: String) -> void:
 	if not condition:
 		_failures.append(description)
+
+
+## Engranaje en el dashboard: pausa la simulación y bloquea la consola mientras está abierto.
+func _test_settings_in_dashboard(dashboard: Node, simulation: Node) -> void:
+	var settings_button: Node = dashboard.get_node("%SettingsButton")
+	var menu: Control = settings_button.get_node("%SettingsMenu")
+	(settings_button.get_node("%GearButton") as Button).pressed.emit()
+	_check(menu.visible and paused, "el engranaje del dashboard abre Ajustes y pausa el juego")
+	var wave_time: float = simulation.get("wave_time")
+	await create_timer(0.5).timeout
+	_check(is_equal_approx(simulation.get("wave_time"), wave_time), "con Ajustes abierto la simulación no avanza")
+	var slot: Control = dashboard.get_node("%UpgradeGrid").get_node("SettingsSlot")
+	_check(slot != null, "la consola reserva el espacio del engranaje")
+	(menu.get_node("%SfxMute") as Button).button_pressed = true
+	_check(root.get_node("Settings").get("sfx_muted"), "el botón de silencio apaga los efectos")
+	# Botón "atrás" de Android
+	settings_button.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(not menu.visible and not paused, "el botón atrás de Android cierra Ajustes y reanuda")
+	await create_timer(0.3).timeout
+	_check(simulation.get("wave_time") > wave_time, "al cerrar Ajustes la simulación sigue")
+
+
+## Ficha de la mejora: con la "i" y manteniendo presionado (sin comprar).
+func _test_upgrade_info(dashboard: Node, simulation: Node) -> void:
+	var info_panel: Control = dashboard.get_node("%UpgradeInfoPanel")
+	var ram: Button = dashboard.call("get_upgrade_button", &"ram")
+	(ram.get_node("%InfoButton") as Button).pressed.emit()
+	await process_frame
+	var concept: Label = info_panel.get_node("%Card").get_node("%ConceptLabel")
+	_check(info_panel.visible and concept.text.begins_with("Concurrencia"), "la i muestra la ficha con el concepto que enseña")
+	(info_panel.get_node("%CloseButton") as Button).pressed.emit()
+	_check(not info_panel.visible, "Cerrar oculta la ficha")
+
+	var cache: Button = dashboard.call("get_upgrade_button", &"cache")
+	var level_before: int = simulation.call("get_level", &"ram")
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	cache.gui_input.emit(press)
+	await create_timer(0.6).timeout
+	var level_label: Label = info_panel.get_node("%Card").get_node("%LevelLabel")
+	_check(info_panel.visible and level_label.text.contains("etapa 2"), "mantener presionada una mejora bloqueada muestra su ficha")
+	info_panel.hide()
+	ram.gui_input.emit(press)
+	await create_timer(0.6).timeout
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	ram.gui_input.emit(release)
+	ram.pressed.emit()
+	_check(simulation.call("get_level", &"ram") == level_before, "soltar después de mantener presionado no compra")
+	info_panel.hide()
+
+
+## Engranaje en el garage: sliders guardados en settings.cfg, Regresar y Salir con confirmación.
+func _test_settings_in_room(room: Node) -> void:
+	var settings_button: Node = room.get_node("%SettingsButton")
+	var menu: Control = settings_button.get_node("%SettingsMenu")
+	(settings_button.get_node("%GearButton") as Button).pressed.emit()
+	_check(menu.visible and paused, "el engranaje del garage abre Ajustes y pausa el juego")
+	(menu.get_node("%MusicSlider") as HSlider).value = 35.0
+	(menu.get_node("%SfxSlider") as HSlider).value = 60.0
+	_check(is_equal_approx(root.get_node("Settings").get("music_volume"), 0.35), "el slider de música cambia el volumen")
+	var music_bus := AudioServer.get_bus_index(&"Music")
+	_check(music_bus >= 0 and is_equal_approx(AudioServer.get_bus_volume_db(music_bus), linear_to_db(0.35)), "el volumen se aplica al bus Music")
+	(menu.get_node("%ReturnButton") as Button).pressed.emit()
+	_check(not menu.visible and not paused, "Regresar cierra Ajustes y reanuda")
+	var saved := ConfigFile.new()
+	_check(saved.load(TEST_SETTINGS_PATH) == OK, "los ajustes se guardan en settings.cfg")
+	_check(is_equal_approx(float(saved.get_value("audio", "music_volume", 0.0)), 0.35), "settings.cfg tiene el volumen de música")
+	_check(is_equal_approx(float(saved.get_value("audio", "sfx_volume", 0.0)), 0.6), "settings.cfg tiene el volumen de efectos")
+	_check(bool(saved.get_value("audio", "sfx_muted", false)), "settings.cfg tiene el silencio de efectos")
+
+	(settings_button.get_node("%GearButton") as Button).pressed.emit()
+	(menu.get_node("%QuitButton") as Button).pressed.emit()
+	_check(menu.call("is_confirming_quit"), "Salir pide confirmación")
+	(menu.get_node("%CancelQuitButton") as Button).pressed.emit()
+	_check(menu.visible and not menu.call("is_confirming_quit"), "Cancelar vuelve al panel")
+	(menu.get_node("%QuitButton") as Button).pressed.emit()
+	(menu.get_node("%ConfirmQuitButton") as Button).pressed.emit()
+	_check(not paused, "Salir reanuda el árbol antes de cambiar de escena")
+
+
+## Terminar la etapa sin la meta: "Meta no alcanzada" (no es quiebra) → Repetir etapa.
+func _test_goal_missed(simulation: Node) -> void:
+	simulation.call("load_checkpoint", {"stage": "startup", "wave": 5, "coins": 321, "users_served": 0})
+	change_scene_to_file(Paths.DASHBOARD)
+	_check(await _wait_for_scene(&"Dashboard"), "abre el dashboard para la oleada 5")
+	_make_infrastructure_huge(simulation)
+	_finish_wave(simulation)
+	await process_frame
+	var goal_missed: Control = current_scene.get_node("%GoalMissed")
+	_check(simulation.get("phase") == PHASE_STAGE_FAILED and goal_missed.visible, "sin la meta aparece Meta no alcanzada")
+	_check(not (current_scene.get_node("%GameOver") as Control).visible, "Meta no alcanzada no es quiebra")
+	_check((goal_missed.get_node("%UsersLabel") as Label).text.contains("/ 1,000"), "Meta no alcanzada muestra usuarios / meta")
+	(goal_missed.get_node("%RepeatButton") as Button).pressed.emit()
+	await process_frame
+	_check(simulation.get("phase") == PHASE_RUNNING and simulation.get("wave_number") == 1, "Repetir etapa vuelve a la oleada 1")
+	_check(simulation.get("coins") == 321, "Repetir etapa conserva los ahorros del inicio de la etapa")
+	_check(not goal_missed.visible, "Meta no alcanzada se cierra")
+
+
+## Ganar la etapa: victoria → diálogo de Valeria → se entrega la ronda de inversión.
+func _test_victory_and_investment(simulation: Node) -> void:
+	simulation.call("load_checkpoint", {"stage": "startup", "wave": 5, "coins": 50, "users_served": 990})
+	change_scene_to_file(Paths.DASHBOARD)
+	_check(await _wait_for_scene(&"Dashboard"), "abre el dashboard para ganar la etapa")
+	_make_infrastructure_huge(simulation)
+	_finish_wave(simulation)
+	await process_frame
+	var dashboard := current_scene
+	var victory: Control = dashboard.get_node("%Victory")
+	_check(victory.visible, "al llegar a la meta aparece la victoria")
+	var coins_before_dialog: int = simulation.get("coins")
+	_check((victory.get_node("%StatsLabel") as Label).text.contains("Peticiones atendidas"), "la victoria muestra las peticiones escaladas")
+	(victory.get_node("%ContinueButton") as Button).pressed.emit()
+	await process_frame
+	var dialog: Control = dashboard.get_node("%DialogBox")
+	var text: String = dialog.call("get_text")
+	_check(dialog.visible and text.contains("Said") and text.contains("Nexus Test") and text.contains("1,500"), "Valeria anuncia la ronda de inversión (%s)" % text)
+	_check(simulation.get("coins") == coins_before_dialog, "las monedas llegan después del diálogo")
+	(dialog.get_node("%ContinueButton") as Button).pressed.emit()
+	_check(simulation.get("coins") == coins_before_dialog + 1500, "¡Vamos! entrega la ronda de inversión")
+	_check(await _wait_for_scene(&"Garage"), "después del diálogo se vuelve al cuarto")
+
+
+func _make_infrastructure_huge(simulation: Node) -> void:
+	for server: ServerState in simulation.get("servers"):
+		server.cpu_cap = 1e6
+		server.net_cap = 1e6
+		server.ram_slots = 1e6
+	(simulation.get("db") as DbState).iops = 1e6

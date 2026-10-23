@@ -60,12 +60,21 @@ func goto_current_room(fade_seconds: float = FADE_SECONDS) -> void:
 	goto(get_current_room_path(), fade_seconds)
 
 
+## Escena del cuarto de la etapa actual. Las etapas cuyo cuarto aún no existe usan el de la etapa 1.
 func get_current_room_path() -> String:
-	var room_path := GameState.get_stage_data().room_scene_path
-	if room_path.is_empty():
-		push_error("La etapa %s todavía no tiene cuarto; se usa el de la primera etapa." % GameState.stage)
-		room_path = GameState.get_stage_data(GameState.DEFAULT_STAGE).room_scene_path
-	return room_path
+	return _get_room_stage().room_scene_path
+
+
+## Nombre del cuarto que se está mostrando ("Garage" mientras la oficina no exista).
+func get_current_room_name() -> String:
+	return _get_room_stage().room_name
+
+
+func _get_room_stage() -> StageData:
+	var stage := Simulation.stage
+	if stage == null or stage.room_scene_path.is_empty():
+		stage = Simulation.load_stage(Paths.STAGE_ORDER[0])
+	return stage
 
 
 func store_preloaded(path: String, resource: Resource) -> void:

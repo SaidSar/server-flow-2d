@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/icon_brush.svg" id="2_brush"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_coin.svg" id="3_coin"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_users.svg" id="4_users"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 24.0
@@ -44,7 +46,7 @@ mouse_filter = 2
 layout_mode = 0
 offset_left = 24.0
 offset_top = 24.0
-offset_right = 544.0
+offset_right = 724.0
 offset_bottom = 184.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -63,21 +65,55 @@ text = "NexusSoft · Garage"
 [node name="Stats" type="HBoxContainer" parent="Root/StatusPanel/Rows"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 36
+theme_override_constants/separation = 12
+
+[node name="CoinsIcon" type="TextureRect" parent="Root/StatusPanel/Rows/Stats"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("3_coin")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CoinsLabel" type="Label" parent="Root/StatusPanel/Rows/Stats"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.831373, 0.4, 1)
 theme_override_font_sizes/font_size = 26
-text = "Monedas: 0"
+text = "100"
+
+[node name="UsersIcon" type="TextureRect" parent="Root/StatusPanel/Rows/Stats"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("4_users")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="UsersLabel" type="Label" parent="Root/StatusPanel/Rows/Stats"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 26
-text = "Usuarios: 0"
+text = "0 / 1,000"
+
+[node name="UsersBar" type="ProgressBar" parent="Root/StatusPanel/Rows/Stats"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 16)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+max_value = 1000.0
+show_percentage = false
+
+[node name="WaveLabel" type="Label" parent="Root/StatusPanel/Rows/Stats"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
+theme_override_font_sizes/font_size = 26
+text = "Oleada 1/5"
 
 [node name="Sla" type="HBoxContainer" parent="Root/StatusPanel/Rows"]
 layout_mode = 2
@@ -102,6 +138,30 @@ theme_override_styles/background = SubResource("StyleBoxFlat_sla_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_sla_fill")
 value = 100.0
 show_percentage = false
+
+[node name="AlertLabel" type="Label" parent="Root"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -600.0
+offset_top = -110.0
+offset_right = 600.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.960784, 0.772549, 0.258824, 1)
+theme_override_colors/font_outline_color = Color(0.0431373, 0.0666667, 0.109804, 1)
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 34
+text = "La oleada 1 te espera en la PC"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="BrushButton" type="Button" parent="Root"]
 unique_name_in_owner = true

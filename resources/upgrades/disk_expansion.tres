@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"disk_expansion"
+display_name = "Ampliar disco"
+short_effect = "+50 % espacio"
+description = "Más gigas para guardar datos en la base de datos."
+concept = "Almacenamiento: los datos de los usuarios ocupan espacio y crecen con cada escritura."
+target = &"disk_gb_cap"
+effect_mode = 1
+effect_per_level = 0.5
+max_level = 8
+base_cost = 40
+cost_growth = 1.6
+unlock_stage = 1
+fixes = Array[StringName]([&"disk"])

@@ -11,7 +11,7 @@ extends Control
 
 
 func _ready() -> void:
-	Simulation.stop()
+	GameState.end_session()
 	_continue_button.disabled = not SaveSystem.has_save()
 	_options_panel.hide()
 	# En Android el juego siempre es pantalla completa.
@@ -27,6 +27,15 @@ func _ready() -> void:
 	_new_game_button.grab_focus()
 
 
+func _notification(what: int) -> void:
+	# Botón "atrás" de Android: cierra Opciones o sale del juego.
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if _options_panel.visible:
+			_options_panel.hide()
+		else:
+			SceneRouter.quit_game()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _options_panel.visible and event.is_action_pressed(&"ui_cancel"):
 		_options_panel.hide()
@@ -34,7 +43,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_new_game_pressed() -> void:
-	var first_room := GameState.get_stage_data(GameState.DEFAULT_STAGE).room_scene_path
+	var first_room := Simulation.load_stage(Paths.STAGE_ORDER[0]).room_scene_path
 	SceneRouter.goto_via_loading(Paths.NEW_GAME_SETUP, PackedStringArray([first_room, Paths.NEW_GAME_SETUP]))
 
 

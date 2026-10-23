@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_data.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = &"ssd"
+display_name = "Disco SSD"
+short_effect = "+50 % consultas"
+description = "La base de datos resuelve más consultas por segundo."
+concept = "Almacenamiento: un SSD lee y escribe mucho más rápido que un disco mecánico."
+target = &"iops"
+effect_mode = 1
+effect_per_level = 0.5
+max_level = 12
+base_cost = 35
+cost_growth = 1.6
+unlock_stage = 1
+fixes = Array[StringName]([&"db"])

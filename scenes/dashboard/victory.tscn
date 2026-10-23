@@ -1,0 +1,107 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dashboard/victory.gd" id="1_victory"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_star.svg" id="2_star"]
+
+[node name="Victory" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_victory")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0431373, 0.0666667, 0.109804, 0.9)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Window" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="Center/Window"]
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="TitleLabel" type="Label" parent="Center/Window/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.239216, 0.862745, 0.517647, 1)
+theme_override_font_sizes/font_size = 46
+text = "¡Etapa Startup completada!"
+horizontal_alignment = 1
+
+[node name="StarsBox" type="HBoxContainer" parent="Center/Window/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Star1" type="TextureRect" parent="Center/Window/Content/StarsBox"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture = ExtResource("2_star")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star2" type="TextureRect" parent="Center/Window/Content/StarsBox"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture = ExtResource("2_star")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star3" type="TextureRect" parent="Center/Window/Content/StarsBox"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture = ExtResource("2_star")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star4" type="TextureRect" parent="Center/Window/Content/StarsBox"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture = ExtResource("2_star")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatsLabel" type="Label" parent="Center/Window/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
+theme_override_font_sizes/font_size = 24
+text = "Usuarios atendidos: 1000 / 1000"
+horizontal_alignment = 1
+
+[node name="UnlocksLabel" type="Label" parent="Center/Window/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(680, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "Desbloqueado: Optimizar caché, + Servidor web"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ContinueButton" type="Button" parent="Center/Window/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 76)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 26
+text = "Siguiente etapa"
