@@ -2,6 +2,11 @@ class_name SimulationConfig
 extends Resource
 ## Constantes del modelo de simulación. El balance se ajusta aquí, no en el código.
 
+@export_group("Presentación")
+## El tráfico que ve el jugador (req/s, peticiones) se multiplica por esto para que se sienta real.
+## La simulación no cambia; los usuarios atendidos tampoco se escalan.
+@export var display_scale := 100.0
+
 @export_group("Paso de simulación")
 @export var step_seconds := 0.1
 ## Multiplicador de velocidad con F10 (solo en depuración).
@@ -13,13 +18,13 @@ extends Resource
 
 @export_group("Infraestructura inicial (el garage)")
 ## Peticiones por segundo que procesa la CPU de un servidor.
-@export var start_cpu_cap := 2.4
+@export var start_cpu_cap := 4.2
 ## Peticiones simultáneas que caben en la RAM.
-@export var start_ram_slots := 4.0
+@export var start_ram_slots := 7.0
 ## Peticiones por segundo que deja pasar la red.
-@export var start_net_cap := 1.333
+@export var start_net_cap := 2.333
 ## Consultas por segundo que resuelve la base de datos.
-@export var start_iops := 2.0
+@export var start_iops := 3.5
 @export var start_disk_gb_cap := 10.0
 @export var start_disk_gb_used := 6.0
 @export var start_cache_hit := 0.0
