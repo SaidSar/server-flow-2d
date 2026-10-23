@@ -16,9 +16,11 @@ run/main_scene="res://scenes/main/main.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.0784314, 0.0941176, 0.141176, 1)
 config/icon="res://icon.svg"
+config/quit_on_go_back=false
 
 [autoload]
 
+Settings="*res://scripts/autoload/settings.gd"
 Customization="*res://scripts/autoload/customization.gd"
 Simulation="*res://scripts/autoload/simulation.gd"
 GameState="*res://scripts/autoload/game_state.gd"

@@ -1,0 +1,210 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="1_menu"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/slider_grabber.svg" id="2_grabber"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/slider_grabber_hover.svg" id="3_grabber_hover"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
+content_margin_top = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.0431373, 0.0666667, 0.109804, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
+content_margin_top = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.352941, 0.662745, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="SettingsMenu" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0431373, 0.0666667, 0.109804, 0.82)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Window" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="Center/Window"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="TitleLabel" type="Label" parent="Center/Window/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
+theme_override_font_sizes/font_size = 44
+text = "Ajustes"
+horizontal_alignment = 1
+
+[node name="MainBox" type="VBoxContainer" parent="Center/Window/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="MusicRow" type="HBoxContainer" parent="Center/Window/Content/MainBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="MusicLabel" type="Label" parent="Center/Window/Content/MainBox/MusicRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Música"
+
+[node name="MusicSlider" type="HSlider" parent="Center/Window/Content/MainBox/MusicRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_icons/grabber = ExtResource("2_grabber")
+theme_override_icons/grabber_highlight = ExtResource("3_grabber_hover")
+theme_override_styles/slider = SubResource("StyleBoxFlat_track")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_fill")
+value = 80.0
+
+[node name="MusicValue" type="Label" parent="Center/Window/Content/MainBox/MusicRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "80 %"
+horizontal_alignment = 2
+
+[node name="MusicMute" type="Button" parent="Center/Window/Content/MainBox/MusicRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 64)
+layout_mode = 2
+tooltip_text = "Silenciar la música"
+theme_override_font_sizes/font_size = 22
+toggle_mode = true
+text = "Silenciar"
+
+[node name="SfxRow" type="HBoxContainer" parent="Center/Window/Content/MainBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SfxLabel" type="Label" parent="Center/Window/Content/MainBox/SfxRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Sonido"
+
+[node name="SfxSlider" type="HSlider" parent="Center/Window/Content/MainBox/SfxRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_icons/grabber = ExtResource("2_grabber")
+theme_override_icons/grabber_highlight = ExtResource("3_grabber_hover")
+theme_override_styles/slider = SubResource("StyleBoxFlat_track")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_fill")
+value = 80.0
+
+[node name="SfxValue" type="Label" parent="Center/Window/Content/MainBox/SfxRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "80 %"
+horizontal_alignment = 2
+
+[node name="SfxMute" type="Button" parent="Center/Window/Content/MainBox/SfxRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 64)
+layout_mode = 2
+tooltip_text = "Silenciar los efectos de sonido"
+theme_override_font_sizes/font_size = 22
+toggle_mode = true
+text = "Silenciar"
+
+[node name="Spacer" type="Control" parent="Center/Window/Content/MainBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="ReturnButton" type="Button" parent="Center/Window/Content/MainBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Regresar"
+
+[node name="QuitButton" type="Button" parent="Center/Window/Content/MainBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Salir"
+
+[node name="ConfirmBox" type="VBoxContainer" parent="Center/Window/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="ConfirmLabel" type="Label" parent="Center/Window/Content/ConfirmBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "¿Guardar y salir al menú principal?"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ConfirmHint" type="Label" parent="Center/Window/Content/ConfirmBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541176, 0.607843, 0.709804, 1)
+theme_override_font_sizes/font_size = 21
+text = "Podrás seguir con \"Continuar\" desde el inicio de la oleada en curso."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Window/Content/ConfirmBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="CancelQuitButton" type="Button" parent="Center/Window/Content/ConfirmBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "Cancelar"
+
+[node name="ConfirmQuitButton" type="Button" parent="Center/Window/Content/ConfirmBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "Sí, salir"

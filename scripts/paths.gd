@@ -29,3 +29,4 @@ const ROOM_LAYER_TEXTURE := "res://assets/art/rooms/%s/%s/%s.png"
 
 # Guardado
 const SAVE_FILE := "user://savegame.cfg"
+const SETTINGS_FILE := "user://settings.cfg"

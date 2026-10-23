@@ -27,6 +27,15 @@ func _ready() -> void:
 	_new_game_button.grab_focus()
 
 
+func _notification(what: int) -> void:
+	# Botón "atrás" de Android: cierra Opciones o sale del juego.
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if _options_panel.visible:
+			_options_panel.hide()
+		else:
+			SceneRouter.quit_game()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _options_panel.visible and event.is_action_pressed(&"ui_cancel"):
 		_options_panel.hide()
