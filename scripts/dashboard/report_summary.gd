@@ -34,9 +34,10 @@ func _ready() -> void:
 
 
 func show_report(report: WaveReport) -> void:
-	_value_labels[&"served"].text = "%d de %d" % [report.get_served(), roundi(report.requests)]
-	_value_labels[&"timeouts"].text = str(roundi(report.timeouts))
-	_value_labels[&"errors_500"].text = str(roundi(report.errors_500))
+	var display_scale := Simulation.config.display_scale
+	_value_labels[&"served"].text = "%s de %s" % [NumberFormat.traffic(report.green + report.yellow, display_scale), NumberFormat.traffic(report.requests, display_scale)]
+	_value_labels[&"timeouts"].text = NumberFormat.traffic(report.timeouts, display_scale)
+	_value_labels[&"errors_500"].text = NumberFormat.traffic(report.errors_500, display_scale)
 	_value_labels[&"latency"].text = "%d ms" % roundi(report.get_avg_latency_ms())
 	_value_labels[&"sla"].text = "%.1f %%" % report.sla_end
 	_value_labels[&"coins"].text = "+%d" % roundi(report.coins_earned)

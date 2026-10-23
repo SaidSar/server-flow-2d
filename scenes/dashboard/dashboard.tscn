@@ -6,6 +6,12 @@
 [ext_resource type="PackedScene" path="res://scenes/dashboard/postmortem.tscn" id="4_postmortem"]
 [ext_resource type="PackedScene" path="res://scenes/dashboard/game_over.tscn" id="5_game_over"]
 [ext_resource type="PackedScene" path="res://scenes/dashboard/victory.tscn" id="6_victory"]
+[ext_resource type="PackedScene" path="res://scenes/dashboard/goal_missed.tscn" id="7_goal_missed"]
+[ext_resource type="PackedScene" path="res://scenes/dashboard/upgrade_info_panel.tscn" id="8_info"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dialog_box.tscn" id="9_dialog"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_button.tscn" id="10_settings"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_coin.svg" id="11_coin"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_users.svg" id="12_users"]
 
 [node name="Dashboard" type="Control"]
 layout_mode = 3
@@ -48,7 +54,7 @@ layout_mode = 2
 
 [node name="Row" type="HBoxContainer" parent="Margin/Rows/TopBar"]
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 24
 
 [node name="TitleLabel" type="Label" parent="Margin/Rows/TopBar/Row"]
 unique_name_in_owner = true
@@ -64,19 +70,56 @@ theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
 theme_override_font_sizes/font_size = 24
 text = "Oleada 1/5 · 60 s"
 
-[node name="CoinsLabel" type="Label" parent="Margin/Rows/TopBar/Row"]
+[node name="CoinsBox" type="HBoxContainer" parent="Margin/Rows/TopBar/Row"]
+layout_mode = 2
+tooltip_text = "Monedas"
+theme_override_constants/separation = 8
+
+[node name="CoinsIcon" type="TextureRect" parent="Margin/Rows/TopBar/Row/CoinsBox"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("11_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinsLabel" type="Label" parent="Margin/Rows/TopBar/Row/CoinsBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.960784, 0.772549, 0.258824, 1)
 theme_override_font_sizes/font_size = 24
-text = "Monedas: 100"
+text = "100"
 
-[node name="UsersLabel" type="Label" parent="Margin/Rows/TopBar/Row"]
+[node name="UsersBox" type="HBoxContainer" parent="Margin/Rows/TopBar/Row"]
+layout_mode = 2
+tooltip_text = "Usuarios atendidos / meta de la etapa"
+theme_override_constants/separation = 8
+
+[node name="UsersIcon" type="TextureRect" parent="Margin/Rows/TopBar/Row/UsersBox"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("12_users")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UsersLabel" type="Label" parent="Margin/Rows/TopBar/Row/UsersBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
 theme_override_font_sizes/font_size = 24
-text = "Usuarios: 0 / 1000"
+text = "0 / 1,000"
+
+[node name="UsersBar" type="ProgressBar" parent="Margin/Rows/TopBar/Row/UsersBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 18)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+max_value = 1000.0
+show_percentage = false
 
 [node name="SlaBox" type="HBoxContainer" parent="Margin/Rows/TopBar/Row"]
 layout_mode = 2
@@ -228,3 +271,18 @@ layout_mode = 1
 [node name="Victory" parent="." instance=ExtResource("6_victory")]
 unique_name_in_owner = true
 layout_mode = 1
+
+[node name="GoalMissed" parent="." instance=ExtResource("7_goal_missed")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="UpgradeInfoPanel" parent="." instance=ExtResource("8_info")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="DialogBox" parent="." instance=ExtResource("9_dialog")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="SettingsButton" parent="." instance=ExtResource("10_settings")]
+unique_name_in_owner = true

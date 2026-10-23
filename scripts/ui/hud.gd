@@ -12,15 +12,20 @@ const DEFAULT_COMPANY_NAME := "Mi empresa"
 @onready var _title_label: Label = %TitleLabel
 @onready var _coins_label: Label = %CoinsLabel
 @onready var _users_label: Label = %UsersLabel
+@onready var _users_bar: ProgressBar = %UsersBar
 @onready var _wave_label: Label = %WaveLabel
 @onready var _sla_label: Label = %SlaLabel
 @onready var _sla_bar: ProgressBar = %SlaBar
 @onready var _alert_label: Label = %AlertLabel
 @onready var _brush_button: Button = %BrushButton
 
+var _users_fill := DashboardColors.bar_style(DashboardColors.ACCENT)
+
 
 func _ready() -> void:
 	_brush_button.visible = show_customize_button
+	_users_bar.add_theme_stylebox_override(&"fill", _users_fill)
+	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(Color(0.2, 0.22, 0.28)))
 	_brush_button.pressed.connect(_on_brush_pressed)
 	GameState.changed.connect(_refresh)
 	Simulation.tick.connect(_on_simulation_tick)
@@ -53,9 +58,12 @@ func _on_phase_changed(_phase: Simulation.Phase) -> void:
 func _refresh() -> void:
 	var company := GameState.company_name if not GameState.company_name.is_empty() else DEFAULT_COMPANY_NAME
 	_title_label.text = "%s · %s" % [company, SceneRouter.get_current_room_name()]
-	_coins_label.text = "Monedas: %d" % Simulation.coins
+	_coins_label.text = NumberFormat.thousands(Simulation.coins)
 	var goal := Simulation.stage.user_goal if Simulation.stage != null else 0
-	_users_label.text = "Usuarios: %d / %d" % [Simulation.users_served, goal]
+	_users_label.text = "%s / %s" % [NumberFormat.thousands(Simulation.users_served), NumberFormat.thousands(goal)]
+	_users_bar.max_value = maxi(goal, 1)
+	_users_bar.value = mini(Simulation.users_served, goal)
+	_users_fill.bg_color = DashboardColors.OK if goal > 0 and Simulation.users_served >= goal else DashboardColors.ACCENT
 	_wave_label.text = "Oleada %d/%d" % [Simulation.wave_number, Simulation.get_wave_count()]
 	_sla_label.text = "SLA %.1f %%" % Simulation.sla
 	_sla_bar.value = Simulation.sla
@@ -73,4 +81,6 @@ func _get_alert_text() -> String:
 			return "Oleada terminada: revisa el post-mortem en la PC"
 		Simulation.Phase.GAME_OVER:
 			return "¡Los servidores cayeron! Revisa la PC"
+		Simulation.Phase.STAGE_FAILED:
+			return "No alcanzaste la meta: revisa la PC"
 	return ""

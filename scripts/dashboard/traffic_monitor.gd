@@ -87,6 +87,8 @@ func _ready() -> void:
 	resized.connect(_layout)
 	Simulation.infrastructure_changed.connect(rebuild)
 	Simulation.tick.connect(_on_tick)
+	# Al cambiar de fase (fin de oleada, nueva etapa) no hay tick: se refresca aquí.
+	Simulation.phase_changed.connect(_on_phase_changed)
 	Simulation.bottleneck_changed.connect(_on_bottleneck_changed)
 	rebuild()
 
@@ -203,21 +205,26 @@ func _on_tick(_snapshot: SimSnapshot) -> void:
 	_refresh_cards()
 
 
+func _on_phase_changed(_phase: Simulation.Phase) -> void:
+	_refresh_cards()
+
+
 func _refresh_cards() -> void:
 	var snapshot := Simulation.last_snapshot
-	var subtitle := "%.1f req/s" % snapshot.legit_rps
+	var display_scale := Simulation.config.display_scale
+	var subtitle := "%s req/s" % NumberFormat.traffic(snapshot.legit_rps, display_scale)
 	if snapshot.malicious_rps > 0.0:
-		subtitle += " · %.1f maliciosas" % snapshot.malicious_rps
+		subtitle += " · %s maliciosas" % NumberFormat.traffic(snapshot.malicious_rps, display_scale)
 	_clients.set_subtitle(subtitle)
 	if Simulation.has_firewall:
 		if Simulation.firewall_on:
-			_firewall.set_subtitle("Bloqueando %.1f req/s" % snapshot.blocked_rps)
+			_firewall.set_subtitle("Bloqueando %s req/s" % NumberFormat.traffic(snapshot.blocked_rps, display_scale))
 		else:
 			_firewall.set_subtitle("Apagado")
 	_load_balancer.set_subtitle("Round-robin · %d servidores" % _servers.size())
 	for i in _servers.size():
 		var state := Simulation.servers[i]
-		_servers[i].set_subtitle("%.1f req/s" % state.load_rps)
+		_servers[i].set_subtitle("%s req/s" % NumberFormat.traffic(state.load_rps, display_scale))
 		_servers[i].set_metric(&"cpu", state.u_cpu)
 		_servers[i].set_metric(&"ram", state.u_ram)
 		_servers[i].set_metric(&"net", state.u_net)

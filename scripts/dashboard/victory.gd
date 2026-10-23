@@ -27,14 +27,17 @@ func show_report(report: WaveReport, stage_name: String, unlock_names: PackedStr
 		var star := _stars_box.get_child(i) as TextureRect
 		star.modulate = DashboardColors.WARNING if i < report.stars else Color(DashboardColors.TEXT_MUTED, 0.35)
 	_stars_box.tooltip_text = "%d de %d estrellas" % [report.stars, MAX_STARS]
-	_stats_label.text = "Usuarios atendidos: %d / %d\nSLA promedio: %.1f %%\nLatencia promedio: %d ms" % [
-		report.stage_users_served, report.stage_user_goal, report.stage_avg_sla, roundi(report.stage_avg_latency_ms)]
+	_stats_label.text = "Usuarios atendidos: %s / %s\nPeticiones atendidas: %s\nSLA promedio: %.1f %%\nLatencia promedio: %d ms" % [
+		NumberFormat.thousands(report.stage_users_served), NumberFormat.thousands(report.stage_user_goal),
+		NumberFormat.traffic(report.stage_users_served, Simulation.config.display_scale),
+		report.stage_avg_sla, roundi(report.stage_avg_latency_ms)]
 	if unlock_names.is_empty():
 		_unlocks_label.text = "¡Completaste todas las etapas!"
 		_continue_button.text = "Volver al cuarto"
 	else:
-		_unlocks_label.text = "Desbloqueado: %s
-Ronda de inversión: +%d monedas" % [", ".join(unlock_names), investment]
+		_unlocks_label.text = "Desbloqueado: %s" % ", ".join(unlock_names)
+		if investment > 0:
+			_unlocks_label.text += "\nRonda de inversión: +%s monedas" % NumberFormat.thousands(investment)
 		_continue_button.text = "Siguiente etapa"
 	show()
 	_continue_button.grab_focus()
