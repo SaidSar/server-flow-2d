@@ -18,7 +18,7 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 14
+theme_override_constants/margin_right = 52
 theme_override_constants/margin_bottom = 10
 
 [node name="Content" type="VBoxContainer" parent="Margin"]
@@ -89,3 +89,18 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.541176, 0.607843, 0.709804, 1)
 theme_override_font_sizes/font_size = 18
 text = "Etapa 2"
+
+[node name="InfoButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -64.0
+offset_bottom = 64.0
+grow_horizontal = 0
+tooltip_text = "Ver información"
+theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "i"
