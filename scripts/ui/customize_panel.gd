@@ -44,17 +44,17 @@ func open() -> void:
 	if visible:
 		return
 	_snapshot.assign(GameState.colors)
-	for layer: StringName in Customization.LAYER_ORDER:
-		_show_selection(layer, GameState.get_color(layer))
+	for layer_id: StringName in Customization.LAYER_ORDER:
+		_show_selection(layer_id, GameState.get_color(layer_id))
 	show()
 	opened.emit()
 
 
 func _build_groups() -> void:
-	for layer: StringName in Customization.LAYER_ORDER:
+	for layer_id: StringName in Customization.LAYER_ORDER:
 		var header := HBoxContainer.new()
 		var title := Label.new()
-		title.text = Customization.get_layer_title(layer)
+		title.text = Customization.get_layer_title(layer_id)
 		title.add_theme_font_size_override(&"font_size", 30)
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		header.add_child(title)
@@ -62,7 +62,7 @@ func _build_groups() -> void:
 		selection_label.add_theme_color_override(&"font_color", Color(0.7, 0.75, 0.82))
 		selection_label.add_theme_font_size_override(&"font_size", 24)
 		header.add_child(selection_label)
-		_selection_labels[layer] = selection_label
+		_selection_labels[layer_id] = selection_label
 		_groups_box.add_child(header)
 
 		var flow := HFlowContainer.new()
@@ -70,12 +70,12 @@ func _build_groups() -> void:
 		flow.add_theme_constant_override(&"v_separation", 8)
 		var button_group := ButtonGroup.new()
 		var buttons: Dictionary = {}
-		for option: CustomizationOption in Customization.get_options(layer):
+		for option: CustomizationOption in Customization.get_options(layer_id):
 			var swatch := _create_swatch(option, button_group)
-			swatch.pressed.connect(_on_swatch_pressed.bind(layer, option.id))
+			swatch.pressed.connect(_on_swatch_pressed.bind(layer_id, option.id))
 			flow.add_child(swatch)
 			buttons[option.id] = swatch
-		_swatches[layer] = buttons
+		_swatches[layer_id] = buttons
 		_groups_box.add_child(flow)
 
 
@@ -101,22 +101,22 @@ func _make_swatch_style(fill: Color, border: Color, border_width: int) -> StyleB
 	return style
 
 
-func _on_swatch_pressed(layer: StringName, option_id: StringName) -> void:
-	GameState.set_color(layer, option_id)
+func _on_swatch_pressed(layer_id: StringName, option_id: StringName) -> void:
+	GameState.set_color(layer_id, option_id)
 
 
-func _on_color_changed(layer: StringName, option_id: StringName) -> void:
-	_show_selection(layer, option_id)
+func _on_color_changed(layer_id: StringName, option_id: StringName) -> void:
+	_show_selection(layer_id, option_id)
 
 
-func _show_selection(layer: StringName, option_id: StringName) -> void:
+func _show_selection(layer_id: StringName, option_id: StringName) -> void:
 	# set_pressed_no_signal() no desmarca al resto del ButtonGroup, así que se marca cada muestra.
-	var buttons: Dictionary = _swatches.get(layer, {})
+	var buttons: Dictionary = _swatches.get(layer_id, {})
 	for swatch_id: StringName in buttons:
 		(buttons[swatch_id] as Button).set_pressed_no_signal(swatch_id == option_id)
-	var option := Customization.find_option(layer, option_id)
-	if _selection_labels.has(layer) and option != null:
-		_selection_labels[layer].text = option.display_name
+	var option := Customization.find_option(layer_id, option_id)
+	if _selection_labels.has(layer_id) and option != null:
+		_selection_labels[layer_id].text = option.display_name
 
 
 func _on_save_pressed() -> void:
