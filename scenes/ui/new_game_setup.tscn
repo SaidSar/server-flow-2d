@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/new_game_setup.gd" id="1_setup"]
+[ext_resource type="PackedScene" path="res://scenes/ui/name_prompt.tscn" id="2_prompt"]
+
+[node name="NewGameSetup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_setup")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0784314, 0.0941176, 0.141176, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AvatarPrompt" parent="Center" instance=ExtResource("2_prompt")]
+unique_name_in_owner = true
+layout_mode = 2
+title_text = "¿Cómo te llamas?"
+placeholder_text = "Alex"
+confirm_text = "Siguiente"
+
+[node name="CompanyPrompt" parent="Center" instance=ExtResource("2_prompt")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+title_text = "¿Cómo se llama tu empresa?"
+placeholder_text = "NexusSoft"
+confirm_text = "Comenzar"
+back_text = "Atrás"
