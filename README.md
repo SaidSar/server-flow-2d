@@ -134,4 +134,6 @@ git push -u origin feature/mi-cambio
 # Abrir PR hacia develop
 ```
 
+**Regla:** si Git marca `project.godot` como modificado sin haber tocado ajustes, haz commit aparte con `chore: normalizar project.godot` antes de cambiar de rama. Es el editor de Godot reordenando el archivo.
+
 Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para el formato de commits.
