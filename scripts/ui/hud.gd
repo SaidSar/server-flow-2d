@@ -1,7 +1,7 @@
 class_name Hud
 extends CanvasLayer
-## HUD del cuarto: "{empresa} · {cuarto}", monedas, usuarios, oleada, barra de SLA,
-## aviso cuando la PC necesita atención y botón de personalizar.
+## HUD del cuarto: "{empresa} · {etapa}" (igual que el dashboard), aviso de cuarto temporal,
+## monedas, usuarios, oleada, barra de SLA, aviso cuando la PC necesita atención y botón de personalizar.
 
 signal customize_requested
 
@@ -10,6 +10,7 @@ const DEFAULT_COMPANY_NAME := "Mi empresa"
 @export var show_customize_button := true
 
 @onready var _title_label: Label = %TitleLabel
+@onready var _temporary_room_label: Label = %TemporaryRoomLabel
 @onready var _coins_label: Label = %CoinsLabel
 @onready var _users_label: Label = %UsersLabel
 @onready var _users_bar: ProgressBar = %UsersBar
@@ -64,7 +65,10 @@ func _on_phase_changed(_phase: Simulation.Phase) -> void:
 
 func _refresh() -> void:
 	var company := GameState.company_name if not GameState.company_name.is_empty() else DEFAULT_COMPANY_NAME
-	_title_label.text = "%s · %s" % [company, SceneRouter.get_current_room_name()]
+	var stage_name := Simulation.stage.display_name if Simulation.stage != null else ""
+	_title_label.text = "%s · %s" % [company, stage_name]
+	_temporary_room_label.visible = SceneRouter.is_room_temporary()
+	_temporary_room_label.text = "Cuarto temporal: %s" % SceneRouter.get_current_room_name().to_lower()
 	_coins_label.text = NumberFormat.thousands(Simulation.coins)
 	var goal := Simulation.stage.user_goal if Simulation.stage != null else 0
 	_users_label.text = "%s / %s" % [NumberFormat.thousands(Simulation.users_served), NumberFormat.thousands(goal)]

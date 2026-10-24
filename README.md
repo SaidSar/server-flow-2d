@@ -6,6 +6,7 @@ Simulador *tycoon* 2D en el que eres el **SysAdmin** de una startup y tu trabajo
 
 - **Vista principal:** un cuarto isométrico con arte pre-renderizado en Blender. Al hacer clic en la PC, la cámara hace zoom al monitor y entras al **panel de control** (dashboard), donde se juega.
 - **Etapas:** Startup (garage) → Scale-up (oficina) → Enterprise (data center), con 5 oleadas cada una. Por ahora solo existe el garage.
+  - El HUD (cuarto y dashboard) siempre muestra "{empresa} · {etapa}". Si la etapa todavía no tiene su cuarto (`StageData.room_ready = false`), se usa el garage y el HUD lo indica con "Cuarto temporal: garage".
 - **Plataformas:** Windows y Android, en horizontal.
 
 ## Equipo NEXUS CODE
@@ -75,7 +76,7 @@ godot --headless --path . -s res://scripts/tools/build_customization_catalog.gd
 
 La prueba de humo usa su propio archivo de guardado; no toca tu partida.
 
-> **Al exportar:** `customization.gd` lee `data/customization/paleta.json` en tiempo de ejecución. Los presets de `export_presets.cfg` ya incluyen `data/*.json`; si creas uno nuevo, agrégalo en *Recursos → Filtros para exportar archivos que no son recursos*.
+> **Al exportar:** `customization.gd` lee `data/customization/paleta.json` y `layer_offsets.json` en tiempo de ejecución. Los presets de `export_presets.cfg` ya incluyen `data/*.json`; si creas uno nuevo, agrégalo en *Recursos → Filtros para exportar archivos que no son recursos*.
 
 ## Exportar (debug)
 
@@ -129,7 +130,11 @@ adb install -r build/android/server-flow-2d-debug.apk
 
 ### Arte del cuarto
 
-Todas las capas del cuarto están renderizadas sobre el **mismo lienzo a 2x (1592×1318)**. Se apilan en la misma posición, sin offsets, con `centered = false`, dentro de un nodo raíz con `scale = (0.5, 0.5)`. Orden de dibujo (de atrás hacia adelante): piso, pared_izq, pared_der, puerta, rack, mesa, alex, cajas.
+Todas las capas del cuarto están renderizadas sobre el **mismo lienzo a 2x (1592×1318)**, pero cada PNG está **recortado a su contenido** para ahorrar memoria y peso del APK. `data/customization/layer_offsets.json` guarda, por capa (`"piso/concreto_calido"`, `"alex/alex_teclea_a"`, …), su posición `x, y` en el lienzo y su tamaño `w, h`. Las capas van con `centered = false` dentro de un nodo raíz con `scale = (0.5, 0.5)`. Orden de dibujo (de atrás hacia adelante): piso, pared_izq, pared_der, puerta, rack, mesa, alex, cajas.
+
+Para asignar la textura de una capa (color del pincel, rack, pose de Alex) usa siempre `Customization.apply_layer(sprite, texture)`: pone la textura y su posición juntas. La clave del offset sale de la ruta (`…/<carpeta>/<archivo>.png`). Si agregas o cambias arte recortado, actualiza también `layer_offsets.json`; `smoke_test.gd` revisa que cada variante tenga su offset y su tamaño correcto. Una capa sin recortar (lienzo completo) no necesita entrada y va en el origen.
+
+Los recortes tienen origen y tamaño **alineados a múltiplos de 8 px** (con al menos 2 px de margen transparente). Si no, los mipmaps del recorte promedian bloques de píxeles distintos a los del lienzo completo y, al ver el cuarto alejado, los bordes se ven ligeramente diferentes.
 
 `scenes/rooms/room_base.tscn` tiene esa pila de capas, la cámara, el HUD y el panel de personalización. Cada cuarto **hereda** de ella; `garage.tscn` asigna sus texturas, el área clicable del monitor (`PcArea`) y el punto de zoom (`MonitorFocus`), en coordenadas del lienzo 2x.
 

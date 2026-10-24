@@ -60,7 +60,15 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 34
-text = "NexusSoft · Garage"
+text = "NexusSoft · Startup"
+
+[node name="TemporaryRoomLabel" type="Label" parent="Root/StatusPanel/Rows"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.66, 0.76, 1)
+theme_override_font_sizes/font_size = 22
+text = "Cuarto temporal: garage"
 
 [node name="Stats" type="HBoxContainer" parent="Root/StatusPanel/Rows"]
 layout_mode = 2

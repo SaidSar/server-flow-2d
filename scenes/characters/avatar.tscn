@@ -12,6 +12,7 @@ stressed_texture = ExtResource("4_stressed")
 
 [node name="Sprite" type="Sprite2D" parent="."]
 unique_name_in_owner = true
+position = Vector2(384, 600)
 texture = ExtResource("2_typing_a")
 centered = false
 

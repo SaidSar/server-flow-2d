@@ -12,6 +12,8 @@ const DASHBOARD := "res://scenes/dashboard/dashboard.tscn"
 
 # Datos y recursos
 const PALETTE_JSON := "res://data/customization/paleta.json"
+## Posición de cada capa recortada en el lienzo 2x del cuarto.
+const LAYER_OFFSETS_JSON := "res://data/customization/layer_offsets.json"
 const CUSTOMIZATION_CATALOG := "res://resources/customization/customization_catalog.tres"
 const SIMULATION_CONFIG := "res://resources/simulation/simulation_config.tres"
 ## Mejora por id: resources/upgrades/<id>.tres
