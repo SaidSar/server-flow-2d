@@ -6,10 +6,14 @@ extends Resource
 ## Número de etapa (1, 2, 3). Las mejoras se desbloquean por número.
 @export_range(1, 10) var number := 1
 @export var display_name: String
-## Nombre del cuarto que aparece en el HUD ("Garage", "Oficina"...).
+## Nombre del cuarto ("Garage", "Oficina"...). El HUD muestra display_name; este nombre
+## solo aparece como "Cuarto temporal" cuando otra etapa usa este cuarto.
 @export var room_name: String
-## Escena del cuarto. Vacío si todavía no existe (se usa el de la etapa 1).
+## Escena del cuarto. Vacío si todavía no existe.
 @export_file("*.tscn") var room_scene_path: String
+## true si el cuarto de esta etapa ya existe. Si es false, se usa el de la etapa 1
+## y el HUD avisa que es un cuarto temporal.
+@export var room_ready := false
 @export_multiline var description: String
 
 @export_group("Meta y economía")

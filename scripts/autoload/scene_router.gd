@@ -92,9 +92,14 @@ func get_current_room_name() -> String:
 	return _get_room_stage().room_name
 
 
+## true si la etapa actual todavía no tiene cuarto y se muestra el de otra etapa.
+func is_room_temporary() -> bool:
+	return Simulation.stage != null and _get_room_stage() != Simulation.stage
+
+
 func _get_room_stage() -> StageData:
 	var stage := Simulation.stage
-	if stage == null or stage.room_scene_path.is_empty():
+	if stage == null or not stage.room_ready or stage.room_scene_path.is_empty():
 		stage = Simulation.load_stage(Paths.STAGE_ORDER[0])
 	return stage
 

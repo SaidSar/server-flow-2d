@@ -6,6 +6,7 @@ Simulador *tycoon* 2D en el que eres el **SysAdmin** de una startup y tu trabajo
 
 - **Vista principal:** un cuarto isométrico con arte pre-renderizado en Blender. Al hacer clic en la PC, la cámara hace zoom al monitor y entras al **panel de control** (dashboard), donde se juega.
 - **Etapas:** Startup (garage) → Scale-up (oficina) → Enterprise (data center), con 5 oleadas cada una. Por ahora solo existe el garage.
+  - El HUD (cuarto y dashboard) siempre muestra "{empresa} · {etapa}". Si la etapa todavía no tiene su cuarto (`StageData.room_ready = false`), se usa el garage y el HUD lo indica con "Cuarto temporal: garage".
 - **Plataformas:** Windows y Android, en horizontal.
 
 ## Equipo NEXUS CODE

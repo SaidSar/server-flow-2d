@@ -15,6 +15,7 @@ number = 1
 display_name = "Startup"
 room_name = "Garage"
 room_scene_path = "res://scenes/rooms/garage.tscn"
+room_ready = true
 description = "Tu empresa nace en un garage con un solo servidor."
 user_goal = 1000
 coin_per_req = 0.57
