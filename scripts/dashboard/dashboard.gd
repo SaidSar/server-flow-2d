@@ -42,6 +42,7 @@ static var _warned_resources: Dictionary[StringName, bool] = {}
 @onready var _speed_button: Button = %SpeedButton
 @onready var _back_button: Button = %BackButton
 @onready var _top_bar: PanelContainer = %TopBar
+@onready var _margin: MarginContainer = $Margin
 @onready var _monitor_panel: PanelContainer = %MonitorPanel
 @onready var _console_panel: PanelContainer = %ConsolePanel
 @onready var _bottleneck_label: Label = %BottleneckLabel
@@ -73,6 +74,9 @@ func _ready() -> void:
 	_sla_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
 	_users_bar.add_theme_stylebox_override(&"fill", _users_fill)
 	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
+	# Respeta la cámara frontal y la barra de gestos del celular.
+	_fit_safe_area()
+	SceneRouter.safe_area_changed.connect(_fit_safe_area)
 	_build_legend()
 	_build_console()
 
@@ -110,6 +114,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel") and not _is_blocking_modal_open():
 		_go_to_room()
 		get_viewport().set_input_as_handled()
+
+
+func _fit_safe_area() -> void:
+	SafeArea.fit_full_rect(_margin)
 
 
 ## Pantallas que no se cierran con Esc (hay que elegir una opción).

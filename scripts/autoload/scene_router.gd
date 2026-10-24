@@ -3,8 +3,13 @@ extends Node
 ## También guarda escenas precargadas por la pantalla de carga.
 
 signal scene_changed(scene_path: String)
+## Cambió el tamaño de la pantalla o la zona segura (p. ej. el celular giró 180° y la cámara
+## pasó al otro lado). La UI pegada a los bordes debe volver a acomodarse.
+signal safe_area_changed
 
 const FADE_SECONDS := 0.25
+## Girar 180° no cambia el tamaño de la ventana, así que en el celular la zona segura se revisa seguido.
+const SAFE_AREA_POLL_SECONDS := 0.25
 
 ## La siguiente entrada al cuarto viene del dashboard (el cuarto hace zoom de regreso).
 var returning_from_dashboard := false
@@ -15,9 +20,13 @@ var pending_preloads: PackedStringArray = []
 var _cache: Dictionary[String, PackedScene] = {}
 var _is_changing := false
 var _fade_rect: ColorRect
+var _last_safe_area := Rect2i()
+var _safe_area_timer := 0.0
 
 
 func _ready() -> void:
+	get_viewport().size_changed.connect(safe_area_changed.emit)
+	_last_safe_area = DisplayServer.get_display_safe_area()
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var fade_layer := CanvasLayer.new()
 	fade_layer.layer = 100
@@ -28,6 +37,19 @@ func _ready() -> void:
 	_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fade_layer.add_child(_fade_rect)
+
+
+func _process(delta: float) -> void:
+	if not OS.has_feature("mobile"):
+		return
+	_safe_area_timer += delta
+	if _safe_area_timer < SAFE_AREA_POLL_SECONDS:
+		return
+	_safe_area_timer = 0.0
+	var safe_area := DisplayServer.get_display_safe_area()
+	if safe_area != _last_safe_area:
+		_last_safe_area = safe_area
+		safe_area_changed.emit()
 
 
 func is_changing() -> bool:
