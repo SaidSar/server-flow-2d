@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Botón flotante de engranaje (esquina inferior derecha) que abre el panel de Ajustes.
 ## Se instancia en el cuarto y en el dashboard. Mientras el panel está abierto el árbol queda en pausa,
 ## así que la simulación, la PC, el pincel y las mejoras no responden.
+## En el celular también atiende el botón "atrás" y la salida de la app (ir al inicio).
 
 ## Separación del borde de la pantalla (más la zona segura del celular).
 const MARGIN := 20.0
@@ -15,7 +16,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_gear_button.pressed.connect(open)
 	_menu.closed.connect(_on_menu_closed)
-	get_viewport().size_changed.connect(_place_button)
+	SceneRouter.safe_area_changed.connect(_place_button)
 	_place_button()
 
 
@@ -26,11 +27,13 @@ func _exit_tree() -> void:
 
 
 func _notification(what: int) -> void:
-	# Botón "atrás" de Android: cierra el panel (o la confirmación); si está cerrado, lo abre.
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		if is_open():
-			_menu.go_back()
-		else:
+	match what:
+		NOTIFICATION_WM_GO_BACK_REQUEST:
+			_on_go_back()
+		NOTIFICATION_APPLICATION_PAUSED:
+			# La app pasa a segundo plano (botón de inicio): guarda y deja el juego en pausa con Ajustes
+			# abierto, para que al volver el jugador decida cuándo seguir.
+			SaveSystem.save_game()
 			open()
 
 
@@ -49,27 +52,29 @@ func is_open() -> bool:
 	return _menu.visible
 
 
+## Botón "atrás" de Android: primero cierra lo que esté abierto (paneles, fichas, confirmaciones)
+## mandando ui_cancel, igual que Esc. Si nadie lo usa, guarda y abre Ajustes en pausa.
+func _on_go_back() -> void:
+	if is_open():
+		_menu.go_back()
+		return
+	var cancel := InputEventAction.new()
+	cancel.action = &"ui_cancel"
+	cancel.pressed = true
+	get_viewport().push_input(cancel)
+	if not get_viewport().is_input_handled():
+		SaveSystem.save_game()
+		open()
+
+
 func _on_menu_closed() -> void:
 	get_tree().paused = false
 
 
-## Coloca el engranaje respetando la zona segura (muesca, barra de gestos) en celulares.
+## Coloca el engranaje respetando la zona segura (cámara, barra de gestos) en celulares.
 func _place_button() -> void:
-	var safe := _get_safe_insets()
-	_gear_button.offset_right = -(MARGIN + safe.x)
-	_gear_button.offset_bottom = -(MARGIN + safe.y)
+	var insets := SafeArea.get_insets(get_viewport())
+	_gear_button.offset_right = -(MARGIN + insets.z)
+	_gear_button.offset_bottom = -(MARGIN + insets.w)
 	_gear_button.offset_left = _gear_button.offset_right - _gear_button.custom_minimum_size.x
 	_gear_button.offset_top = _gear_button.offset_bottom - _gear_button.custom_minimum_size.y
-
-
-## Espacio que ocupa el sistema a la derecha (x) y abajo (y), en coordenadas del viewport.
-func _get_safe_insets() -> Vector2:
-	if not OS.has_feature("mobile"):
-		return Vector2.ZERO
-	var screen_size := Vector2(DisplayServer.screen_get_size())
-	var safe_area := Rect2(DisplayServer.get_display_safe_area())
-	var window_size := Vector2(DisplayServer.window_get_size())
-	if window_size.x <= 0.0 or window_size.y <= 0.0:
-		return Vector2.ZERO
-	var ratio := get_viewport().get_visible_rect().size / window_size
-	return Vector2(screen_size.x - safe_area.end.x, screen_size.y - safe_area.end.y).max(Vector2.ZERO) * ratio
