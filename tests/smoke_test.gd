@@ -108,10 +108,10 @@ func _run() -> void:
 	for i in 15:
 		simulation.call("step")
 	var rack: Sprite2D = garage.get_node("%Rack")
-	var avatar: Avatar = garage.get_node("%Avatar")
+	var avatar: Node2D = garage.get_node("%Avatar")
 	_check(simulation.get("is_saturated"), "la sobrecarga satura el servidor")
 	_check(rack.texture.resource_path.ends_with("rack_saturado.png"), "rack saturado")
-	_check(avatar.is_stressed(), "Alex estresado")
+	_check(avatar.call("is_stressed"), "Alex estresado")
 	simulation.set("overload_enabled", false)
 	# La oleada 1 empieza con la red al 90 % (tutorial): con Ancho de banda baja de 85 %.
 	_check(simulation.call("purchase", &"bandwidth"), "comprar Ancho de banda desde código")
@@ -120,6 +120,8 @@ func _run() -> void:
 	_check(not simulation.get("is_saturated"), "la carga regresa a normal")
 	_check(rack.texture.resource_path.ends_with("rack_ok.png"), "rack normal")
 	garage.queue_free()
+
+	await _test_layer_offsets(game_state, customization)
 
 	# Filtro de nombres
 	var prompt := (load("res://scenes/ui/name_prompt.tscn") as PackedScene).instantiate() as NamePrompt
@@ -146,6 +148,77 @@ func _run() -> void:
 	else:
 		printerr("SMOKE TEST FALLÓ:\n- " + "\n- ".join(_failures))
 		quit(1)
+
+
+## Capas recortadas: cada sprite debe quedar en su offset de layer_offsets.json.
+## El JSON se lee aquí directamente para no validar Customization consigo mismo.
+func _test_layer_offsets(game_state: Node, customization: Node) -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.LAYER_OFFSETS_JSON))
+	var offsets: Dictionary = data["capas"]
+	var canvas := Vector2(float(data["canvas"][0]), float(data["canvas"][1]))
+	var layer_order: Array[StringName] = customization.get("LAYER_ORDER")
+
+	# Todas las variantes del catálogo tienen offset y su PNG mide lo que dice el JSON.
+	for layer: StringName in layer_order:
+		for option: CustomizationOption in customization.call("get_options", layer):
+			var path: String = customization.call("get_layer_texture_path", &"garage", layer, option.id)
+			var entry: Dictionary = offsets.get(_layer_key(path), {})
+			_check(not entry.is_empty(), "offset de %s" % path)
+			if not entry.is_empty():
+				var size := (load(path) as Texture2D).get_size()
+				_check(size == Vector2(float(entry["w"]), float(entry["h"])), "tamaño de %s coincide con el JSON" % path)
+
+	var combos: Array[Dictionary] = [
+		{},
+		{&"pared_izq": &"menta", &"pared_der": &"grafito", &"piso": &"concreto_oscuro", &"puerta": &"roja", &"mesa": &"nogal"},
+	]
+	for combo: Dictionary in combos:
+		for layer: StringName in layer_order:
+			game_state.call("set_color", layer, combo.get(layer, customization.call("get_default_option", layer)))
+		var garage := (load("res://scenes/rooms/garage.tscn") as PackedScene).instantiate()
+		root.add_child(garage)
+		await process_frame
+		var context := "combinación %s" % ("por defecto" if combo.is_empty() else "alterna")
+		for node_name: String in ["Floor", "WallLeft", "WallRight", "Door", "Rack", "Desk", "Boxes"]:
+			_check_layer_offset(garage.get_node("%" + node_name), offsets, context)
+		# Al cambiar de color en vivo, la posición sigue a la textura nueva.
+		game_state.call("set_color", &"piso", &"concreto_gris")
+		_check_layer_offset(garage.get_node("%Floor"), offsets, context + " tras cambiar el piso")
+
+		var avatar: Node2D = garage.get_node("%Avatar")
+		var alex: Sprite2D = avatar.get_node("%Sprite")
+		_check_layer_offset(alex, offsets, context + " (Alex teclea A)")
+		avatar.call("_on_frame_timer_timeout")
+		_check(alex.texture.resource_path.ends_with("alex_teclea_b.png"), "%s: Alex pasa a teclea B" % context)
+		_check_layer_offset(alex, offsets, context + " (Alex teclea B)")
+		garage.call("_set_saturated", true)
+		_check(alex.texture.resource_path.ends_with("alex_estres.png"), "%s: Alex estresado" % context)
+		_check_layer_offset(alex, offsets, context + " (Alex estresado)")
+		_check_layer_offset(garage.get_node("%Rack"), offsets, context + " (rack saturado)")
+		garage.call("_set_saturated", false)
+
+		# La cámara se centra en el lienzo completo, no en el piso recortado.
+		var layers: Node2D = garage.get_node("%Layers")
+		var overview: Vector2 = garage.call("_get_overview_position")
+		_check(overview.is_equal_approx(layers.to_global(canvas * 0.5)), "%s: cámara centrada en el lienzo" % context)
+		garage.free()
+		await process_frame
+
+
+func _check_layer_offset(sprite: Sprite2D, offsets: Dictionary, context: String) -> void:
+	var key := _layer_key(sprite.texture.resource_path)
+	var entry: Dictionary = offsets.get(key, {})
+	_check(not entry.is_empty(), "%s: %s tiene offset" % [context, key])
+	if entry.is_empty():
+		return
+	var expected := Vector2(float(entry["x"]), float(entry["y"]))
+	_check(not sprite.centered and sprite.position == expected,
+			"%s: %s en %s (está en %s)" % [context, key, expected, sprite.position])
+
+
+## "res://.../piso/concreto_calido.png" → "piso/concreto_calido"
+func _layer_key(texture_path: String) -> String:
+	return "%s/%s" % [texture_path.get_base_dir().get_file(), texture_path.get_file().get_basename()]
 
 
 ## Recorre el flujo real con las escenas y botones: título → nombres → garage → dashboard → título.
