@@ -246,7 +246,7 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(save_system.call("has_save"), "la partida se guardó al comenzar")
 
 	var garage := current_scene
-	_check((garage.get_node("%Hud").get_node("%TitleLabel") as Label).text == "Nexus Test · Garage", "HUD con empresa y cuarto")
+	_check((garage.get_node("%Hud").get_node("%TitleLabel") as Label).text == "Nexus Test · Startup", "HUD con empresa y etapa")
 	_check((garage.get_node("%Avatar").get_node("%NameLabel") as Label).text == "Said", "nombre sobre Alex")
 
 	# Personalizar y cancelar
@@ -289,6 +289,31 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 
 	await _test_goal_missed(simulation)
 	await _test_victory_and_investment(simulation)
+	await _test_stage_name_in_huds(simulation)
+
+
+## El HUD del cuarto y el del dashboard muestran la etapa actual. En la etapa 3 (sin cuarto
+## propio) el garage avisa que es un cuarto temporal.
+func _test_stage_name_in_huds(simulation: Node) -> void:
+	var scene_router: Node = root.get_node("SceneRouter")
+	for stage_id: String in ["startup", "enterprise"]:
+		simulation.call("load_checkpoint", {"stage": stage_id, "wave": 1, "coins": 100})
+		var stage_name: String = simulation.get("stage").get("display_name")
+		change_scene_to_file(scene_router.call("get_current_room_path"))
+		_check(await _wait_for_scene(&"Garage"), "%s: abre el garage" % stage_name)
+		var hud: Node = current_scene.get_node("%Hud")
+		var room_title := (hud.get_node("%TitleLabel") as Label).text
+		var temporary := hud.get_node("%TemporaryRoomLabel") as Label
+		if stage_id == "startup":
+			_check(not temporary.visible, "Startup: el garage es su cuarto, sin aviso de cuarto temporal")
+		else:
+			_check(temporary.visible and temporary.text == "Cuarto temporal: garage", "%s: aviso de cuarto temporal (%s)" % [stage_name, temporary.text])
+
+		change_scene_to_file(Paths.DASHBOARD)
+		_check(await _wait_for_scene(&"Dashboard"), "%s: abre el dashboard" % stage_name)
+		var dashboard_title := (current_scene.get_node("%TitleLabel") as Label).text
+		_check(room_title.get_slice(" · ", 1) == stage_name and dashboard_title.get_slice(" · ", 1) == stage_name,
+				"misma etapa en los dos HUD (garage: %s, dashboard: %s)" % [room_title, dashboard_title])
 
 
 ## Dashboard: comprar, terminar la oleada (acelerada), post-mortem, siguiente oleada, game over y reintentar.
