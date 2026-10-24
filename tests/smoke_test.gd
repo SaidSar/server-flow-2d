@@ -203,6 +203,7 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(await _wait_for_scene(&"Garage"), "Volver al cuarto regresa al garage")
 	_check(simulation.get("phase") == PHASE_RUNNING, "la simulación sigue corriendo en el garage (fase %d, oleada %d, SLA %.1f)" % [simulation.get("phase"), simulation.get("wave_number"), simulation.get("sla")])
 
+	_test_mobile_lifecycle(current_scene, save_system)
 	_test_settings_in_room(current_scene)
 	_check(await _wait_for_scene(&"TitleMenu"), "Salir lleva al menú de título")
 	var continue_button := current_scene.get_node("%ContinueButton") as Button
@@ -420,3 +421,32 @@ func _make_infrastructure_huge(simulation: Node) -> void:
 		server.net_cap = 1e6
 		server.ram_slots = 1e6
 	(simulation.get("db") as DbState).iops = 1e6
+
+
+## Celular: botón "atrás" (primero cierra paneles), salir de la app (guarda y pausa) y contador de FPS.
+func _test_mobile_lifecycle(room: Node, save_system: Node) -> void:
+	var settings_button: Node = room.get_node("%SettingsButton")
+	var menu: Control = settings_button.get_node("%SettingsMenu")
+	var customize: CanvasLayer = room.get_node("%CustomizePanel")
+	(room.get_node("%Hud").get_node("%BrushButton") as Button).pressed.emit()
+	settings_button.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(not customize.visible and not menu.visible, "atrás con el pincel abierto cierra el pincel (no abre Ajustes)")
+	settings_button.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(menu.visible and paused, "atrás sin paneles abre Ajustes en pausa")
+	settings_button.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(not menu.visible and not paused, "atrás otra vez cierra Ajustes")
+
+	save_system.call("delete_save")
+	settings_button.notification(Node.NOTIFICATION_APPLICATION_PAUSED)
+	_check(save_system.call("has_save"), "salir de la app guarda la partida")
+	_check(menu.visible and paused, "al volver a la app el juego está en pausa con Ajustes abierto")
+	(menu.get_node("%ReturnButton") as Button).pressed.emit()
+
+	var overlay: Node = root.get_node("DebugOverlay")
+	var f3 := InputEventKey.new()
+	f3.keycode = KEY_F3
+	f3.pressed = true
+	overlay.call("_input", f3)
+	_check(overlay.call("is_shown"), "F3 muestra el contador de FPS (build de depuración)")
+	overlay.call("_input", f3)
+	_check(not overlay.call("is_shown"), "F3 otra vez lo oculta")
