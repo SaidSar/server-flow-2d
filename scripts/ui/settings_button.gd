@@ -52,6 +52,16 @@ func is_open() -> bool:
 	return _menu.visible
 
 
+## Oculta el engranaje mientras otro panel ocupa su esquina (p. ej. el del pincel).
+## El botón "atrás" y la pausa al salir de la app siguen funcionando.
+func set_gear_visible(gear_visible: bool) -> void:
+	_gear_button.visible = gear_visible
+
+
+func is_gear_visible() -> bool:
+	return _gear_button.visible
+
+
 ## Botón "atrás" de Android: primero cierra lo que esté abierto (paneles, fichas, confirmaciones)
 ## mandando ui_cancel, igual que Esc. Si nadie lo usa, guarda y abre Ajustes en pausa.
 func _on_go_back() -> void:
