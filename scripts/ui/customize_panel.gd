@@ -27,7 +27,8 @@ var _selection_labels: Dictionary[StringName, Label] = {}
 
 func _ready() -> void:
 	hide()
-	_panel.offset_left = -PANEL_WIDTH
+	_fit_safe_area()
+	SceneRouter.safe_area_changed.connect(_fit_safe_area)
 	_build_groups()
 	_save_button.pressed.connect(_on_save_pressed)
 	_cancel_button.pressed.connect(_on_cancel_pressed)
@@ -38,6 +39,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed(&"ui_cancel"):
 		_on_cancel_pressed()
 		get_viewport().set_input_as_handled()
+
+
+## El panel va pegado al borde derecho: se recorre si ahí está la cámara del celular.
+func _fit_safe_area() -> void:
+	var insets := SafeArea.get_insets(get_viewport())
+	_panel.offset_right = -insets.z
+	_panel.offset_left = -PANEL_WIDTH - insets.z
 
 
 func open() -> void:

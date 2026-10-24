@@ -203,8 +203,10 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(await _wait_for_scene(&"Garage"), "Volver al cuarto regresa al garage")
 	_check(simulation.get("phase") == PHASE_RUNNING, "la simulación sigue corriendo en el garage (fase %d, oleada %d, SLA %.1f)" % [simulation.get("phase"), simulation.get("wave_number"), simulation.get("sla")])
 
+	_test_mobile_lifecycle(current_scene, save_system)
 	_test_settings_in_room(current_scene)
 	_check(await _wait_for_scene(&"TitleMenu"), "Salir lleva al menú de título")
+	_test_title_quit_confirmation(current_scene)
 	var continue_button := current_scene.get_node("%ContinueButton") as Button
 	_check(not continue_button.disabled, "Continuar habilitado con partida")
 	continue_button.pressed.emit()
@@ -301,8 +303,15 @@ func _test_settings_in_dashboard(dashboard: Node, simulation: Node) -> void:
 	_check(is_equal_approx(simulation.get("wave_time"), wave_time), "con Ajustes abierto la simulación no avanza")
 	var slot: Control = dashboard.get_node("%UpgradeGrid").get_node("SettingsSlot")
 	_check(slot != null, "la consola reserva el espacio del engranaje")
+	var sfx_slider: HSlider = menu.get_node("%SfxSlider")
+	var sfx_before := sfx_slider.value
 	(menu.get_node("%SfxMute") as Button).button_pressed = true
 	_check(root.get_node("Settings").get("sfx_muted"), "el botón de silencio apaga los efectos")
+	_check(is_zero_approx(sfx_slider.value), "al silenciar, el slider baja a 0")
+	(menu.get_node("%SfxMute") as Button).button_pressed = false
+	_check(is_equal_approx(sfx_slider.value, sfx_before), "al reactivar, el slider vuelve al volumen anterior")
+	sfx_slider.value = 0.0
+	_check(root.get_node("Settings").get("sfx_muted") and (menu.get_node("%SfxMute") as Button).button_pressed, "bajar el slider a 0 silencia")
 	# Botón "atrás" de Android
 	settings_button.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	_check(not menu.visible and not paused, "el botón atrás de Android cierra Ajustes y reanuda")
@@ -350,6 +359,8 @@ func _test_settings_in_room(room: Node) -> void:
 	_check(menu.visible and paused, "el engranaje del garage abre Ajustes y pausa el juego")
 	(menu.get_node("%MusicSlider") as HSlider).value = 35.0
 	(menu.get_node("%SfxSlider") as HSlider).value = 60.0
+	_check(not root.get_node("Settings").get("sfx_muted"), "mover el slider quita el silencio")
+	(menu.get_node("%SfxMute") as Button).button_pressed = true
 	_check(is_equal_approx(root.get_node("Settings").get("music_volume"), 0.35), "el slider de música cambia el volumen")
 	var music_bus := AudioServer.get_bus_index(&"Music")
 	_check(music_bus >= 0 and is_equal_approx(AudioServer.get_bus_volume_db(music_bus), linear_to_db(0.35)), "el volumen se aplica al bus Music")
@@ -420,3 +431,50 @@ func _make_infrastructure_huge(simulation: Node) -> void:
 		server.net_cap = 1e6
 		server.ram_slots = 1e6
 	(simulation.get("db") as DbState).iops = 1e6
+
+
+## Celular: botón "atrás" (primero cierra paneles), salir de la app (guarda y pausa) y contador de FPS.
+func _test_mobile_lifecycle(room: Node, save_system: Node) -> void:
+	var settings_button: Node = room.get_node("%SettingsButton")
+	var menu: Control = settings_button.get_node("%SettingsMenu")
+	var customize: CanvasLayer = room.get_node("%CustomizePanel")
+	(room.get_node("%Hud").get_node("%BrushButton") as Button).pressed.emit()
+	_check(not settings_button.call("is_gear_visible"), "con el pincel abierto el engranaje se oculta")
+	settings_button.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(not customize.visible and not menu.visible, "atrás con el pincel abierto cierra el pincel (no abre Ajustes)")
+	_check(settings_button.call("is_gear_visible"), "al cerrar el pincel vuelve el engranaje")
+	settings_button.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(menu.visible and paused, "atrás sin paneles abre Ajustes en pausa")
+	settings_button.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(not menu.visible and not paused, "atrás otra vez cierra Ajustes")
+
+	save_system.call("delete_save")
+	settings_button.notification(Node.NOTIFICATION_APPLICATION_PAUSED)
+	_check(save_system.call("has_save"), "salir de la app guarda la partida")
+	_check(menu.visible and paused, "al volver a la app el juego está en pausa con Ajustes abierto")
+	(menu.get_node("%ReturnButton") as Button).pressed.emit()
+
+	var overlay: Node = root.get_node("DebugOverlay")
+	var f3 := InputEventKey.new()
+	f3.keycode = KEY_F3
+	f3.pressed = true
+	overlay.call("_input", f3)
+	_check(overlay.call("is_shown"), "F3 muestra el contador de FPS (build de depuración)")
+	overlay.call("_input", f3)
+	_check(not overlay.call("is_shown"), "F3 otra vez lo oculta")
+
+
+## Título: Salir y el botón "atrás" piden confirmación (aquí nunca se confirma, cerraría el juego).
+func _test_title_quit_confirmation(title: Node) -> void:
+	var confirm: Control = title.get_node("%QuitConfirmPanel")
+	(title.get_node("%QuitButton") as Button).pressed.emit()
+	_check(confirm.visible, "Salir en el título pregunta si quieres salir")
+	(title.get_node("%CancelQuitButton") as Button).pressed.emit()
+	_check(not confirm.visible, "Cancelar cierra la pregunta")
+	title.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(confirm.visible, "atrás en el título también pregunta")
+	title.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(not confirm.visible, "atrás otra vez cancela la pregunta")
+	(title.get_node("%OptionsButton") as Button).pressed.emit()
+	title.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
+	_check(not (title.get_node("%OptionsPanel") as Control).visible and not confirm.visible, "atrás con Opciones abierto solo cierra Opciones")
