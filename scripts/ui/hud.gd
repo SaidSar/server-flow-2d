@@ -18,11 +18,14 @@ const DEFAULT_COMPANY_NAME := "Mi empresa"
 @onready var _sla_bar: ProgressBar = %SlaBar
 @onready var _alert_label: Label = %AlertLabel
 @onready var _brush_button: Button = %BrushButton
+@onready var _root: Control = $Root
 
 var _users_fill := DashboardColors.bar_style(DashboardColors.ACCENT)
 
 
 func _ready() -> void:
+	_fit_safe_area()
+	SceneRouter.safe_area_changed.connect(_fit_safe_area)
 	_brush_button.visible = show_customize_button
 	_users_bar.add_theme_stylebox_override(&"fill", _users_fill)
 	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(Color(0.2, 0.22, 0.28)))
@@ -37,6 +40,10 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if _alert_label.visible:
 		_alert_label.modulate.a = 0.65 + 0.35 * sin(Time.get_ticks_msec() * 0.005)
+
+
+func _fit_safe_area() -> void:
+	SafeArea.fit_full_rect(_root)
 
 
 func set_customize_enabled(enabled: bool) -> void:

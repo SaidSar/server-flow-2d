@@ -7,6 +7,10 @@
 *.pck
 export_credentials.cfg
 
+# Firmas: nunca al repo
+*.keystore
+*.jks
+
 # Sistema operativo
 .DS_Store
 Thumbs.db

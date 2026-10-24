@@ -70,11 +70,12 @@ func is_confirming_quit() -> bool:
 	return _confirm_box.visible
 
 
+## Silenciado, el slider se ve en 0 %; el volumen anterior se guarda en Settings y vuelve al reactivar.
 func _sync_from_settings() -> void:
-	_music_slider.set_value_no_signal(Settings.music_volume * 100.0)
-	_sfx_slider.set_value_no_signal(Settings.sfx_volume * 100.0)
 	_music_mute.set_pressed_no_signal(Settings.music_muted)
 	_sfx_mute.set_pressed_no_signal(Settings.sfx_muted)
+	_show_volume(_music_slider, Settings.music_volume, Settings.music_muted)
+	_show_volume(_sfx_slider, Settings.sfx_volume, Settings.sfx_muted)
 	_refresh_labels()
 
 
@@ -85,23 +86,44 @@ func _refresh_labels() -> void:
 	_sfx_mute.text = UNMUTE_TEXT if _sfx_mute.button_pressed else MUTE_TEXT
 
 
+static func _show_volume(slider: HSlider, volume: float, muted: bool) -> void:
+	slider.set_value_no_signal(0.0 if muted else volume * 100.0)
+
+
+## Mover el slider a 0 silencia (sin olvidar el volumen anterior); moverlo arriba de 0 quita el silencio.
 func _on_music_slider_changed(value: float) -> void:
-	Settings.set_music_volume(value / 100.0)
+	if is_zero_approx(value):
+		Settings.set_music_muted(true)
+	else:
+		Settings.set_music_volume(value / 100.0)
+		Settings.set_music_muted(false)
+	_music_mute.set_pressed_no_signal(Settings.music_muted)
 	_refresh_labels()
 
 
 func _on_sfx_slider_changed(value: float) -> void:
-	Settings.set_sfx_volume(value / 100.0)
+	if is_zero_approx(value):
+		Settings.set_sfx_muted(true)
+	else:
+		Settings.set_sfx_volume(value / 100.0)
+		Settings.set_sfx_muted(false)
+	_sfx_mute.set_pressed_no_signal(Settings.sfx_muted)
 	_refresh_labels()
 
 
 func _on_music_mute_toggled(muted: bool) -> void:
+	if not muted and is_zero_approx(Settings.music_volume):
+		Settings.set_music_volume(Settings.DEFAULT_VOLUME)
 	Settings.set_music_muted(muted)
+	_show_volume(_music_slider, Settings.music_volume, muted)
 	_refresh_labels()
 
 
 func _on_sfx_mute_toggled(muted: bool) -> void:
+	if not muted and is_zero_approx(Settings.sfx_volume):
+		Settings.set_sfx_volume(Settings.DEFAULT_VOLUME)
 	Settings.set_sfx_muted(muted)
+	_show_volume(_sfx_slider, Settings.sfx_volume, muted)
 	_refresh_labels()
 
 

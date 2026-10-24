@@ -22,6 +22,7 @@ const DASHBOARD_FADE_SECONDS := 0.15
 @onready var _monitor_focus: Marker2D = %MonitorFocus
 @onready var _hud: Hud = %Hud
 @onready var _customize_panel: CustomizePanel = %CustomizePanel
+@onready var _settings_button: SettingsButton = %SettingsButton
 ## Capa personalizable → sprite que la dibuja.
 @onready var _layer_sprites: Dictionary[StringName, Sprite2D] = {
 	&"piso": %Floor as Sprite2D,
@@ -122,6 +123,8 @@ func _on_zoom_out_finished() -> void:
 
 func _on_customize_opened() -> void:
 	_set_pc_enabled(false)
+	# El panel del pincel ocupa la esquina del engranaje.
+	_settings_button.set_gear_visible(false)
 	# Recorre la cámara para que el cuarto no quede detrás del panel lateral.
 	var offset := Vector2(CustomizePanel.PANEL_WIDTH * 0.5 / CAMERA_ZOOM_ROOM.x, 0.0)
 	_tween_camera(_get_overview_position() + offset, CAMERA_ZOOM_ROOM, CAMERA_PAN_SECONDS, Tween.EASE_IN_OUT)
@@ -130,6 +133,7 @@ func _on_customize_opened() -> void:
 func _on_customize_closed(_saved: bool) -> void:
 	_tween_camera(_get_overview_position(), CAMERA_ZOOM_ROOM, CAMERA_PAN_SECONDS, Tween.EASE_IN_OUT)
 	_set_pc_enabled(true)
+	_settings_button.set_gear_visible(true)
 
 
 func _set_pc_enabled(enabled: bool) -> void:
