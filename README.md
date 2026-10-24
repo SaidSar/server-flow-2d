@@ -75,7 +75,33 @@ godot --headless --path . -s res://scripts/tools/build_customization_catalog.gd
 
 La prueba de humo usa su propio archivo de guardado; no toca tu partida.
 
-> **Al exportar:** `customization.gd` lee `data/customization/paleta.json` en tiempo de ejecución. En cada preset de exportación agrega `data/*.json` en *Recursos → Filtros para exportar archivos que no son recursos*.
+> **Al exportar:** `customization.gd` lee `data/customization/paleta.json` en tiempo de ejecución. Los presets de `export_presets.cfg` ya incluyen `data/*.json`; si creas uno nuevo, agrégalo en *Recursos → Filtros para exportar archivos que no son recursos*.
+
+## Exportar (debug)
+
+`export_presets.cfg` tiene dos presets:
+- **Android:** `com.nexuscode.serverflow2d`, solo `arm64-v8a`, sin Gradle.
+- **Windows Desktop.**
+
+Los archivos salen en `build/`, que no va al repo.
+
+```bash
+godot --headless --path . --export-debug "Android" build/android/server-flow-2d-debug.apk
+godot --headless --path . --export-debug "Windows Desktop" build/windows/ServerFlow2D.exe
+adb install -r build/android/server-flow-2d-debug.apk
+```
+
+**Requisitos:**
+- Las plantillas de exportación de tu versión exacta de Godot.
+- El SDK de Android.
+- Un JDK: Godot recomienda el 17; sin Gradle también funciona el 21 de Android Studio.
+- Las rutas `export/android/*` configuradas en *Configuración del editor*.
+
+**Notas:**
+- **Godot de Steam:** guarda la configuración, las plantillas y la keystore de depuración en `…/steamapps/common/Godot Engine/editor_data/`, no en `%APPDATA%\Godot`.
+- **Keystores:** nunca van al repo.
+- **Exportar y adb:** exportar a Android cierra el servidor de `adb`; vuelve a abrir `adb logcat` después de exportar.
+- **Rendimiento en el celular:** en builds de depuración, **F3** o un **toque de tres dedos** muestran FPS y memoria.
 
 ## Estructura
 
