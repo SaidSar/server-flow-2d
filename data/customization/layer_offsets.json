@@ -1,0 +1,238 @@
+{
+ "canvas": [
+  1592,
+  1318
+ ],
+ "escala_nodo": 0.5,
+ "nota": "offset en px del lienzo 2x; posición del Sprite2D = (x, y) con centered=false. Recortes alineados a múltiplos de 8 para que los mipmaps coincidan con el lienzo completo.",
+ "capas": {
+  "alex/alex_estres": {
+   "x": 384,
+   "y": 616,
+   "w": 176,
+   "h": 272
+  },
+  "alex/alex_teclea_a": {
+   "x": 384,
+   "y": 600,
+   "w": 176,
+   "h": 288
+  },
+  "alex/alex_teclea_b": {
+   "x": 384,
+   "y": 600,
+   "w": 176,
+   "h": 288
+  },
+  "fijos/cajas": {
+   "x": 704,
+   "y": 944,
+   "w": 408,
+   "h": 208
+  },
+  "fijos/rack_ok": {
+   "x": 800,
+   "y": 272,
+   "w": 184,
+   "h": 408
+  },
+  "fijos/rack_saturado": {
+   "x": 800,
+   "y": 272,
+   "w": 184,
+   "h": 408
+  },
+  "mesa/blanca": {
+   "x": 192,
+   "y": 520,
+   "w": 448,
+   "h": 400
+  },
+  "mesa/nogal": {
+   "x": 192,
+   "y": 520,
+   "w": 448,
+   "h": 400
+  },
+  "mesa/roble": {
+   "x": 192,
+   "y": 520,
+   "w": 448,
+   "h": 400
+  },
+  "pared_der/azul_acero": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/azul_marino": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/blanco_hueso": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/grafito": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/gris_calido": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/lavanda": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/menta": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/mostaza": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/terracota": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_der/verde_salvia": {
+   "x": 784,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/azul_acero": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/azul_marino": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/blanco_hueso": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/grafito": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/gris_calido": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/lavanda": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/menta": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/mostaza": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/terracota": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "pared_izq/verde_salvia": {
+   "x": 8,
+   "y": 8,
+   "w": 800,
+   "h": 904
+  },
+  "piso/concreto_calido": {
+   "x": 24,
+   "y": 512,
+   "w": 1544,
+   "h": 800
+  },
+  "piso/concreto_gris": {
+   "x": 24,
+   "y": 512,
+   "w": 1544,
+   "h": 800
+  },
+  "piso/concreto_oscuro": {
+   "x": 24,
+   "y": 512,
+   "w": 1544,
+   "h": 800
+  },
+  "puerta/blanca": {
+   "x": 584,
+   "y": 224,
+   "w": 144,
+   "h": 408
+  },
+  "puerta/madera_natural": {
+   "x": 584,
+   "y": 224,
+   "w": 144,
+   "h": 408
+  },
+  "puerta/madera_oscura": {
+   "x": 584,
+   "y": 224,
+   "w": 144,
+   "h": 408
+  },
+  "puerta/negra": {
+   "x": 584,
+   "y": 224,
+   "w": 144,
+   "h": 408
+  },
+  "puerta/petroleo": {
+   "x": 584,
+   "y": 224,
+   "w": 144,
+   "h": 408
+  },
+  "puerta/roja": {
+   "x": 584,
+   "y": 224,
+   "w": 144,
+   "h": 408
+  }
+ }
+}

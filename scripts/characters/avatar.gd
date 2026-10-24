@@ -1,7 +1,7 @@
 class_name Avatar
 extends Node2D
 ## Personaje sentado en la PC. Alterna los cuadros de tecleo; con estrés muestra otro sprite.
-## Los sprites están renderizados sobre el mismo lienzo 2x que el cuarto.
+## Los sprites son recortes del mismo lienzo 2x que el cuarto; cada pose tiene su propio offset.
 
 const TYPING_FRAME_SECONDS := 0.25
 
@@ -51,6 +51,6 @@ func _on_frame_timer_timeout() -> void:
 
 func _refresh_texture() -> void:
 	if _is_stressed and stressed_texture != null:
-		_sprite.texture = stressed_texture
+		Customization.apply_layer(_sprite, stressed_texture)
 	elif not typing_textures.is_empty():
-		_sprite.texture = typing_textures[_frame]
+		Customization.apply_layer(_sprite, typing_textures[_frame])

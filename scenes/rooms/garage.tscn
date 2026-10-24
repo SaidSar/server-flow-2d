@@ -19,24 +19,31 @@ rack_ok_texture = ExtResource("6_rack_ok")
 rack_saturated_texture = ExtResource("7_rack_saturated")
 
 [node name="Floor" parent="Layers" index="0"]
+position = Vector2(24, 512)
 texture = ExtResource("2_floor")
 
 [node name="WallLeft" parent="Layers" index="1"]
+position = Vector2(8, 8)
 texture = ExtResource("3_wall_left")
 
 [node name="WallRight" parent="Layers" index="2"]
+position = Vector2(784, 8)
 texture = ExtResource("4_wall_right")
 
 [node name="Door" parent="Layers" index="3"]
+position = Vector2(584, 224)
 texture = ExtResource("5_door")
 
 [node name="Rack" parent="Layers" index="4"]
+position = Vector2(800, 272)
 texture = ExtResource("6_rack_ok")
 
 [node name="Desk" parent="Layers" index="5"]
+position = Vector2(192, 520)
 texture = ExtResource("8_desk")
 
 [node name="Boxes" parent="Layers" index="7"]
+position = Vector2(704, 944)
 texture = ExtResource("9_boxes")
 
 [node name="Shape" parent="Layers/PcArea" index="0"]
