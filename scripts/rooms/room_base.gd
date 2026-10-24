@@ -1,7 +1,8 @@
 class_name RoomBase
 extends Node2D
-## Cuarto isométrico base. Las capas son PNG del mismo lienzo 2x, apiladas sin offset
-## dentro de Layers (escala 0.5). Cada cuarto hereda esta escena y asigna sus texturas.
+## Cuarto isométrico base. Las capas son PNG recortados de un mismo lienzo 2x; cada uno se
+## coloca en su offset (Customization.apply_layer) dentro de Layers (escala 0.5).
+## Cada cuarto hereda esta escena y asigna sus texturas.
 ## Clic en la PC → zoom al monitor → dashboard.
 
 const CAMERA_ZOOM_ROOM := Vector2(1.5, 1.5)
@@ -16,7 +17,9 @@ const DASHBOARD_FADE_SECONDS := 0.15
 @export var rack_saturated_texture: Texture2D
 
 @onready var _camera: Camera2D = %Camera
+@onready var _layers: Node2D = %Layers
 @onready var _rack: Sprite2D = %Rack
+@onready var _boxes: Sprite2D = %Boxes
 @onready var _avatar: Avatar = %Avatar
 @onready var _pc_area: Area2D = %PcArea
 @onready var _monitor_focus: Marker2D = %MonitorFocus
@@ -42,6 +45,7 @@ func _ready() -> void:
 
 	for layer: StringName in _layer_sprites:
 		_apply_color(layer, GameState.get_color(layer))
+	Customization.apply_layer(_boxes, _boxes.texture)
 	_avatar.set_display_name(GameState.avatar_name)
 	_set_saturated(Simulation.is_saturated)
 
@@ -69,20 +73,18 @@ func _exit_tree() -> void:
 func _apply_color(layer: StringName, option_id: StringName) -> void:
 	var sprite: Sprite2D = _layer_sprites.get(layer)
 	if sprite != null:
-		sprite.texture = Customization.load_layer_texture(room_id, layer, option_id)
+		Customization.apply_layer(sprite, Customization.load_layer_texture(room_id, layer, option_id))
 
 
 func _set_saturated(saturated: bool) -> void:
-	_rack.texture = rack_saturated_texture if saturated else rack_ok_texture
+	Customization.apply_layer(_rack, rack_saturated_texture if saturated else rack_ok_texture)
 	_avatar.set_stressed(saturated)
 
 
-## Centro del cuarto en coordenadas del mundo (el lienzo se dibuja desde el origen).
+## Centro del cuarto en coordenadas del mundo: el centro del lienzo 2x, que empieza en el origen
+## de Layers. No usa el tamaño de las texturas porque están recortadas.
 func _get_overview_position() -> Vector2:
-	var floor_sprite := _layer_sprites[&"piso"]
-	if floor_sprite.texture == null:
-		return Vector2.ZERO
-	return floor_sprite.to_global(floor_sprite.texture.get_size() * 0.5)
+	return _layers.to_global(Customization.canvas_size * 0.5)
 
 
 func _on_pc_area_input_event(_viewport: Node, event: InputEvent, _shape_index: int) -> void:
