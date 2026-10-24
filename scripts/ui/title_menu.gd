@@ -1,5 +1,6 @@
 extends Control
 ## Menú de título: Nueva partida, Continuar, Opciones y Salir.
+## Salir (botón o "atrás" de Android) pide confirmación antes de cerrar el juego.
 
 @onready var _new_game_button: Button = %NewGameButton
 @onready var _continue_button: Button = %ContinueButton
@@ -8,12 +9,16 @@ extends Control
 @onready var _options_panel: Control = %OptionsPanel
 @onready var _fullscreen_check: CheckButton = %FullscreenCheck
 @onready var _close_options_button: Button = %CloseOptionsButton
+@onready var _quit_confirm_panel: Control = %QuitConfirmPanel
+@onready var _confirm_quit_button: Button = %ConfirmQuitButton
+@onready var _cancel_quit_button: Button = %CancelQuitButton
 
 
 func _ready() -> void:
 	GameState.end_session()
 	_continue_button.disabled = not SaveSystem.has_save()
 	_options_panel.hide()
+	_quit_confirm_panel.hide()
 	# En Android el juego siempre es pantalla completa.
 	_fullscreen_check.visible = OS.get_name() != "Android"
 	_fullscreen_check.button_pressed = _is_fullscreen()
@@ -21,25 +26,48 @@ func _ready() -> void:
 	_new_game_button.pressed.connect(_on_new_game_pressed)
 	_continue_button.pressed.connect(_on_continue_pressed)
 	_options_button.pressed.connect(_options_panel.show)
-	_quit_button.pressed.connect(SceneRouter.quit_game)
+	_quit_button.pressed.connect(ask_quit)
 	_fullscreen_check.toggled.connect(_on_fullscreen_toggled)
 	_close_options_button.pressed.connect(_options_panel.hide)
+	_confirm_quit_button.pressed.connect(SceneRouter.quit_game)
+	_cancel_quit_button.pressed.connect(_cancel_quit)
 	_new_game_button.grab_focus()
 
 
 func _notification(what: int) -> void:
-	# Botón "atrás" de Android: cierra Opciones o sale del juego.
+	# Botón "atrás" de Android: igual que Esc.
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		if _options_panel.visible:
-			_options_panel.hide()
-		else:
-			SceneRouter.quit_game()
+		go_back()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _options_panel.visible and event.is_action_pressed(&"ui_cancel"):
-		_options_panel.hide()
+	if event.is_action_pressed(&"ui_cancel"):
+		go_back()
 		get_viewport().set_input_as_handled()
+
+
+## Cierra Opciones o la confirmación; si no hay nada abierto, pregunta si quiere salir.
+func go_back() -> void:
+	if _quit_confirm_panel.visible:
+		_cancel_quit()
+	elif _options_panel.visible:
+		_options_panel.hide()
+	else:
+		ask_quit()
+
+
+func ask_quit() -> void:
+	_quit_confirm_panel.show()
+	_cancel_quit_button.grab_focus()
+
+
+func is_confirming_quit() -> bool:
+	return _quit_confirm_panel.visible
+
+
+func _cancel_quit() -> void:
+	_quit_confirm_panel.hide()
+	_quit_button.grab_focus()
 
 
 func _on_new_game_pressed() -> void:

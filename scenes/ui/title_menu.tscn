@@ -163,3 +163,64 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 text = "Cerrar"
+
+[node name="QuitConfirmPanel" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dimmer" type="ColorRect" parent="QuitConfirmPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Center" type="CenterContainer" parent="QuitConfirmPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Window" type="PanelContainer" parent="QuitConfirmPanel/Center"]
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_options")
+
+[node name="Content" type="VBoxContainer" parent="QuitConfirmPanel/Center/Window"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="QuestionLabel" type="Label" parent="QuitConfirmPanel/Center/Window/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "¿Estás seguro de que quieres salir?"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="QuitConfirmPanel/Center/Window/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="CancelQuitButton" type="Button" parent="QuitConfirmPanel/Center/Window/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancelar"
+
+[node name="ConfirmQuitButton" type="Button" parent="QuitConfirmPanel/Center/Window/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sí, salir"
