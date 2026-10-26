@@ -1,11 +1,10 @@
 extends SceneTree
 ## Pruebas de la tienda y la decoración de la oficina: reglas de colocación (DecorLayout), monedas,
 ## inventario, guardado y cuándo abre la tienda.
-## Uso: godot --headless --path . -s res://tests/test_decor.gd
+## Uso: godot --headless --path . -s res://tests/test_decor.gd -- --save-path=user://test_decor.cfg
 ## Nota: con -s los autoloads se registran después de compilar este script; DecorShop depende de
 ## ellos, así que se carga como recurso y se llama con call().
 
-const TEST_SAVE_PATH := "user://test_decor_save.cfg"
 const PHASE_READY := 1
 const PHASE_RUNNING := 2
 
@@ -21,7 +20,10 @@ func _run() -> void:
 	var game_state: Node = root.get_node("GameState")
 	var save_system: Node = root.get_node("SaveSystem")
 	var simulation: Node = root.get_node("Simulation")
-	save_system.set("save_path", TEST_SAVE_PATH)
+	if save_system.call("is_using_real_save"):
+		printerr("test_decor: corre la prueba con una partida alterna para no tocar la real, p. ej.: -- --save-path=user://test_decor.cfg")
+		quit(1)
+		return
 	save_system.call("delete_save")
 	_shop = load("res://scripts/rooms/decor_shop.gd")
 
@@ -212,12 +214,12 @@ func _test_save_load(game_state: Node, save_system: Node, simulation: Node) -> v
 
 	# Una partida anterior a la tienda (sin sección "decor" y con el piso como "piso") se migra.
 	var config := ConfigFile.new()
-	config.load(TEST_SAVE_PATH)
+	config.load(save_system.get("save_path"))
 	config.erase_section("decor")
 	config.erase_section_key("colors", "piso_garage")
 	config.erase_section_key("colors", "piso_oficina")
 	config.set_value("colors", "piso", "concreto_oscuro")
-	config.save(TEST_SAVE_PATH)
+	config.save(save_system.get("save_path"))
 	_check(save_system.call("load_game"), "cargar una partida vieja")
 	_check((game_state.call("get_placed_decor", &"oficina") as Array).is_empty() and (game_state.get("decor_inventory") as Array).is_empty(), "una partida vieja empieza sin decoración")
 	_check(game_state.get("colors")[&"piso_garage"] == &"concreto_oscuro" and game_state.get("colors")[&"piso_oficina"] == &"laminado_claro", "una partida vieja migra su piso al garage")

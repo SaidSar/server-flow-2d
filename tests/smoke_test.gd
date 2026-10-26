@@ -3,12 +3,11 @@ extends SceneTree
 ## título → personaje (Alexa) → nombres → garage → pincel → PC → dashboard (ajustes, ficha de mejora,
 ## comprar) → post-mortem → siguiente oleada → game over → reintentar → cuarto (ajustes) → Salir
 ## → continuar → meta no alcanzada → repetir etapa → victoria → diálogo de Briseida (con Alexa y con Alex).
-## Uso: godot --headless --path . -s res://tests/smoke_test.gd
-## Usa un archivo de guardado propio para no tocar la partida real.
+## Uso: godot --headless --path . -s res://tests/smoke_test.gd -- --save-path=user://test_smoke.cfg
+## Exige una partida alterna (SaveSystem --save-path) y falla si se toca la partida real.
 ## Nota: con -s los autoloads se registran después de compilar este script, así que aquí
 ## no se usan como identificadores globales ni se tipan clases que dependan de ellos.
 
-const TEST_SAVE_PATH := "user://smoke_test_save.cfg"
 const TEST_SETTINGS_PATH := "user://smoke_test_settings.cfg"
 const PHASE_READY := 1
 const PHASE_RUNNING := 2
@@ -51,7 +50,13 @@ func _run() -> void:
 	var save_system: Node = root.get_node("SaveSystem")
 	var simulation: Node = root.get_node("Simulation")
 	var customization: Node = root.get_node("Customization")
-	save_system.set("save_path", TEST_SAVE_PATH)
+	if save_system.call("is_using_real_save"):
+		printerr("smoke_test: corre la prueba con una partida alterna para no tocar la real, p. ej.: -- --save-path=user://test_smoke.cfg")
+		quit(1)
+		return
+	# La partida real no se debe leer ni escribir: se compara su fecha al final.
+	var real_save := ProjectSettings.globalize_path(Paths.SAVE_FILE)
+	var real_save_time := FileAccess.get_modified_time(real_save) if FileAccess.file_exists(real_save) else 0
 	save_system.call("delete_save")
 	var settings: Node = root.get_node("Settings")
 	settings.set("settings_path", TEST_SETTINGS_PATH)
@@ -153,6 +158,9 @@ func _run() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS_PATH))
 	paused = false
 	await process_frame
+	_check(not save_system.get("real_save_accessed"), "SaveSystem no tocó la partida real")
+	var real_save_time_now := FileAccess.get_modified_time(real_save) if FileAccess.file_exists(real_save) else 0
+	_check(real_save_time_now == real_save_time, "la partida real (%s) no cambió" % Paths.SAVE_FILE)
 	if _failures.is_empty():
 		print("SMOKE TEST OK")
 		quit(0)
@@ -662,9 +670,9 @@ func _test_old_save_without_avatar(game_state: Node, save_system: Node) -> void:
 	game_state.call("_set_avatar", &"alexa")
 	_check(save_system.call("save_game"), "guardar con Alexa")
 	var config := ConfigFile.new()
-	config.load(TEST_SAVE_PATH)
+	config.load(save_system.get("save_path"))
 	config.erase_section_key("player", "avatar_id")
-	config.save(TEST_SAVE_PATH)
+	config.save(save_system.get("save_path"))
 	_check(save_system.call("load_game") and game_state.get("avatar_id") == &"alex", "una partida vieja sin avatar_id es de Alex")
 
 

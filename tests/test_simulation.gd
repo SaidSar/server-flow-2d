@@ -1,6 +1,6 @@
 extends SceneTree
 ## Pruebas del modelo de simulación, sin ventana y con semilla fija.
-## Uso: godot --headless --path . -s res://tests/test_simulation.gd
+## Uso: godot --headless --path . -s res://tests/test_simulation.gd -- --save-path=user://test_simulation.cfg
 ## Imprime un resumen por oleada que sirve para revisar el balance.
 ## Nota: con -s los autoloads se registran después de compilar este script,
 ## así que aquí se usan a través de root.get_node() y no como identificadores globales.
@@ -46,7 +46,12 @@ func _initialize() -> void:
 
 func _run() -> void:
 	_sim = root.get_node("Simulation")
-	root.get_node("SaveSystem").set("save_path", "user://test_simulation_save.cfg")
+	var save_system: Node = root.get_node("SaveSystem")
+	if save_system.call("is_using_real_save"):
+		printerr("test_simulation: corre la prueba con una partida alterna para no tocar la real, p. ej.: -- --save-path=user://test_simulation.cfg")
+		quit(1)
+		return
+
 	_sim.connect("wave_finished", func(report: WaveReport) -> void: _reports.append(report))
 	_sim.connect("game_over", func(report: WaveReport) -> void: _game_over_report = report)
 	_sim.connect("stage_completed", func(report: WaveReport) -> void: _stage_report = report)
