@@ -104,12 +104,21 @@ func _test_layout() -> void:
 	_check(not empty.can_place(picture, &"izq", Vector2(0.0, 7.0)), "muro izquierdo: no sobre el pizarrón")
 	_check(empty.can_place(picture, &"izq", Vector2(0.0, 0.0)), "muro izquierdo: junto a la esquina sí")
 	_check(empty.can_place(neon, &"der", Vector2(2.5, 8.96)), "el neón cabe entre los racks y la ventana")
-	var neon_fits_left := false
-	for i in 16:
-		neon_fits_left = neon_fits_left or empty.can_place(neon, &"izq", Vector2(0.0, i * 0.5))
-	_check(not neon_fits_left, "el neón (1.4 m) no cabe en ningún tramo libre del muro izquierdo")
+
+	# Las zonas prohibidas tienen altura: solo chocan si también se enciman en z.
+	_check(is_equal_approx(picture.height_m.x, 1.25) and is_equal_approx(neon.height_m.y, 2.45), "las alturas de los objetos de pared vienen del catálogo")
+	_check(empty.can_place(neon, &"izq", Vector2(0.0, 1.5)), "el neón (z 1.95–2.45) cabe sobre el escritorio (monitor z 0.75–1.6)")
+	_check(not empty.can_place(picture, &"izq", Vector2(0.0, 1.5)), "el cuadro (z 1.25–1.95) choca con el monitor")
+	_check(not empty.can_place(neon, &"izq", Vector2(0.0, 4.0)), "el neón choca con la puerta (z 0–2.15)")
+	_check(not empty.can_place(neon, &"izq", Vector2(0.0, 6.5)), "el neón choca con el pizarrón")
+	_check(not empty.can_place(neon, &"der", Vector2(1.0, 8.96)), "el neón choca con los racks (z 0–2.05)")
+	_check(not empty.can_place(neon, &"der", Vector2(4.5, 8.96)), "el neón choca con la ventana (z 1.0–2.5)")
+
+	# Entre objetos del mismo muro también cuenta la altura.
 	var with_picture := DecorLayout.new(room, [{"id": "cuadro", "ori": "der", "x": 2.5, "y": 8.95}])
-	_check(not with_picture.can_place(neon, &"der", Vector2(2.5, 8.96)), "dos objetos no se enciman en el mismo muro")
+	_check(not with_picture.can_place(picture, &"der", Vector2(3.0, 8.95)), "dos cuadros no se enciman en el mismo muro")
+	_check(with_picture.can_place(neon, &"der", Vector2(2.5, 8.96)), "el neón cabe encima del cuadro (alturas distintas)")
+	_check(with_picture.can_place(picture, &"izq", Vector2(0.0, 0.0)), "un cuadro en el otro muro no estorba")
 	_check(with_picture.can_place(plant, &"a", Vector2(2.5, 8.5)), "un objeto de pared no estorba en el piso")
 
 
