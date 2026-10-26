@@ -1,12 +1,13 @@
 extends Node
 ## Autoload "SaveSystem": guarda y carga la partida en un ConfigFile.
-## Guarda la identidad (GameState) y el checkpoint de Simulation: etapa, oleada, monedas,
+## Guarda la identidad (GameState: personaje, nombres y colores) y el checkpoint de Simulation: etapa, oleada, monedas,
 ## niveles de mejoras, disco usado, usuarios atendidos y estadísticas por etapa.
 ## El checkpoint es el inicio de la oleada en curso, así que "Continuar" vuelve a ese punto.
 
 signal saved
 
-const SAVE_VERSION := 2
+## 3: agrega player/avatar_id (las partidas sin él son de Alex).
+const SAVE_VERSION := 3
 const SECTION_META := "meta"
 const SECTION_PLAYER := "player"
 const SECTION_COLORS := "colors"
@@ -38,6 +39,7 @@ func save_game() -> bool:
 	var data := GameState.to_save_data()
 	var config := ConfigFile.new()
 	config.set_value(SECTION_META, "version", SAVE_VERSION)
+	config.set_value(SECTION_PLAYER, "avatar_id", data["avatar_id"])
 	config.set_value(SECTION_PLAYER, "avatar_name", data["avatar_name"])
 	config.set_value(SECTION_PLAYER, "company_name", data["company_name"])
 	var colors: Dictionary = data["colors"]
@@ -73,6 +75,7 @@ func load_game() -> bool:
 			progress[key] = config.get_value(SECTION_PROGRESS, key)
 
 	GameState.restore({
+		"avatar_id": config.get_value(SECTION_PLAYER, "avatar_id", String(AvatarData.DEFAULT_ID)),
 		"avatar_name": config.get_value(SECTION_PLAYER, "avatar_name", ""),
 		"company_name": config.get_value(SECTION_PLAYER, "company_name", ""),
 		"colors": colors,

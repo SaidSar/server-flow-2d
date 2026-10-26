@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AvatarData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/avatar_data.gd" id="1_avatar"]
+
+[resource]
+script = ExtResource("1_avatar")
+id = &"alexa"
+display_name = "Alexa"
+description = "Sudadera rosa"
+color = Color(0.909804, 0.392157, 0.607843, 1)
+gender = "f"
+teclea_a = "res://assets/art/characters/alexa/alexa_teclea_a.png"
+teclea_b = "res://assets/art/characters/alexa/alexa_teclea_b.png"
+estres = "res://assets/art/characters/alexa/alexa_estres.png"
+de_pie = "res://assets/art/characters/alexa/alexa_de_pie.png"
+select = "res://assets/art/ui/character_select/alexa_select.png"

@@ -26,6 +26,10 @@ const STAGES := {
 	&"enterprise": "res://resources/stages/enterprise.tres",
 }
 
+## Personajes elegibles: resources/avatars/<id>.tres
+const AVATARS_DIR := "res://resources/avatars"
+const AVATAR := "res://resources/avatars/%s.tres"
+
 ## Textura de una capa personalizable: rooms/<cuarto>/<capa>/<id>.png
 const ROOM_LAYER_TEXTURE := "res://assets/art/rooms/%s/%s/%s.png"
 
