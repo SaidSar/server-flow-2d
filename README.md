@@ -23,10 +23,10 @@ Simulador *tycoon* 2D en el que eres el **SysAdmin** de una startup y tu trabajo
 3. En Godot: *Importar* → selecciona `project.godot`. La primera importación de texturas tarda un poco.
 4. Ejecuta con **F5**. La escena principal es `scenes/main/main.tscn`.
 
-Flujo para probar: *Nueva partida* → nombre del avatar → nombre de la empresa → garage → botón de pincel (personalizar) → clic en el monitor de la PC → dashboard (empieza la oleada 1) → compra mejoras en la consola → post-mortem → *Siguiente oleada* → *← Cuarto*.
+Flujo para probar: *Nueva partida* → elegir personaje (Alex o Alexa) → nombre del avatar → nombre de la empresa → garage → botón de pincel (personalizar) → clic en el monitor de la PC → dashboard (empieza la oleada 1) → compra mejoras en la consola → post-mortem → *Siguiente oleada* → *← Cuarto*.
 
 **Atajos de depuración** (solo en builds de depuración):
-- **F9:** fuerza una sobrecarga (×2 tráfico), para ver el rack saturado, a Alex estresado y los paquetes rojos.
+- **F9:** fuerza una sobrecarga (×2 tráfico), para ver el rack saturado, al avatar estresado y los paquetes rojos.
 - **F10:** acelera la simulación ×8, para llegar rápido al post-mortem, al game over o a la victoria.
 
 ## Dashboard
@@ -39,7 +39,7 @@ El monitor de la PC es donde se juega:
 - **Consola de administración:** una mejora por cada `UpgradeData`. Se resalta en rojo la que arregla el cuello de botella actual.
 - **Oleadas:** son 5 por etapa. Entre oleadas aparece el post-mortem con la causa principal y su explicación educativa.
 - **Fin de etapa:** siempre se juegan las 5 oleadas y la etapa se decide al terminar la quinta.
-  - **Victoria:** se alcanzó la meta de usuarios. Muestra estrellas y Valeria (CEO) anuncia la ronda de inversión.
+  - **Victoria:** se alcanzó la meta de usuarios. Muestra estrellas y Briseida (CEO) anuncia la ronda de inversión.
   - **Meta no alcanzada:** no es quiebra; "Repetir etapa" vuelve a la oleada 1 con los ahorros con que empezó la etapa.
 - **Quiebra (game over):** solo si el SLA llega a 0. Se puede reintentar la oleada.
 - **Ficha de cada mejora:** se abre al mantenerla presionada (0.4 s) o con su botón "i". En PC también aparece como tooltip. Muestra el efecto, el nivel, el costo y qué concepto enseña.
@@ -124,17 +124,31 @@ adb install -r build/android/server-flow-2d-debug.apk
 | Nombre | Responsabilidad |
 |---|---|
 | `Simulation` | Modelo de tráfico, infraestructura, economía, SLA, oleadas y mejoras, en pasos fijos de 0.1 s. Guarda un checkpoint al inicio de cada oleada. |
-| `GameState` | Identidad de la partida (avatar, empresa y colores del cuarto). |
+| `GameState` | Identidad de la partida (personaje, nombre del avatar, empresa y colores del cuarto). |
 | `SaveSystem` | Guarda y carga `user://savegame.cfg` con `ConfigFile`: identidad + checkpoint de `Simulation`. Guarda solo al empezar y al terminar cada oleada, y al salir. |
 | `Settings` | Volumen de música y efectos en `user://settings.cfg`. Se aplica a los buses de audio al iniciar. |
 | `Customization` | Catálogo de colores leído de `paleta.json` y resolución de texturas. |
 | `SceneRouter` | Cambios de escena y transiciones. Todas las rutas de escenas están en `scripts/paths.gd`. |
 
+### Personajes
+
+Cada personaje elegible es un `AvatarData` en `resources/avatars/<id>.tres`: nombre, descripción, color de su tarjeta, `gender` (`"m"` o `"f"`) y las rutas de sus poses (`teclea_a`, `teclea_b`, `estres`, `de_pie`) y del render de selección. Para agregar uno basta con crear otro `.tres` con su arte; la pantalla de selección lo muestra sola. Las poses sentadas son recortes del lienzo 2x y necesitan su entrada en `layer_offsets.json`.
+
+`GameState.avatar_id` guarda la elección (las partidas viejas sin ella son de Alex).
+
+### Textos con género
+
+Los textos que se dirigen al jugador usan `TextUtil`, que elige la forma según el personaje:
+- En código: `TextUtil.g("listo", "lista")`.
+- En textos y datos (`.tres`): `TextUtil.format("¡Bienvenid{o|a}!")`. Los tutoriales de BYTE (`tutorial_text`) ya pasan por `format`.
+
+Prefiere frases neutras. Antes de elegir personaje (título, carga) solo usa frases neutras.
+
 ### Arte del cuarto
 
 Todas las capas del cuarto están renderizadas sobre el **mismo lienzo a 2x (1592×1318)**, pero cada PNG está **recortado a su contenido** para ahorrar memoria y peso del APK. `data/customization/layer_offsets.json` guarda, por capa (`"piso/concreto_calido"`, `"alex/alex_teclea_a"`, …), su posición `x, y` en el lienzo y su tamaño `w, h`. Las capas van con `centered = false` dentro de un nodo raíz con `scale = (0.5, 0.5)`. Orden de dibujo (de atrás hacia adelante): piso, pared_izq, pared_der, puerta, rack, mesa, alex, cajas.
 
-Para asignar la textura de una capa (color del pincel, rack, pose de Alex) usa siempre `Customization.apply_layer(sprite, texture)`: pone la textura y su posición juntas. La clave del offset sale de la ruta (`…/<carpeta>/<archivo>.png`). Si agregas o cambias arte recortado, actualiza también `layer_offsets.json`; `smoke_test.gd` revisa que cada variante tenga su offset y su tamaño correcto. Una capa sin recortar (lienzo completo) no necesita entrada y va en el origen.
+Para asignar la textura de una capa (color del pincel, rack, pose del avatar) usa siempre `Customization.apply_layer(sprite, texture)`: pone la textura y su posición juntas. La clave del offset sale de la ruta (`…/<carpeta>/<archivo>.png`). Si agregas o cambias arte recortado, actualiza también `layer_offsets.json`; `smoke_test.gd` revisa que cada variante tenga su offset y su tamaño correcto. Una capa sin recortar (lienzo completo) no necesita entrada y va en el origen.
 
 Los recortes tienen origen y tamaño **alineados a múltiplos de 8 px** (con al menos 2 px de margen transparente). Si no, los mipmaps del recorte promedian bloques de píxeles distintos a los del lienzo completo y, al ver el cuarto alejado, los bordes se ven ligeramente diferentes.
 
