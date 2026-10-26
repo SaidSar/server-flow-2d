@@ -86,6 +86,8 @@ La prueba de humo usa su propio archivo de guardado; no toca tu partida.
 
 Los archivos salen en `build/`, que no va al repo.
 
+**Al publicar una versión, subir `version/name` y `version/code` en `export_presets.cfg`.** En Android, `version/code` siempre aumenta. En Windows, `file_version` y `product_version` llevan la misma versión con un `.0` al final (p. ej. `0.3.1.0`).
+
 ```bash
 godot --headless --path . --export-debug "Android" build/android/server-flow-2d-debug.apk
 godot --headless --path . --export-debug "Windows Desktop" build/windows/ServerFlow2D.exe
