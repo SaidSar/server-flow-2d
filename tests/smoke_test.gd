@@ -1,8 +1,8 @@
 extends SceneTree
 ## Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana:
-## título → nombres → garage → pincel → PC → dashboard (ajustes, ficha de mejora, comprar) → post-mortem
-## → siguiente oleada → game over → reintentar → cuarto (ajustes) → Salir → continuar
-## → meta no alcanzada → repetir etapa → victoria → diálogo de Valeria.
+## título → personaje (Alexa) → nombres → garage → pincel → PC → dashboard (ajustes, ficha de mejora,
+## comprar) → post-mortem → siguiente oleada → game over → reintentar → cuarto (ajustes) → Salir
+## → continuar → meta no alcanzada → repetir etapa → victoria → diálogo de Briseida (con Alexa y con Alex).
 ## Uso: godot --headless --path . -s res://tests/smoke_test.gd
 ## Usa un archivo de guardado propio para no tocar la partida real.
 ## Nota: con -s los autoloads se registran después de compilar este script, así que aquí
@@ -78,6 +78,9 @@ func _run() -> void:
 	_check(save_system.call("load_game"), "cargar partida")
 	_check(game_state.get("avatar_name") == "Prueba", "nombre del avatar guardado")
 	_check(game_state.get("colors")[&"pared_izq"] == &"menta", "color guardado")
+	_check(game_state.get("avatar_id") == &"alex", "personaje por defecto: Alex")
+	_test_old_save_without_avatar(game_state, save_system)
+	_test_gender_text()
 
 	# Id desconocido → valor por defecto
 	var sanitized: Dictionary = customization.call("sanitize_colors", {&"mesa": &"no_existe"})
@@ -228,11 +231,26 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(await _wait_for_scene(&"TitleMenu"), "abre el menú de título")
 	_check((current_scene.get_node("%ContinueButton") as Button).disabled, "Continuar deshabilitado sin partida")
 	(current_scene.get_node("%NewGameButton") as Button).pressed.emit()
-	_check(await _wait_for_scene(&"NewGameSetup", 6.0), "pantalla de carga → nombres")
+	_check(await _wait_for_scene(&"NewGameSetup", 6.0), "pantalla de carga → partida nueva")
 
+	var character_select: Control = current_scene.get_node("%CharacterSelect")
 	var avatar_prompt: NamePrompt = current_scene.get_node("%AvatarPrompt")
 	var company_prompt: NamePrompt = current_scene.get_node("%CompanyPrompt")
-	_check(avatar_prompt.visible and not company_prompt.visible, "primero se pide el avatar")
+	_check(character_select.visible and not avatar_prompt.visible, "paso 1: elegir personaje")
+	_check((character_select.get_node("%StepLabel") as Label).text == "Paso 1 de 3", "la selección dice Paso 1 de 3")
+	_check(character_select.call("get_selected_id") == &"alex", "Alex viene seleccionado")
+	(character_select.call("get_card", &"alexa") as Button).button_pressed = true
+	_check(character_select.call("get_selected_id") == &"alexa", "tocar la tarjeta elige a Alexa")
+	_check(not (character_select.call("get_card", &"alex") as Button).button_pressed, "solo una tarjeta seleccionada")
+	(character_select.get_node("%NextButton") as Button).pressed.emit()
+	_check(avatar_prompt.visible and not character_select.visible, "paso 2: nombre del avatar")
+	_check((avatar_prompt.get_node("%StepLabel") as Label).text == "Paso 2 de 3", "el nombre dice Paso 2 de 3")
+	_check((avatar_prompt.get_node("%NameEdit") as LineEdit).placeholder_text == "Alexa", "el placeholder es Alexa")
+	(avatar_prompt.get_node("%BackButton") as Button).pressed.emit()
+	_check(character_select.visible and character_select.call("get_selected_id") == &"alexa", "Atrás regresa a la selección con Alexa elegida")
+	(character_select.get_node("%NextButton") as Button).pressed.emit()
+	_check(avatar_prompt.visible, "Siguiente vuelve al nombre")
+	_check((company_prompt.get_node("%StepLabel") as Label).text == "Paso 3 de 3", "la empresa dice Paso 3 de 3")
 	_check((avatar_prompt.get_node("%ConfirmButton") as Button).disabled, "Siguiente deshabilitado con texto vacío")
 	_type_name(avatar_prompt, "Said")
 	(avatar_prompt.get_node("%ConfirmButton") as Button).pressed.emit()
@@ -247,7 +265,9 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 
 	var garage := current_scene
 	_check((garage.get_node("%Hud").get_node("%TitleLabel") as Label).text == "Nexus Test · Startup", "HUD con empresa y etapa")
-	_check((garage.get_node("%Avatar").get_node("%NameLabel") as Label).text == "Said", "nombre sobre Alex")
+	_check((garage.get_node("%Avatar").get_node("%NameLabel") as Label).text == "Said", "nombre sobre el avatar")
+	_check(game_state.get("avatar_id") == &"alexa", "la partida es de Alexa")
+	_check_avatar_sprite(garage, "alexa", "garage nuevo")
 
 	# Personalizar y cancelar
 	var panel: CanvasLayer = garage.get_node("%CustomizePanel")
@@ -286,9 +306,13 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(await _wait_for_scene(&"Garage"), "Continuar abre el garage")
 	_check(simulation.get("phase") == PHASE_READY and simulation.get("wave_number") == 2, "Continuar vuelve al inicio de la oleada 2")
 	_check(simulation.call("get_level", &"bandwidth") == 1, "Continuar conserva las mejoras")
+	_check(game_state.get("avatar_id") == &"alexa", "Continuar conserva a Alexa")
+	_check_avatar_sprite(current_scene, "alexa", "después de Continuar")
 
 	await _test_goal_missed(simulation)
-	await _test_victory_and_investment(simulation)
+	await _test_victory_and_investment(simulation, "la mejor SysAdmin")
+	game_state.call("_set_avatar", &"alex")
+	await _test_victory_and_investment(simulation, "el mejor SysAdmin")
 	await _test_stage_name_in_huds(simulation)
 
 
@@ -499,8 +523,9 @@ func _test_goal_missed(simulation: Node) -> void:
 	_check(not goal_missed.visible, "Meta no alcanzada se cierra")
 
 
-## Ganar la etapa: victoria → diálogo de Valeria → se entrega la ronda de inversión.
-func _test_victory_and_investment(simulation: Node) -> void:
+## Ganar la etapa: victoria → diálogo de Briseida → se entrega la ronda de inversión.
+## `gendered_text` es la forma con género que debe usar Briseida según el personaje.
+func _test_victory_and_investment(simulation: Node, gendered_text: String) -> void:
 	simulation.call("load_checkpoint", {"stage": "startup", "wave": 5, "coins": 50, "users_served": 990})
 	change_scene_to_file(Paths.DASHBOARD)
 	_check(await _wait_for_scene(&"Dashboard"), "abre el dashboard para ganar la etapa")
@@ -516,11 +541,40 @@ func _test_victory_and_investment(simulation: Node) -> void:
 	await process_frame
 	var dialog: Control = dashboard.get_node("%DialogBox")
 	var text: String = dialog.call("get_text")
-	_check(dialog.visible and text.contains("Said") and text.contains("Nexus Test") and text.contains("1,500"), "Valeria anuncia la ronda de inversión (%s)" % text)
+	_check(dialog.visible and text.contains("Said") and text.contains("Nexus Test") and text.contains("1,500"), "Briseida anuncia la ronda de inversión (%s)" % text)
+	_check((dialog.get_node("%SpeakerLabel") as Label).text == "Briseida" and (dialog.get_node("%InitialsLabel") as Label).text == "B", "habla Briseida, con B en el retrato")
+	_check(text.contains(gendered_text) and not text.contains("{"), "Briseida usa \"%s\" (%s)" % [gendered_text, text])
 	_check(simulation.get("coins") == coins_before_dialog, "las monedas llegan después del diálogo")
 	(dialog.get_node("%ContinueButton") as Button).pressed.emit()
 	_check(simulation.get("coins") == coins_before_dialog + 1500, "¡Vamos! entrega la ronda de inversión")
 	_check(await _wait_for_scene(&"Garage"), "después del diálogo se vuelve al cuarto")
+
+
+## El sprite del avatar es el del personaje elegido y está en su offset de layer_offsets.json.
+func _check_avatar_sprite(room: Node, avatar_id: String, context: String) -> void:
+	var sprite: Sprite2D = room.get_node("%Avatar").get_node("%Sprite")
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.LAYER_OFFSETS_JSON))
+	_check(sprite.texture.resource_path.get_file().begins_with(avatar_id + "_"), "%s: sprite de %s (%s)" % [context, avatar_id, sprite.texture.resource_path])
+	_check_layer_offset(sprite, data["capas"], context)
+
+
+## Una partida guardada antes de la selección de personaje (sin avatar_id) carga con Alex.
+func _test_old_save_without_avatar(game_state: Node, save_system: Node) -> void:
+	game_state.call("_set_avatar", &"alexa")
+	_check(save_system.call("save_game"), "guardar con Alexa")
+	var config := ConfigFile.new()
+	config.load(TEST_SAVE_PATH)
+	config.erase_section_key("player", "avatar_id")
+	config.save(TEST_SAVE_PATH)
+	_check(save_system.call("load_game") and game_state.get("avatar_id") == &"alex", "una partida vieja sin avatar_id es de Alex")
+
+
+## TextUtil elige la forma según el género. Se carga como recurso porque depende de GameState.
+func _test_gender_text() -> void:
+	var text_util: GDScript = load("res://scripts/ui/text_util.gd")
+	_check(text_util.call("format", "¡Bienvenid{o|a}!", "f") == "¡Bienvenida!", "formato femenino")
+	_check(text_util.call("format", "¡Bienvenid{o|a}! {Listo|Lista}", "m") == "¡Bienvenido! Listo", "formato masculino")
+	_check(text_util.call("g", "listo", "lista", "f") == "lista", "g() femenino")
 
 
 func _make_infrastructure_huge(simulation: Node) -> void:
