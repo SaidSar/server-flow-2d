@@ -23,7 +23,7 @@ Después de cambiar algo, corre `tests/test_simulation.gd`. Juega la etapa 1 con
   - Con la meta de usuarios alcanzada, es victoria.
   - Sin la meta, aparece **"Meta no alcanzada"**. No es quiebra: "Repetir etapa" vuelve a la oleada 1 con las monedas y mejoras con que empezó la etapa.
 - La **quiebra** (game over) ocurre solo cuando el SLA llega a 0. "Reintentar oleada" vuelve al inicio de esa oleada.
-- Al ganar una etapa, Valeria (CEO) anuncia la **ronda de inversión**, y las monedas se entregan al aceptar el diálogo.
+- Al ganar una etapa, Briseida (CEO) anuncia la **ronda de inversión**, y las monedas se entregan al aceptar el diálogo.
 
 ## Modelo (resumen)
 

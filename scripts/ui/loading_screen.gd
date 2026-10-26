@@ -7,7 +7,7 @@ const STATUS_MESSAGES: Array[String] = [
 	"Conectando cables…",
 	"Encendiendo servidores…",
 	"Configurando la red…",
-	"Listo para despegar",
+	"Todo listo para despegar",
 ]
 
 @onready var _progress_bar: ProgressBar = %ProgressBar

@@ -46,6 +46,7 @@ func _ready() -> void:
 	for layer: StringName in _layer_sprites:
 		_apply_color(layer, GameState.get_color(layer))
 	Customization.apply_layer(_boxes, _boxes.texture)
+	_avatar.set_avatar(GameState.get_avatar())
 	_avatar.set_display_name(GameState.avatar_name)
 	_set_saturated(Simulation.is_saturated)
 

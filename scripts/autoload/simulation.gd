@@ -8,7 +8,7 @@ extends Node
 signal tick(snapshot: SimSnapshot)
 ## Cambió el recurso cuello de botella (&"" = ya no hay) o el nodo donde está.
 signal bottleneck_changed(resource: StringName, node: StringName)
-## Algo pasó (o dejó de pasar) el umbral de saturación. Lo usa el garage (rack rojo, Alex estresado).
+## Algo pasó (o dejó de pasar) el umbral de saturación. Lo usa el garage (rack rojo, avatar estresado).
 signal saturation_changed(is_saturated: bool)
 signal phase_changed(phase: Phase)
 signal wave_started(wave_number: int)
@@ -73,7 +73,7 @@ var last_snapshot := SimSnapshot.new()
 var report: WaveReport
 ## Etapa completada cuya victoria el jugador aún no ha visto (pudo terminar mientras estaba en el garage).
 var pending_stage_report: WaveReport
-## Ronda de inversión que se entrega cuando el jugador acepta la victoria (después del diálogo de Valeria).
+## Ronda de inversión que se entrega cuando el jugador acepta la victoria (después del diálogo de Briseida).
 var pending_investment := 0
 var is_saturated := false
 var bottleneck: StringName = &""

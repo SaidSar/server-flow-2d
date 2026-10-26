@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AvatarData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/avatar_data.gd" id="1_avatar"]
+
+[resource]
+script = ExtResource("1_avatar")
+id = &"alex"
+display_name = "Alex"
+description = "Sudadera azul"
+color = Color(0.184314, 0.419608, 0.862745, 1)
+gender = "m"
+teclea_a = "res://assets/art/characters/alex/alex_teclea_a.png"
+teclea_b = "res://assets/art/characters/alex/alex_teclea_b.png"
+estres = "res://assets/art/characters/alex/alex_estres.png"
+de_pie = "res://assets/art/characters/alex/alex_de_pie.png"
+select = "res://assets/art/ui/character_select/alex_select.png"

@@ -8,4 +8,4 @@ duration_s = 75.0
 ramp = Vector2(0.3, 0.5)
 spikes = Array[Vector3]([])
 ddos = Array[Vector3]([])
-tutorial_text = "Bienvenido a la etapa Scale-up. Ahora puedes agregar servidores: con 2 o más se activa el Load Balancer."
+tutorial_text = "Bienvenid{o|a} a la etapa Scale-up. Ahora puedes agregar servidores: con 2 o más se activa el Load Balancer."
