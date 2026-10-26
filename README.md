@@ -66,19 +66,25 @@ Desde la raíz del proyecto (`godot` = tu ejecutable de Godot 4.6):
 
 ```bash
 # Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana
-godot --headless --path . -s res://tests/smoke_test.gd
+godot --headless --path . -s res://tests/smoke_test.gd -- --save-path=user://test_smoke.cfg
 
 # Pruebas del modelo de simulación (semilla fija) + resumen de balance por oleada
-godot --headless --path . -s res://tests/test_simulation.gd
+godot --headless --path . -s res://tests/test_simulation.gd -- --save-path=user://test_simulation.cfg
 
 # Pruebas de la tienda y la decoración (colocación, monedas, inventario, guardado)
-godot --headless --path . -s res://tests/test_decor.gd
+godot --headless --path . -s res://tests/test_decor.gd -- --save-path=user://test_decor.cfg
 
 # Regenera resources/customization/customization_catalog.tres después de editar paleta.json
 godot --headless --path . -s res://scripts/tools/build_customization_catalog.gd
 ```
 
-La prueba de humo usa su propio archivo de guardado; no toca tu partida.
+**Partida alterna:** `SaveSystem` acepta otra ruta de guardado con `-- --save-path=<ruta>` o con la variable de entorno `SERVERFLOW_SAVE_PATH`. Las pruebas la exigen: sin ella terminan de inmediato sin tocar nada, y `smoke_test.gd` falla si se lee o escribe la partida real (`user://savegame.cfg`). Úsala también en mediciones y partidas de prueba. En Android la app no recibe argumentos (la plantilla de exportación ignora los del intent), así que en builds **debug** se usa el archivo `user://save_path_override.txt` con la ruta alterna:
+
+```bash
+adb shell "echo user://medicion.cfg | run-as com.nexuscode.serverflow2d sh -c 'cat > files/save_path_override.txt'"
+```
+
+Al terminar la medición, bórralo: `adb shell run-as com.nexuscode.serverflow2d rm files/save_path_override.txt`. En builds release ese archivo se ignora.
 
 > **Al exportar:** `customization.gd` lee `data/customization/paleta.json` y `layer_offsets.json` en tiempo de ejecución. Los presets de `export_presets.cfg` ya incluyen `data/*.json`; si creas uno nuevo, agrégalo en *Recursos → Filtros para exportar archivos que no son recursos*.
 
