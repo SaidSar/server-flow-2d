@@ -4,7 +4,9 @@ extends Node
 ## niveles de mejoras, disco usado, usuarios atendidos y estadísticas por etapa.
 ## El checkpoint es el inicio de la oleada en curso, así que "Continuar" vuelve a ese punto.
 ## Ruta alterna (pruebas, mediciones y partidas de prueba): argumento "--save-path=<ruta>" después
-## de "--" o variable de entorno SERVERFLOW_SAVE_PATH. Así nunca se toca la partida real.
+## de "--", variable de entorno SERVERFLOW_SAVE_PATH o, solo en builds debug, el archivo
+## user://save_path_override.txt (en Android la app no recibe argumentos: se escribe con adb run-as).
+## Así nunca se toca la partida real.
 
 signal saved
 
@@ -19,6 +21,7 @@ const SECTION_PROGRESS := "progress"
 const SECTION_DECOR := "decor"
 const SAVE_PATH_ARG := "--save-path="
 const SAVE_PATH_ENV := "SERVERFLOW_SAVE_PATH"
+const SAVE_PATH_OVERRIDE_FILE := "user://save_path_override.txt"
 
 var save_path := Paths.SAVE_FILE
 ## true si algo leyó o escribió la partida real (Paths.SAVE_FILE). Las pruebas lo revisan.
@@ -41,12 +44,18 @@ func _notification(what: int) -> void:
 		save_game()
 
 
-## Ruta alterna pedida por argumento o variable de entorno ("" si no hay).
+## Ruta alterna pedida por argumento, variable de entorno o archivo de override ("" si no hay).
 static func get_alternate_save_path() -> String:
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with(SAVE_PATH_ARG):
 			return arg.trim_prefix(SAVE_PATH_ARG)
-	return OS.get_environment(SAVE_PATH_ENV)
+	var from_env := OS.get_environment(SAVE_PATH_ENV)
+	if not from_env.is_empty():
+		return from_env
+	# Un jugador nunca tiene este archivo; en release se ignora por si acaso.
+	if OS.is_debug_build() and FileAccess.file_exists(SAVE_PATH_OVERRIDE_FILE):
+		return FileAccess.get_file_as_string(SAVE_PATH_OVERRIDE_FILE).strip_edges()
+	return ""
 
 
 func is_using_real_save() -> bool:
