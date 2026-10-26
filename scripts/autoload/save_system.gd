@@ -1,17 +1,20 @@
 extends Node
 ## Autoload "SaveSystem": guarda y carga la partida en un ConfigFile.
-## Guarda la identidad (GameState: personaje, nombres y colores) y el checkpoint de Simulation: etapa, oleada, monedas,
+## Guarda la identidad (GameState: personaje, nombres, colores y decoración) y el checkpoint de Simulation: etapa, oleada, monedas,
 ## niveles de mejoras, disco usado, usuarios atendidos y estadísticas por etapa.
 ## El checkpoint es el inicio de la oleada en curso, así que "Continuar" vuelve a ese punto.
 
 signal saved
 
 ## 3: agrega player/avatar_id (las partidas sin él son de Alex).
-const SAVE_VERSION := 3
+## 4: piso por cuarto (colors/piso_<cuarto>) y decoración (sección "decor"). Las partidas
+##    anteriores migran su "piso" al garage y empiezan sin decoración.
+const SAVE_VERSION := 4
 const SECTION_META := "meta"
 const SECTION_PLAYER := "player"
 const SECTION_COLORS := "colors"
 const SECTION_PROGRESS := "progress"
+const SECTION_DECOR := "decor"
 
 ## Se puede cambiar en pruebas para no tocar la partida real.
 var save_path := Paths.SAVE_FILE
@@ -45,6 +48,13 @@ func save_game() -> bool:
 	var colors: Dictionary = data["colors"]
 	for layer: StringName in colors:
 		config.set_value(SECTION_COLORS, layer, String(colors[layer]))
+	var inventory := PackedStringArray()
+	for decor_id: StringName in data["decor_inventory"]:
+		inventory.append(String(decor_id))
+	config.set_value(SECTION_DECOR, "inventory", inventory)
+	var placed: Dictionary = data["decor_placed"]
+	for room_id: StringName in placed:
+		config.set_value(SECTION_DECOR, "placed_" + room_id, placed[room_id])
 	var progress := Simulation.get_checkpoint()
 	for key: String in progress:
 		config.set_value(SECTION_PROGRESS, key, progress[key])
@@ -69,6 +79,11 @@ func load_game() -> bool:
 	if config.has_section(SECTION_COLORS):
 		for key: String in config.get_section_keys(SECTION_COLORS):
 			colors[StringName(key)] = StringName(str(config.get_value(SECTION_COLORS, key, "")))
+	var decor_placed: Dictionary = {}
+	if config.has_section(SECTION_DECOR):
+		for key: String in config.get_section_keys(SECTION_DECOR):
+			if key.begins_with("placed_"):
+				decor_placed[key.trim_prefix("placed_")] = config.get_value(SECTION_DECOR, key, [])
 	var progress: Dictionary = {}
 	if config.has_section(SECTION_PROGRESS):
 		for key: String in config.get_section_keys(SECTION_PROGRESS):
@@ -79,6 +94,8 @@ func load_game() -> bool:
 		"avatar_name": config.get_value(SECTION_PLAYER, "avatar_name", ""),
 		"company_name": config.get_value(SECTION_PLAYER, "company_name", ""),
 		"colors": colors,
+		"decor_inventory": config.get_value(SECTION_DECOR, "inventory", PackedStringArray()),
+		"decor_placed": decor_placed,
 	})
 	Simulation.load_checkpoint(progress)
 	return true
