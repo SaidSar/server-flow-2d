@@ -197,12 +197,14 @@ def render_to(path):
 
 from PIL import Image
 meta = {"celda_m": 0.5, "nota": "sprite en (pixel_mundo(esquina mínima de la huella) - ancla), lienzo 2x; para pared, la huella x es a lo largo del muro.", "objetos": []}
+_ONLY = [x for x in os.environ.get("ONLY", "").split(",") if x]
 for oid, nombre, fn, precio in CATALOGO:
+    if _ONLY and oid not in _ONLY: continue
     root = group("D_" + oid)
     (fw, fd), tipo = fn(root)
     entry = {"id": oid, "nombre": nombre, "precio": precio, "tipo": tipo, "orientaciones": {}}
     if tipo == "pared":
-        orients = [("der", 0, (0, 0, 0)), ("izq", -90, (0, fw, 0))]
+        orients = [("der", 0, (0, 0, 0)), ("izq", 90, (fd, 0, 0))]  # izq: frente hacia +X, respaldo pegado a x=0
     else:
         orients = [("a", 0, (0, 0, 0)), ("b", 90, (fd, 0, 0))]
     for tag, rot, loc in orients:
@@ -277,5 +279,5 @@ for oid, nombre, fn, precio in CATALOGO:
 for f in ("_obj.png", "_sh.png"):
     try: os.remove(f"{OUTDIR}/{f}")
     except OSError: pass
-json.dump(meta, open(f"{OUTDIR}/decor_catalogo.json", "w"), ensure_ascii=False, indent=1)
+json.dump(meta, open(f"{OUTDIR}/decor_catalogo{'_' + '_'.join(_ONLY) if _ONLY else ''}.json", "w"), ensure_ascii=False, indent=1)
 print("DECOR OK")

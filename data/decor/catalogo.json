@@ -490,8 +490,8 @@
     "izq": {
      "sprite": "res://assets/art/decor/cuadro_izq.png",
      "ancla": [
-      2.4,
-      368.23
+      4.0,
+      369.83
      ],
      "huella_m": [
       0.9,
@@ -536,8 +536,8 @@
     "izq": {
      "sprite": "res://assets/art/decor/neon_izq.png",
      "ancla": [
-      3.68,
-      472.87
+      4.0,
+      473.83
      ],
      "huella_m": [
       1.4,
@@ -556,6 +556,5 @@
   }
  ],
  "etapa_desbloqueo": 2,
- "nota_pared": "Objetos de pared: 'der' = pared derecha (plano y=9, en el mundo y = 9 - huella_m[1]); 'izq' = pared izquierda (x = 0). huella_m[0] es el largo a lo largo del muro.",
- "nota_pared_izq": "Los sprites 'izq' de los objetos de pared son el reflejo horizontal de 'der' (el render original de 'izq' mostraba el reverso del objeto); su ancla es la esquina opuesta reflejada."
+ "nota_pared": "Objetos de pared: 'der' = pared derecha (plano y=9, en el mundo y = 9 - huella_m[1]); 'izq' = pared izquierda (x = 0). huella_m[0] es el largo a lo largo del muro."
 }
