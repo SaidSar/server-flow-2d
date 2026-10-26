@@ -13,6 +13,8 @@ const SAFE_AREA_POLL_SECONDS := 0.25
 
 ## La siguiente entrada al cuarto viene del dashboard (el cuarto hace zoom de regreso).
 var returning_from_dashboard := false
+## El cuarto abre la tienda al llegar (botón "Tienda" del post-mortem).
+var open_shop_on_return := false
 ## Lo que debe cargar y a dónde ir la pantalla de carga.
 var pending_target := ""
 var pending_preloads: PackedStringArray = []
@@ -82,12 +84,13 @@ func goto_current_room(fade_seconds: float = FADE_SECONDS) -> void:
 	goto(get_current_room_path(), fade_seconds)
 
 
-## Escena del cuarto de la etapa actual. Las etapas cuyo cuarto aún no existe usan el de la etapa 1.
+## Escena del cuarto de la etapa actual. Las etapas cuyo cuarto aún no existe usan el último cuarto
+## listo de una etapa anterior (Enterprise usa la oficina mientras no exista el data center).
 func get_current_room_path() -> String:
 	return _get_room_stage().room_scene_path
 
 
-## Nombre del cuarto que se está mostrando ("Garage" mientras la oficina no exista).
+## Nombre del cuarto que se está mostrando ("Oficina" mientras el data center no exista).
 func get_current_room_name() -> String:
 	return _get_room_stage().room_name
 
@@ -99,9 +102,14 @@ func is_room_temporary() -> bool:
 
 func _get_room_stage() -> StageData:
 	var stage := Simulation.stage
-	if stage == null or not stage.room_ready or stage.room_scene_path.is_empty():
-		stage = Simulation.load_stage(Paths.STAGE_ORDER[0])
-	return stage
+	if stage != null and stage.room_ready and not stage.room_scene_path.is_empty():
+		return stage
+	var index := Paths.STAGE_ORDER.find(stage.id) if stage != null else 0
+	for i in range(index - 1, -1, -1):
+		var previous := Simulation.load_stage(Paths.STAGE_ORDER[i])
+		if previous.room_ready and not previous.room_scene_path.is_empty():
+			return previous
+	return Simulation.load_stage(Paths.STAGE_ORDER[0])
 
 
 func store_preloaded(path: String, resource: Resource) -> void:

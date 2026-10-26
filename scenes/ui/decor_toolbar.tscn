@@ -1,0 +1,140 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/decor_toolbar.gd" id="1_toolbar"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_rotate.svg" id="2_rotate"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_check.svg" id="3_check"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar"]
+content_margin_left = 24.0
+content_margin_top = 16.0
+content_margin_right = 24.0
+content_margin_bottom = 16.0
+bg_color = Color(0.0784314, 0.0941176, 0.141176, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.309804, 0.764706, 0.968627, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[node name="DecorToolbar" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_toolbar")
+
+[node name="Bar" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -560.0
+offset_top = -190.0
+offset_right = 560.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_bar")
+
+[node name="Content" type="VBoxContainer" parent="Bar"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Texts" type="HBoxContainer" parent="Bar/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="Bar/Content/Texts"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Sillón"
+
+[node name="HintLabel" type="Label" parent="Bar/Content/Texts"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 24
+text = "Clic para colocar"
+horizontal_alignment = 2
+
+[node name="PlacementRow" type="HBoxContainer" parent="Bar/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="RotateButton" type="Button" parent="Bar/Content/PlacementRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 80)
+layout_mode = 2
+tooltip_text = "Girar (R)"
+theme_override_font_sizes/font_size = 28
+text = "Girar"
+icon = ExtResource("2_rotate")
+expand_icon = true
+
+[node name="ConfirmButton" type="Button" parent="Bar/Content/PlacementRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Colocar"
+icon = ExtResource("3_check")
+expand_icon = true
+
+[node name="CancelButton" type="Button" parent="Bar/Content/PlacementRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 80)
+layout_mode = 2
+tooltip_text = "Cancelar (Esc)"
+theme_override_font_sizes/font_size = 28
+text = "Cancelar"
+
+[node name="SelectionRow" type="HBoxContainer" parent="Bar/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="MoveButton" type="Button" parent="Bar/Content/SelectionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Mover"
+
+[node name="RotatePlacedButton" type="Button" parent="Bar/Content/SelectionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Girar"
+icon = ExtResource("2_rotate")
+expand_icon = true
+
+[node name="StoreButton" type="Button" parent="Bar/Content/SelectionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Guardar en inventario"
+
+[node name="SellButton" type="Button" parent="Bar/Content/SelectionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(250, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Vender (50 %): +300"
+
+[node name="DoneButton" type="Button" parent="Bar/Content/SelectionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Listo"

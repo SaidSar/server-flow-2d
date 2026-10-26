@@ -2,6 +2,7 @@ class_name CustomizePanel
 extends CanvasLayer
 ## Panel lateral para cambiar los colores del cuarto.
 ## Cada muestra cambia la capa en vivo (vía GameState); "Guardar" guarda y "Cancelar" revierte.
+## Las filas son las capas del cuarto abierto: paredes, puerta y mesa son comunes y el piso es propio.
 
 signal opened
 signal closed(saved: bool)
@@ -23,13 +24,14 @@ var _snapshot: Dictionary[StringName, StringName] = {}
 var _swatches: Dictionary[StringName, Dictionary] = {}
 ## Capa → Label con el nombre del color elegido.
 var _selection_labels: Dictionary[StringName, Label] = {}
+## Cuarto cuyas capas muestra el panel.
+var _room_id: StringName = &""
 
 
 func _ready() -> void:
 	hide()
 	_fit_safe_area()
 	SceneRouter.safe_area_changed.connect(_fit_safe_area)
-	_build_groups()
 	_save_button.pressed.connect(_on_save_pressed)
 	_cancel_button.pressed.connect(_on_cancel_pressed)
 	GameState.color_changed.connect(_on_color_changed)
@@ -48,18 +50,25 @@ func _fit_safe_area() -> void:
 	_panel.offset_left = -PANEL_WIDTH - insets.z
 
 
-func open() -> void:
+func open(room_id: StringName) -> void:
 	if visible:
 		return
+	if room_id != _room_id:
+		_build_groups(room_id)
 	_snapshot.assign(GameState.colors)
-	for layer_id: StringName in Customization.LAYER_ORDER:
+	for layer_id: StringName in Customization.get_room_layers(_room_id):
 		_show_selection(layer_id, GameState.get_color(layer_id))
 	show()
 	opened.emit()
 
 
-func _build_groups() -> void:
-	for layer_id: StringName in Customization.LAYER_ORDER:
+func _build_groups(room_id: StringName) -> void:
+	_room_id = room_id
+	for child: Node in _groups_box.get_children():
+		child.queue_free()
+	_swatches.clear()
+	_selection_labels.clear()
+	for layer_id: StringName in Customization.get_room_layers(room_id):
 		var header := HBoxContainer.new()
 		var title := Label.new()
 		title.text = Customization.get_layer_title(layer_id)

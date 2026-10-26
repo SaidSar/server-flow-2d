@@ -95,6 +95,7 @@ func _ready() -> void:
 	_firewall_check.toggled.connect(Simulation.set_firewall_on)
 	_postmortem.next_wave_requested.connect(_on_next_wave_requested)
 	_postmortem.room_requested.connect(_go_to_room)
+	_postmortem.shop_requested.connect(_on_shop_requested)
 	_game_over.retry_requested.connect(_on_retry_requested)
 	_game_over.menu_requested.connect(_on_menu_requested)
 	_victory.continue_requested.connect(_on_victory_continue)
@@ -368,6 +369,13 @@ func _on_victory_continue() -> void:
 
 func _company_name() -> String:
 	return GameState.company_name if not GameState.company_name.is_empty() else Hud.DEFAULT_COMPANY_NAME
+
+
+## Botón "Tienda" del post-mortem: vuelve al cuarto y abre la tienda al llegar.
+func _on_shop_requested() -> void:
+	if not SceneRouter.is_changing():
+		SceneRouter.open_shop_on_return = true
+		_go_to_room()
 
 
 func _go_to_room() -> void:
