@@ -506,7 +506,11 @@
       184
      ]
     }
-   }
+   },
+   "altura_m": [
+    1.25,
+    1.95
+   ]
   },
   {
    "id": "neon",
@@ -552,9 +556,13 @@
       176
      ]
     }
-   }
+   },
+   "altura_m": [
+    1.95,
+    2.45
+   ]
   }
  ],
  "etapa_desbloqueo": 2,
- "nota_pared": "Objetos de pared: 'der' = pared derecha (plano y=9, en el mundo y = 9 - huella_m[1]); 'izq' = pared izquierda (x = 0). huella_m[0] es el largo a lo largo del muro."
+ "nota_pared": "Objetos de pared: 'der' = pared derecha (plano y=9, en el mundo y = 9 - huella_m[1]); 'izq' = pared izquierda (x = 0). huella_m[0] es el largo a lo largo del muro. altura_m = rango de altura (z, metros) que ocupa en el muro; choca con un tramo prohibido u otro objeto solo si se enciman a lo largo del muro y en altura."
 }

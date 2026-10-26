@@ -3,8 +3,9 @@ extends RefCounted
 ## Reglas de colocación de la decoración en un cuarto (en metros, cuadrícula de 0.5 m).
 ## - Piso: dentro del cuarto, fuera de las zonas ocupadas y sin encimarse con otros objetos de piso.
 ## - Tapete: capa inferior; otros objetos pueden ir encima, pero no otro tapete.
-## - Pared: pegado a un muro ("der": y = fondo − grosor, se mueve en x; "izq": x = 0, se mueve en y),
-##   fuera de los tramos prohibidos y sin encimarse con otros objetos del mismo muro.
+## - Pared: pegado a un muro ("der": y = fondo − grosor, se mueve en x; "izq": x = 0, se mueve en y).
+##   En el plano del muro ocupa (tramo a lo largo del muro) × (altura_m): choca con una zona prohibida
+##   o con otro objeto del mismo muro solo si se enciman en las dos (un neón puede ir sobre el monitor).
 ## Cada objeto colocado es {id, ori, x, y}: (x, y) es la esquina mínima de su huella.
 
 ## Margen para que dos huellas que solo se tocan no cuenten como encimadas.
@@ -56,6 +57,12 @@ func get_wall_span(decor: DecorData, orientation_id: StringName, position: Vecto
 	return Vector2(start, start + length)
 
 
+## Lo que ocupa en el plano del muro: x = a lo largo del muro, y = altura z.
+func get_wall_rect(decor: DecorData, orientation_id: StringName, position: Vector2) -> Rect2:
+	var span := get_wall_span(decor, orientation_id, position)
+	return Rect2(span.x, decor.height_m.x, span.y - span.x, decor.height_m.y - decor.height_m.x)
+
+
 ## `ignore_index` es el objeto que se está moviendo o girando (no choca consigo mismo).
 func can_place(decor: DecorData, orientation_id: StringName, position: Vector2, ignore_index: int = -1) -> bool:
 	if decor == null or not decor.orientations.has(orientation_id) or room.projection == null:
@@ -90,13 +97,14 @@ static func get_position(entry: Dictionary) -> Vector2:
 
 func _can_place_on_wall(decor: DecorData, orientation_id: StringName, position: Vector2, ignore_index: int) -> bool:
 	var bounds := room.projection.bounds
-	var span := get_wall_span(decor, orientation_id, position)
+	var rect := get_wall_rect(decor, orientation_id, position)
 	var wall_start := bounds.position.x if orientation_id == RoomProjection.WALL_RIGHT else bounds.position.y
 	var wall_end := bounds.end.x if orientation_id == RoomProjection.WALL_RIGHT else bounds.end.y
-	if span.x < wall_start - EPSILON or span.y > wall_end + EPSILON:
+	if rect.position.x < wall_start - EPSILON or rect.end.x > wall_end + EPSILON:
 		return false
-	for forbidden: Vector2 in room.wall_forbidden.get(orientation_id, []):
-		if _spans_overlap(span, forbidden):
+	var inner := rect.grow(-EPSILON)
+	for forbidden: Rect2 in room.wall_forbidden.get(orientation_id, []):
+		if inner.intersects(forbidden):
 			return false
 	for i in placed.size():
 		if i == ignore_index:
@@ -105,10 +113,6 @@ func _can_place_on_wall(decor: DecorData, orientation_id: StringName, position: 
 		var other := DecorData.find(StringName(str(placed[i].get("id", ""))))
 		if other == null or not other.is_wall() or other_ori != orientation_id:
 			continue
-		if _spans_overlap(span, get_wall_span(other, other_ori, get_position(placed[i]))):
+		if inner.intersects(get_wall_rect(other, other_ori, get_position(placed[i]))):
 			return false
 	return true
-
-
-static func _spans_overlap(a: Vector2, b: Vector2) -> bool:
-	return a.x < b.y - EPSILON and b.x < a.y - EPSILON

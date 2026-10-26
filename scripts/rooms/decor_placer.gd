@@ -20,11 +20,8 @@ const VALID_COLOR := Color(0.3, 0.9, 0.45, 0.45)
 const INVALID_COLOR := Color(0.95, 0.25, 0.25, 0.5)
 const SELECTED_COLOR := Color(0.31, 0.76, 0.97, 0.4)
 const SELECTED_MODULATE := Color(1.25, 1.25, 1.25)
-## Altura de la franja que marca la huella de un objeto de pared.
-const WALL_MARK_HEIGHT_M := 2.6
-## Letrero de neón: placa centrada a esta altura del muro; el texto ocupa hasta 1.2 m de ancho.
+## Letrero de neón: el texto va al centro de su altura_m y ocupa hasta 1.2 m de ancho.
 const NEON_ID := &"neon"
-const NEON_TEXT_HEIGHT_M := 2.2
 const NEON_TEXT_WIDTH_M := 1.2
 const NEON_TEXT_MAX_HEIGHT_PX := 40.0
 const NEON_COLOR := Color("#ff6fb5")
@@ -507,12 +504,12 @@ func _layout_item(item: Node2D, decor: DecorData, orientation_id: StringName, po
 	sprite.texture = orientation.load_texture()
 	sprite.position = projection.world_to_canvas(position.x, position.y) - item.position - orientation.anchor
 	if decor.id == NEON_ID:
-		_layout_neon_text(item, orientation_id, position, orientation.footprint_m.x)
+		_layout_neon_text(item, orientation_id, position, orientation.footprint_m.x, (decor.height_m.x + decor.height_m.y) * 0.5)
 
 
 ## Nombre de la empresa sobre la placa del neón, en el plano del muro: eje x a lo largo del muro y
 ## eje y hacia abajo de la pantalla. Se escala para caber en 1.2 m.
-func _layout_neon_text(item: Node2D, orientation_id: StringName, position: Vector2, length_m: float) -> void:
+func _layout_neon_text(item: Node2D, orientation_id: StringName, position: Vector2, length_m: float, height_m: float) -> void:
 	var text_node := item.get_node_or_null("NeonText") as Node2D
 	var label: Label
 	if text_node == null:
@@ -539,7 +536,7 @@ func _layout_neon_text(item: Node2D, orientation_id: StringName, position: Vecto
 
 	var projection := _room_data.projection
 	var axis := projection.ex if orientation_id == RoomProjection.WALL_RIGHT else projection.ey
-	var plate_center := projection.world_to_canvas(position.x, position.y, NEON_TEXT_HEIGHT_M) + axis * length_m * 0.5
+	var plate_center := projection.world_to_canvas(position.x, position.y, height_m) + axis * length_m * 0.5
 	var scale := minf(NEON_TEXT_WIDTH_M * axis.length() / maxf(size.x, 1.0), NEON_TEXT_MAX_HEIGHT_PX / maxf(size.y, 1.0))
 	text_node.transform = Transform2D(axis.normalized() * scale, Vector2(0.0, scale), plate_center - item.position)
 
@@ -554,9 +551,10 @@ func _footprint_polygon(decor: DecorData, orientation_id: StringName, position: 
 			projection.world_to_canvas(rect.end.x, rect.end.y),
 			projection.world_to_canvas(rect.position.x, rect.end.y),
 		])
-	var span := _layout().get_wall_span(decor, orientation_id, position)
+	# En el muro se marca lo que ocupa: su tramo × su altura.
+	var rect := _layout().get_wall_rect(decor, orientation_id, position)
 	var points := PackedVector2Array()
-	for corner: Vector2 in [Vector2(span.x, 0.0), Vector2(span.y, 0.0), Vector2(span.y, WALL_MARK_HEIGHT_M), Vector2(span.x, WALL_MARK_HEIGHT_M)]:
+	for corner: Vector2 in [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]:
 		if orientation_id == RoomProjection.WALL_RIGHT:
 			points.append(projection.world_to_canvas(corner.x, position.y, corner.y))
 		else:

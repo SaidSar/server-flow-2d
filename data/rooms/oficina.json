@@ -267,34 +267,76 @@
  },
  "nota_capas": "Capas propias de la oficina recortadas (offset x,y en lienzo 2x, múltiplos de 8). Puerta, mesa, racks y avatar reutilizan los sprites del garage sumando reutilizados_del_garage (dx,dy) a su offset del garage.",
  "tramos_prohibidos_pared": {
-  "nota": "Tramos (en metros, a lo largo del muro) donde no se puede colgar decoración: der = pared y=9 (eje x), izq = pared x=0 (eje y).",
+  "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura (metros). Un objeto choca solo si se encima en los dos. der = pared y=9 (eje x), izq = pared x=0 (eje y).",
   "der": [
-   [
-    0.8,
-    2.5
-   ],
-   [
-    4.0,
-    5.9
-   ],
-   [
-    6.5,
-    8.4
-   ]
+   {
+    "id": "racks",
+    "tramo": [
+     0.8,
+     2.5
+    ],
+    "z": [
+     0.0,
+     2.05
+    ]
+   },
+   {
+    "id": "ventana_1",
+    "tramo": [
+     4.0,
+     5.9
+    ],
+    "z": [
+     1.0,
+     2.5
+    ]
+   },
+   {
+    "id": "ventana_2",
+    "tramo": [
+     6.5,
+     8.4
+    ],
+    "z": [
+     1.0,
+     2.5
+    ]
+   }
   ],
   "izq": [
-   [
-    1.1,
-    3.5
-   ],
-   [
-    4.3,
-    5.5
-   ],
-   [
-    6.2,
-    8.6
-   ]
+   {
+    "id": "monitor",
+    "tramo": [
+     1.1,
+     3.5
+    ],
+    "z": [
+     0.75,
+     1.6
+    ]
+   },
+   {
+    "id": "puerta",
+    "tramo": [
+     4.3,
+     5.5
+    ],
+    "z": [
+     0.0,
+     2.15
+    ]
+   },
+   {
+    "id": "pizarron",
+    "tramo": [
+     6.2,
+     8.6
+    ],
+    "z": [
+     1.25,
+     2.55
+    ]
+   }
   ]
  },
  "ysort_m": {

@@ -15,6 +15,8 @@ const TROPHY_ID := &"trofeo"
 @export var kind: StringName = KIND_FLOOR
 ## Orientación → datos. Piso y tapete: "a" y "b"; pared: "der" e "izq".
 @export var orientations: Dictionary[StringName, DecorOrientation] = {}
+## Objetos de pared: rango de altura (z, metros) que ocupan en el muro.
+@export var height_m := Vector2.ZERO
 
 static var _catalog: Array[DecorData] = []
 static var _unlock_stage := 2
@@ -81,6 +83,7 @@ static func _from_dict(data: Dictionary) -> DecorData:
 	decor.display_name = str(data.get("nombre", decor.id))
 	decor.price = int(data.get("precio", 0))
 	decor.kind = StringName(str(data.get("tipo", KIND_FLOOR)))
+	decor.height_m = RoomProjection.parse_vector(data.get("altura_m"))
 	var raw: Dictionary = data.get("orientaciones", {})
 	for key: String in raw:
 		var entry: Dictionary = raw[key]

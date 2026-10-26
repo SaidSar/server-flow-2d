@@ -16,7 +16,8 @@ var layer_offsets: Dictionary[String, Vector2] = {}
 var reuse_offsets: Dictionary[StringName, Vector2] = {}
 ## Centro de la huella (metros) para el y-sort de la mesa y los racks.
 var ysort_points: Dictionary[StringName, Vector2] = {}
-## Muro ("der"/"izq") → tramos prohibidos (Vector2(desde, hasta) en metros).
+## Muro ("der"/"izq") → zonas prohibidas en el plano del muro: Rect2 con x = a lo largo del muro
+## y y = altura z (metros). Un objeto de pared choca solo si se encima en las dos.
 var wall_forbidden: Dictionary[StringName, Array] = {}
 
 static var _cache: Dictionary[StringName, RoomData] = {}
@@ -84,7 +85,10 @@ func _parse(data: Dictionary) -> void:
 	var forbidden: Dictionary = data.get("tramos_prohibidos_pared", {})
 	for wall: String in forbidden:
 		if forbidden[wall] is Array:
-			var spans: Array[Vector2] = []
-			for span: Variant in forbidden[wall]:
-				spans.append(RoomProjection.parse_vector(span))
-			wall_forbidden[StringName(wall)] = spans
+			var zones: Array[Rect2] = []
+			for zone: Variant in forbidden[wall]:
+				if zone is Dictionary:
+					var span := RoomProjection.parse_vector((zone as Dictionary).get("tramo"))
+					var height := RoomProjection.parse_vector((zone as Dictionary).get("z"))
+					zones.append(Rect2(span.x, height.x, span.y - span.x, height.y - height.x))
+			wall_forbidden[StringName(wall)] = zones
