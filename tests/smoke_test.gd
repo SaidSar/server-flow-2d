@@ -60,17 +60,25 @@ func _run() -> void:
 	# Catálogo
 	_check(customization.call("get_options", &"pared_izq").size() == 10, "10 colores de pared izquierda")
 	_check(customization.call("get_options", &"pared_der").size() == 10, "10 colores de pared derecha")
-	_check(customization.call("get_options", &"piso").size() == 3, "3 pisos")
+	_check(customization.call("get_options", &"piso_garage").size() == 3, "3 pisos en el garage")
+	_check(customization.call("get_options", &"piso_oficina").size() == 3, "3 pisos en la oficina")
 	_check(customization.call("get_options", &"puerta").size() == 6, "6 puertas")
 	_check(customization.call("get_options", &"mesa").size() == 3, "3 mesas")
-	for layer: StringName in customization.get("LAYER_ORDER"):
-		for option: CustomizationOption in customization.call("get_options", layer):
-			var path: String = customization.call("get_layer_texture_path", &"garage", layer, option.id)
-			_check(ResourceLoader.exists(path), "existe %s" % path)
+	for room_id: StringName in Paths.ROOM_IDS:
+		for layer: StringName in customization.call("get_room_layers", room_id):
+			for option: CustomizationOption in customization.call("get_options", layer):
+				var path: String = customization.call("get_layer_texture_path", room_id, layer, option.id)
+				# La puerta y la mesa de la oficina son las del garage.
+				if room_id != &"garage" and (layer == &"puerta" or layer == &"mesa"):
+					path = customization.call("get_layer_texture_path", &"garage", layer, option.id)
+				_check(ResourceLoader.exists(path), "existe %s" % path)
 
 	# Partida nueva, guardado y carga
 	game_state.call("start_new_game", "Prueba", "TestCorp")
-	_check(game_state.get("colors")[&"piso"] == &"concreto_calido", "piso por defecto")
+	_check(game_state.get("colors")[&"piso_garage"] == &"concreto_calido", "piso del garage por defecto")
+	_check(game_state.get("colors")[&"piso_oficina"] == &"laminado_claro", "piso de la oficina por defecto")
+	var migrated: Dictionary = customization.call("sanitize_colors", {&"piso": &"concreto_oscuro"})
+	_check(migrated[&"piso_garage"] == &"concreto_oscuro", "el piso de una partida vieja pasa al garage")
 	_check(game_state.get("colors")[&"puerta"] == &"madera_natural", "puerta por defecto")
 	game_state.call("set_color", &"pared_izq", &"menta")
 	_check(save_system.call("save_game"), "guardar partida")
@@ -159,7 +167,7 @@ func _test_layer_offsets(game_state: Node, customization: Node) -> void:
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.LAYER_OFFSETS_JSON))
 	var offsets: Dictionary = data["capas"]
 	var canvas := Vector2(float(data["canvas"][0]), float(data["canvas"][1]))
-	var layer_order: Array[StringName] = customization.get("LAYER_ORDER")
+	var layer_order: Array[StringName] = customization.call("get_room_layers", &"garage")
 
 	# Todas las variantes del catálogo tienen offset y su PNG mide lo que dice el JSON.
 	for layer: StringName in layer_order:
@@ -173,7 +181,7 @@ func _test_layer_offsets(game_state: Node, customization: Node) -> void:
 
 	var combos: Array[Dictionary] = [
 		{},
-		{&"pared_izq": &"menta", &"pared_der": &"grafito", &"piso": &"concreto_oscuro", &"puerta": &"roja", &"mesa": &"nogal"},
+		{&"pared_izq": &"menta", &"pared_der": &"grafito", &"piso_garage": &"concreto_oscuro", &"puerta": &"roja", &"mesa": &"nogal"},
 	]
 	for combo: Dictionary in combos:
 		for layer: StringName in layer_order:
@@ -185,7 +193,7 @@ func _test_layer_offsets(game_state: Node, customization: Node) -> void:
 		for node_name: String in ["Floor", "WallLeft", "WallRight", "Door", "Rack", "Desk", "Boxes"]:
 			_check_layer_offset(garage.get_node("%" + node_name), offsets, context)
 		# Al cambiar de color en vivo, la posición sigue a la textura nueva.
-		game_state.call("set_color", &"piso", &"concreto_gris")
+		game_state.call("set_color", &"piso_garage", &"concreto_gris")
 		_check_layer_offset(garage.get_node("%Floor"), offsets, context + " tras cambiar el piso")
 
 		var avatar: Node2D = garage.get_node("%Avatar")
@@ -194,11 +202,20 @@ func _test_layer_offsets(game_state: Node, customization: Node) -> void:
 		avatar.call("_on_frame_timer_timeout")
 		_check(alex.texture.resource_path.ends_with("alex_teclea_b.png"), "%s: Alex pasa a teclea B" % context)
 		_check_layer_offset(alex, offsets, context + " (Alex teclea B)")
-		garage.call("_set_saturated", true)
+		# Sobrecarga real: el servidor 1 se satura, su rack se pone rojo y el avatar se estresa.
+		var simulation: Node = root.get_node("Simulation")
+		simulation.set("overload_enabled", true)
+		for i in 15:
+			simulation.call("step")
+		var rack: Sprite2D = garage.get_node("%Rack")
+		_check(rack.texture.resource_path.ends_with("rack_saturado.png"), "%s: rack saturado con su servidor" % context)
 		_check(alex.texture.resource_path.ends_with("alex_estres.png"), "%s: Alex estresado" % context)
 		_check_layer_offset(alex, offsets, context + " (Alex estresado)")
-		_check_layer_offset(garage.get_node("%Rack"), offsets, context + " (rack saturado)")
-		garage.call("_set_saturated", false)
+		_check_layer_offset(rack, offsets, context + " (rack saturado)")
+		simulation.set("overload_enabled", false)
+		for i in 30:
+			simulation.call("step")
+		_check(rack.texture.resource_path.ends_with("rack_ok.png"), "%s: el rack vuelve a la normalidad" % context)
 
 		# La cámara se centra en el lienzo completo, no en el piso recortado.
 		var layers: Node2D = garage.get_node("%Layers")
@@ -208,15 +225,27 @@ func _test_layer_offsets(game_state: Node, customization: Node) -> void:
 		await process_frame
 
 
-func _check_layer_offset(sprite: Sprite2D, offsets: Dictionary, context: String) -> void:
+## La posición se mide en el lienzo 2x (local a Layers), sumando los nodos del y-sort que la contienen.
+## `extra` es el desplazamiento de un sprite reutilizado del garage en otro cuarto.
+func _check_layer_offset(sprite: Sprite2D, offsets: Dictionary, context: String, extra: Vector2 = Vector2.ZERO) -> void:
 	var key := _layer_key(sprite.texture.resource_path)
 	var entry: Dictionary = offsets.get(key, {})
 	_check(not entry.is_empty(), "%s: %s tiene offset" % [context, key])
 	if entry.is_empty():
 		return
-	var expected := Vector2(float(entry["x"]), float(entry["y"]))
-	_check(not sprite.centered and sprite.position == expected,
-			"%s: %s en %s (está en %s)" % [context, key, expected, sprite.position])
+	var expected := Vector2(float(entry["x"]), float(entry["y"])) + extra
+	var actual := _canvas_position(sprite)
+	_check(not sprite.centered and actual.is_equal_approx(expected),
+			"%s: %s en %s (está en %s)" % [context, key, expected, actual])
+
+
+func _canvas_position(sprite: Sprite2D) -> Vector2:
+	var position := sprite.position
+	var node := sprite.get_parent() as Node2D
+	while node != null and node.name != &"Layers":
+		position += node.position
+		node = node.get_parent() as Node2D
+	return position
 
 
 ## "res://.../piso/concreto_calido.png" → "piso/concreto_calido"
@@ -313,25 +342,27 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	await _test_victory_and_investment(simulation, "la mejor SysAdmin")
 	game_state.call("_set_avatar", &"alex")
 	await _test_victory_and_investment(simulation, "el mejor SysAdmin")
+	await _test_office_and_shop(game_state, simulation)
 	await _test_stage_name_in_huds(simulation)
 
 
-## El HUD del cuarto y el del dashboard muestran la etapa actual. En la etapa 3 (sin cuarto
-## propio) el garage avisa que es un cuarto temporal.
+## El HUD del cuarto y el del dashboard muestran la etapa actual. Startup y Scale-up tienen su cuarto;
+## la etapa 3 (sin cuarto propio) usa la oficina y avisa que es un cuarto temporal.
 func _test_stage_name_in_huds(simulation: Node) -> void:
 	var scene_router: Node = root.get_node("SceneRouter")
-	for stage_id: String in ["startup", "enterprise"]:
+	var rooms := {"startup": &"Garage", "scale_up": &"Oficina", "enterprise": &"Oficina"}
+	for stage_id: String in rooms:
 		simulation.call("load_checkpoint", {"stage": stage_id, "wave": 1, "coins": 100})
 		var stage_name: String = simulation.get("stage").get("display_name")
 		change_scene_to_file(scene_router.call("get_current_room_path"))
-		_check(await _wait_for_scene(&"Garage"), "%s: abre el garage" % stage_name)
+		_check(await _wait_for_scene(rooms[stage_id]), "%s: abre %s" % [stage_name, rooms[stage_id]])
 		var hud: Node = current_scene.get_node("%Hud")
 		var room_title := (hud.get_node("%TitleLabel") as Label).text
 		var temporary := hud.get_node("%TemporaryRoomLabel") as Label
-		if stage_id == "startup":
-			_check(not temporary.visible, "Startup: el garage es su cuarto, sin aviso de cuarto temporal")
+		if stage_id != "enterprise":
+			_check(not temporary.visible, "%s: es su propio cuarto, sin aviso de cuarto temporal" % stage_name)
 		else:
-			_check(temporary.visible and temporary.text == "Cuarto temporal: garage", "%s: aviso de cuarto temporal (%s)" % [stage_name, temporary.text])
+			_check(temporary.visible and temporary.text == "Cuarto temporal: oficina", "%s: aviso de cuarto temporal (%s)" % [stage_name, temporary.text])
 
 		change_scene_to_file(Paths.DASHBOARD)
 		_check(await _wait_for_scene(&"Dashboard"), "%s: abre el dashboard" % stage_name)
@@ -523,6 +554,74 @@ func _test_goal_missed(simulation: Node) -> void:
 	_check(not goal_missed.visible, "Meta no alcanzada se cierra")
 
 
+## Etapa 2: la oficina con los racks, la mesa y el avatar en su lugar, y la tienda completa:
+## comprar sillón → colocarlo → tocarlo → girarlo → guardarlo → colocarlo otra vez → venderlo.
+func _test_office_and_shop(game_state: Node, simulation: Node) -> void:
+	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 2, "coins": 2000})
+	change_scene_to_file(root.get_node("SceneRouter").call("get_current_room_path"))
+	_check(await _wait_for_scene(&"Oficina"), "Scale-up abre la oficina")
+	var office := current_scene
+	await process_frame
+
+	var offsets: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.LAYER_OFFSETS_JSON))["capas"]
+	var room: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.ROOM_DATA % "oficina"))
+	var reuse: Dictionary = room["reutilizados_del_garage"]
+	var floor_offset: Dictionary = room["capas_offsets"]["oficina/piso/laminado_claro"]
+	_check(_canvas_position(office.get_node("%Floor")) == Vector2(float(floor_offset["x"]), float(floor_offset["y"])), "oficina: piso propio en su offset")
+	_check_layer_offset(office.get_node("%Rack"), offsets, "oficina: rack 1", _vec(reuse["rack_1 (fijos/rack_ok|rack_saturado)"]))
+	_check((office.get_node("%Rack2Holder") as Node2D).visible, "oficina: hay un segundo rack")
+	_check_layer_offset(office.get_node("%Rack2"), offsets, "oficina: rack 2", _vec(reuse["rack_2 (fijos/rack_ok|rack_saturado)"]))
+	var avatar_id := String(game_state.get("avatar_id"))
+	_check_layer_offset(office.get_node("%Avatar").get_node("%Sprite"), offsets, "oficina: avatar", _vec(reuse[avatar_id + "/*"]))
+	_check_layer_offset(office.get_node("%Desk"), offsets, "oficina: mesa", _vec(reuse["mesa/*"]))
+	_check_layer_offset(office.get_node("%Door"), offsets, "oficina: puerta", _vec(reuse["puerta/*"]))
+
+	var hud: Node = office.get_node("%Hud")
+	var shop_button := hud.get_node("%ShopButton") as Button
+	_check(not shop_button.disabled, "oficina entre oleadas: Tienda habilitada")
+	shop_button.pressed.emit()
+	var shop_panel: CanvasLayer = office.get_node("%ShopPanel")
+	_check(shop_panel.visible, "Tienda abre el panel")
+	(shop_panel.call("get_row_button", &"sillon") as Button).pressed.emit()
+	_check(simulation.get("coins") == 1400 and not shop_panel.visible, "Comprar el sillón cobra 600 y entra a colocarlo")
+	var placer: Node = office.get_node("%DecorPlacer")
+	var toolbar: CanvasLayer = office.get_node("%DecorToolbar")
+	placer.call("move_ghost_to", Vector2(5.0, 5.0))
+	(toolbar.get_node("%ConfirmButton") as Button).pressed.emit()
+	var placed: Array = game_state.call("get_placed_decor", &"oficina")
+	_check(placed.size() == 1 and placed[0]["ori"] == "a", "el sillón queda colocado")
+
+	# Un toque sobre el sprite lo selecciona.
+	var sprite := (placer.call("get_item_node", 0) as Node2D).get_child(0) as Sprite2D
+	var tap := InputEventMouseButton.new()
+	tap.button_index = MOUSE_BUTTON_LEFT
+	tap.pressed = true
+	tap.position = sprite.get_global_transform_with_canvas() * (sprite.texture.get_size() * 0.5)
+	# Coordenadas del viewport (no de la ventana, que tiene otro tamaño por el stretch).
+	root.push_input(tap, true)
+	await process_frame
+	_check(placer.call("get_selected_index") == 0 and toolbar.visible, "tocar el sillón lo selecciona")
+	(toolbar.get_node("%RotatePlacedButton") as Button).pressed.emit()
+	_check(placed[0]["ori"] == "b" and placer.call("get_selected_index") == 0, "Girar gira el sillón colocado")
+	(toolbar.get_node("%StoreButton") as Button).pressed.emit()
+	_check(placed.is_empty() and game_state.call("count_in_inventory", &"sillon") == 1, "Guardar en inventario lo quita del cuarto")
+
+	shop_button.pressed.emit()
+	(shop_panel.get_node("%InventoryTab") as Button).pressed.emit()
+	(shop_panel.call("get_row_button", &"sillon") as Button).pressed.emit()
+	placer.call("move_ghost_to", Vector2(5.0, 5.0))
+	_check(placer.call("confirm_placement"), "colocarlo otra vez desde el inventario")
+	_check(placed.size() == 1 and game_state.call("count_in_inventory", &"sillon") == 0 and simulation.get("coins") == 1400, "colocar desde el inventario no cobra")
+	placer.call("select", 0)
+	(toolbar.get_node("%SellButton") as Button).pressed.emit()
+	_check(placed.is_empty() and simulation.get("coins") == 1700, "Vender devuelve el 50 %% (%d)" % simulation.get("coins"))
+	_check(not toolbar.visible and placer.call("get_mode") == 0, "después de vender no queda nada seleccionado")
+
+
+func _vec(raw: Array) -> Vector2:
+	return Vector2(float(raw[0]), float(raw[1]))
+
+
 ## Ganar la etapa: victoria → diálogo de Briseida → se entrega la ronda de inversión.
 ## `gendered_text` es la forma con género que debe usar Briseida según el personaje.
 func _test_victory_and_investment(simulation: Node, gendered_text: String) -> void:
@@ -547,7 +646,7 @@ func _test_victory_and_investment(simulation: Node, gendered_text: String) -> vo
 	_check(simulation.get("coins") == coins_before_dialog, "las monedas llegan después del diálogo")
 	(dialog.get_node("%ContinueButton") as Button).pressed.emit()
 	_check(simulation.get("coins") == coins_before_dialog + 1500, "¡Vamos! entrega la ronda de inversión")
-	_check(await _wait_for_scene(&"Garage"), "después del diálogo se vuelve al cuarto")
+	_check(await _wait_for_scene(&"Oficina"), "después del diálogo se vuelve al cuarto de Scale-up (la oficina)")
 
 
 ## El sprite del avatar es el del personaje elegido y está en su offset de layer_offsets.json.
