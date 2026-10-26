@@ -1,0 +1,560 @@
+{
+ "celda_m": 0.5,
+ "nota": "sprite en (pixel_mundo(esquina mínima de la huella) - ancla), lienzo 2x; para pared, la huella x es a lo largo del muro.",
+ "objetos": [
+  {
+   "id": "planta",
+   "nombre": "Planta",
+   "precio": 150,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/planta_a.png",
+     "ancla": [
+      116.0,
+      193.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      320,
+      376
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/planta_b.png",
+     "ancla": [
+      124.0,
+      193.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      336,
+      376
+     ]
+    }
+   }
+  },
+  {
+   "id": "lampara",
+   "nombre": "Lámpara de pie",
+   "precio": 200,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/lampara_a.png",
+     "ancla": [
+      -20.0,
+      289.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      256,
+      312
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/lampara_b.png",
+     "ancla": [
+      -20.0,
+      289.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      256,
+      312
+     ]
+    }
+   }
+  },
+  {
+   "id": "sillon",
+   "nombre": "Sillón",
+   "precio": 600,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/sillon_a.png",
+     "ancla": [
+      68.0,
+      201.83
+     ],
+     "huella_m": [
+      1.5,
+      1.0
+     ],
+     "huella_celdas": [
+      3,
+      2
+     ],
+     "tam": [
+      472,
+      392
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/sillon_b.png",
+     "ancla": [
+      108.0,
+      233.83
+     ],
+     "huella_m": [
+      1.0,
+      1.5
+     ],
+     "huella_celdas": [
+      2,
+      3
+     ],
+     "tam": [
+      480,
+      384
+     ]
+    }
+   }
+  },
+  {
+   "id": "cafetera",
+   "nombre": "Mesita con cafetera",
+   "precio": 350,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/cafetera_a.png",
+     "ancla": [
+      108.0,
+      185.83
+     ],
+     "huella_m": [
+      1.0,
+      0.5
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      376,
+      376
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/cafetera_b.png",
+     "ancla": [
+      116.0,
+      193.83
+     ],
+     "huella_m": [
+      0.5,
+      1.0
+     ],
+     "huella_celdas": [
+      1,
+      2
+     ],
+     "tam": [
+      384,
+      376
+     ]
+    }
+   }
+  },
+  {
+   "id": "librero",
+   "nombre": "Librero",
+   "precio": 450,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/librero_a.png",
+     "ancla": [
+      172.0,
+      313.83
+     ],
+     "huella_m": [
+      1.0,
+      0.5
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      520,
+      544
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/librero_b.png",
+     "ancla": [
+      164.0,
+      345.83
+     ],
+     "huella_m": [
+      0.5,
+      1.0
+     ],
+     "huella_celdas": [
+      1,
+      2
+     ],
+     "tam": [
+      520,
+      544
+     ]
+    }
+   }
+  },
+  {
+   "id": "tapete",
+   "nombre": "Tapete",
+   "precio": 250,
+   "tipo": "tapete",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/tapete_a.png",
+     "ancla": [
+      4.0,
+      97.83
+     ],
+     "huella_m": [
+      2.0,
+      1.5
+     ],
+     "huella_celdas": [
+      4,
+      3
+     ],
+     "tam": [
+      456,
+      232
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/tapete_b.png",
+     "ancla": [
+      4.0,
+      129.83
+     ],
+     "huella_m": [
+      1.5,
+      2.0
+     ],
+     "huella_celdas": [
+      3,
+      4
+     ],
+     "tam": [
+      456,
+      232
+     ]
+    }
+   }
+  },
+  {
+   "id": "snacks",
+   "nombre": "Máquina de snacks",
+   "precio": 700,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/snacks_a.png",
+     "ancla": [
+      172.0,
+      337.83
+     ],
+     "huella_m": [
+      1.0,
+      1.0
+     ],
+     "huella_celdas": [
+      2,
+      2
+     ],
+     "tam": [
+      552,
+      560
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/snacks_b.png",
+     "ancla": [
+      148.0,
+      329.83
+     ],
+     "huella_m": [
+      1.0,
+      1.0
+     ],
+     "huella_celdas": [
+      2,
+      2
+     ],
+     "tam": [
+      552,
+      560
+     ]
+    }
+   }
+  },
+  {
+   "id": "consola",
+   "nombre": "Consola de videojuegos",
+   "precio": 900,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/consola_a.png",
+     "ancla": [
+      148.0,
+      233.83
+     ],
+     "huella_m": [
+      1.5,
+      0.5
+     ],
+     "huella_celdas": [
+      3,
+      1
+     ],
+     "tam": [
+      512,
+      496
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/consola_b.png",
+     "ancla": [
+      140.0,
+      297.83
+     ],
+     "huella_m": [
+      0.5,
+      1.5
+     ],
+     "huella_celdas": [
+      1,
+      3
+     ],
+     "tam": [
+      488,
+      496
+     ]
+    }
+   }
+  },
+  {
+   "id": "acuario",
+   "nombre": "Acuario",
+   "precio": 800,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/acuario_a.png",
+     "ancla": [
+      172.0,
+      233.83
+     ],
+     "huella_m": [
+      1.0,
+      0.5
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      496,
+      464
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/acuario_b.png",
+     "ancla": [
+      172.0,
+      265.83
+     ],
+     "huella_m": [
+      0.5,
+      1.0
+     ],
+     "huella_celdas": [
+      1,
+      2
+     ],
+     "tam": [
+      496,
+      464
+     ]
+    }
+   }
+  },
+  {
+   "id": "trofeo",
+   "nombre": "Trofeo Scale-up",
+   "precio": 0,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/trofeo_a.png",
+     "ancla": [
+      140.0,
+      225.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      368,
+      416
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/trofeo_b.png",
+     "ancla": [
+      140.0,
+      225.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      360,
+      416
+     ]
+    }
+   }
+  },
+  {
+   "id": "cuadro",
+   "nombre": "Cuadro",
+   "precio": 300,
+   "tipo": "pared",
+   "orientaciones": {
+    "der": {
+     "sprite": "res://assets/art/decor/cuadro_der.png",
+     "ancla": [
+      4.0,
+      313.83
+     ],
+     "huella_m": [
+      0.9,
+      0.05
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      128,
+      184
+     ]
+    },
+    "izq": {
+     "sprite": "res://assets/art/decor/cuadro_izq.png",
+     "ancla": [
+      4.0,
+      369.83
+     ],
+     "huella_m": [
+      0.9,
+      0.05
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      128,
+      184
+     ]
+    }
+   }
+  },
+  {
+   "id": "neon",
+   "nombre": "Letrero de neón (nombre de tu empresa)",
+   "precio": 500,
+   "tipo": "pared",
+   "orientaciones": {
+    "der": {
+     "sprite": "res://assets/art/decor/neon_der.png",
+     "ancla": [
+      4.0,
+      385.83
+     ],
+     "huella_m": [
+      1.4,
+      0.04
+     ],
+     "huella_celdas": [
+      3,
+      1
+     ],
+     "tam": [
+      192,
+      176
+     ]
+    },
+    "izq": {
+     "sprite": "res://assets/art/decor/neon_izq.png",
+     "ancla": [
+      4.0,
+      473.83
+     ],
+     "huella_m": [
+      1.4,
+      0.04
+     ],
+     "huella_celdas": [
+      3,
+      1
+     ],
+     "tam": [
+      192,
+      176
+     ]
+    }
+   }
+  }
+ ],
+ "etapa_desbloqueo": 2,
+ "nota_pared": "Objetos de pared: 'der' = pared derecha (plano y=9, en el mundo y = 9 - huella_m[1]); 'izq' = pared izquierda (x = 0). huella_m[0] es el largo a lo largo del muro."
+}
