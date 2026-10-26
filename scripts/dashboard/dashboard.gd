@@ -1,15 +1,16 @@
 extends Control
-## Panel de control (el monitor de la PC de Alex): HUD, monitor de tráfico y consola de mejoras.
+## Panel de control (el monitor de la PC del avatar): HUD, monitor de tráfico y consola de mejoras.
 ## Solo escucha a Simulation y le manda órdenes (comprar, siguiente oleada...); no calcula nada.
 
 const UPGRADE_BUTTON_SCENE := preload("res://scenes/dashboard/upgrade_button.tscn")
 ## Hueco al final de la consola: ahí flota el engranaje de Ajustes (esquina inferior derecha).
 const SETTINGS_SLOT_NAME := "SettingsSlot"
 ## La CEO que anuncia la ronda de inversión.
-const CEO_NAME := "Valeria"
+const CEO_NAME := "Briseida"
 const CEO_ROLE := "CEO"
 const CEO_COLOR := Color("#e0569b")
-const INVESTMENT_TEXT := "¡%s, lo logramos! Conseguimos una ronda de inversión: +%s monedas para escalar %s."
+## Con género (TextUtil.format): "{masculino|femenino}".
+const INVESTMENT_TEXT := "¡%s, lo logramos! Eres {el mejor|la mejor} SysAdmin que podíamos pedir. Conseguimos una ronda de inversión: +%s monedas para escalar %s."
 const INVESTMENT_BUTTON := "¡Vamos!"
 const SPEEDS: Array[float] = [1.0, 2.0]
 const BACK_FADE_SECONDS := 0.15
@@ -243,7 +244,7 @@ func _byte_warning(resource: StringName) -> String:
 func _on_wave_started(_wave_number: int) -> void:
 	_postmortem.hide()
 	_game_over.hide()
-	_byte.say(Simulation.wave.tutorial_text)
+	_byte.say(TextUtil.format(Simulation.wave.tutorial_text))
 	_refresh()
 
 #endregion
@@ -352,11 +353,11 @@ func _show_victory(report: WaveReport) -> void:
 
 func _on_victory_continue() -> void:
 	_victory.hide()
-	# Antes de entregar la ronda de inversión, Valeria la anuncia.
+	# Antes de entregar la ronda de inversión, Briseida la anuncia.
 	if Simulation.pending_investment > 0:
 		var avatar := GameState.avatar_name if not GameState.avatar_name.is_empty() else "equipo"
 		_dialog.show_dialog(CEO_NAME, CEO_ROLE,
-			INVESTMENT_TEXT % [avatar, NumberFormat.thousands(Simulation.pending_investment), _company_name()],
+			TextUtil.format(INVESTMENT_TEXT % [avatar, NumberFormat.thousands(Simulation.pending_investment), _company_name()]),
 			INVESTMENT_BUTTON, CEO_COLOR)
 		await _dialog.closed
 	Simulation.acknowledge_stage_report()
