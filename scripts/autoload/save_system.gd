@@ -3,6 +3,8 @@ extends Node
 ## Guarda la identidad (GameState: personaje, nombres, colores y decoración) y el checkpoint de Simulation: etapa, oleada, monedas,
 ## niveles de mejoras, disco usado, usuarios atendidos y estadísticas por etapa.
 ## El checkpoint es el inicio de la oleada en curso, así que "Continuar" vuelve a ese punto.
+## Ruta alterna (pruebas, mediciones y partidas de prueba): argumento "--save-path=<ruta>" después
+## de "--" o variable de entorno SERVERFLOW_SAVE_PATH. Así nunca se toca la partida real.
 
 signal saved
 
@@ -15,12 +17,20 @@ const SECTION_PLAYER := "player"
 const SECTION_COLORS := "colors"
 const SECTION_PROGRESS := "progress"
 const SECTION_DECOR := "decor"
+const SAVE_PATH_ARG := "--save-path="
+const SAVE_PATH_ENV := "SERVERFLOW_SAVE_PATH"
 
-## Se puede cambiar en pruebas para no tocar la partida real.
 var save_path := Paths.SAVE_FILE
+## true si algo leyó o escribió la partida real (Paths.SAVE_FILE). Las pruebas lo revisan.
+var real_save_accessed := false
 
 
 func _ready() -> void:
+	save_path = get_alternate_save_path()
+	if save_path.is_empty():
+		save_path = Paths.SAVE_FILE
+	elif OS.is_debug_build():
+		print("[SaveSystem] Ruta alterna de guardado: %s" % save_path)
 	# Guardado automático al empezar y al terminar cada oleada (y al pasar de etapa).
 	Simulation.checkpoint_created.connect(_on_checkpoint_created)
 
@@ -31,13 +41,27 @@ func _notification(what: int) -> void:
 		save_game()
 
 
+## Ruta alterna pedida por argumento o variable de entorno ("" si no hay).
+static func get_alternate_save_path() -> String:
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with(SAVE_PATH_ARG):
+			return arg.trim_prefix(SAVE_PATH_ARG)
+	return OS.get_environment(SAVE_PATH_ENV)
+
+
+func is_using_real_save() -> bool:
+	return ProjectSettings.globalize_path(save_path) == ProjectSettings.globalize_path(Paths.SAVE_FILE)
+
+
 func has_save() -> bool:
+	_note_access()
 	return FileAccess.file_exists(save_path)
 
 
 func save_game() -> bool:
 	if not GameState.is_active or not Simulation.has_session():
 		return false
+	_note_access()
 
 	var data := GameState.to_save_data()
 	var config := ConfigFile.new()
@@ -69,6 +93,7 @@ func save_game() -> bool:
 
 ## Carga la partida guardada. Devuelve false si no hay o está dañada.
 func load_game() -> bool:
+	_note_access()
 	var config := ConfigFile.new()
 	var error := config.load(save_path)
 	if error != OK:
@@ -102,8 +127,14 @@ func load_game() -> bool:
 
 
 func delete_save() -> void:
+	_note_access()
 	if has_save():
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+
+
+func _note_access() -> void:
+	if is_using_real_save():
+		real_save_accessed = true
 
 
 func _on_checkpoint_created() -> void:
