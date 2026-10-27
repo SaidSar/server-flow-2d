@@ -30,6 +30,12 @@ const STAGES := {
 const AVATARS_DIR := "res://resources/avatars"
 const AVATAR := "res://resources/avatars/%s.tres"
 
+## Cuartos: data/rooms/<id>.json (lienzo, offsets, proyección...).
+const ROOM_IDS: Array[StringName] = [&"garage", &"oficina"]
+const ROOM_DATA := "res://data/rooms/%s.json"
+## Catálogo de la tienda de decoración.
+const DECOR_CATALOG_JSON := "res://data/decor/catalogo.json"
+
 ## Textura de una capa personalizable: rooms/<cuarto>/<capa>/<id>.png
 const ROOM_LAYER_TEXTURE := "res://assets/art/rooms/%s/%s/%s.png"
 

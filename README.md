@@ -2,11 +2,14 @@
 
 > Título de trabajo. Videojuego educativo de infraestructura web — **NEXUS CODE**, UAdeO.
 
+Contexto y decisiones del proyecto: [docs/CONTEXTO.md](docs/CONTEXTO.md) · Reglas para Claude Code: [CLAUDE.md](CLAUDE.md)
+
 Simulador *tycoon* 2D en el que eres el **SysAdmin** de una startup y tu trabajo es mantener sus servidores en pie mientras la empresa crece.
 
 - **Vista principal:** un cuarto isométrico con arte pre-renderizado en Blender. Al hacer clic en la PC, la cámara hace zoom al monitor y entras al **panel de control** (dashboard), donde se juega.
-- **Etapas:** Startup (garage) → Scale-up (oficina) → Enterprise (data center), con 5 oleadas cada una. Por ahora solo existe el garage.
-  - El HUD (cuarto y dashboard) siempre muestra "{empresa} · {etapa}". Si la etapa todavía no tiene su cuarto (`StageData.room_ready = false`), se usa el garage y el HUD lo indica con "Cuarto temporal: garage".
+- **Etapas:** Startup (garage) → Scale-up (oficina) → Enterprise (data center), con 5 oleadas cada una. Existen el garage y la oficina; el data center todavía no.
+  - El HUD (cuarto y dashboard) siempre muestra "{empresa} · {etapa}". Si la etapa todavía no tiene su cuarto (`StageData.room_ready = false`), se usa el último cuarto listo de una etapa anterior y el HUD lo indica ("Cuarto temporal: oficina").
+- **Tienda de decoración** (solo estética, desde Scale-up y solo entre oleadas): botón "Tienda" del cuarto o del post-mortem. Se compra, se coloca en una cuadrícula de 0.5 m (huella verde si cabe, roja si choca), se gira, se guarda en el inventario o se vende al 50 %. En PC se coloca con clic (R gira, Esc cancela); en el celular se toca para mover y se confirma con "Colocar".
 - **Plataformas:** Windows y Android, en horizontal.
 
 ## Equipo NEXUS CODE
@@ -65,16 +68,25 @@ Desde la raíz del proyecto (`godot` = tu ejecutable de Godot 4.6):
 
 ```bash
 # Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana
-godot --headless --path . -s res://tests/smoke_test.gd
+godot --headless --path . -s res://tests/smoke_test.gd -- --save-path=user://test_smoke.cfg
 
 # Pruebas del modelo de simulación (semilla fija) + resumen de balance por oleada
-godot --headless --path . -s res://tests/test_simulation.gd
+godot --headless --path . -s res://tests/test_simulation.gd -- --save-path=user://test_simulation.cfg
+
+# Pruebas de la tienda y la decoración (colocación, monedas, inventario, guardado)
+godot --headless --path . -s res://tests/test_decor.gd -- --save-path=user://test_decor.cfg
 
 # Regenera resources/customization/customization_catalog.tres después de editar paleta.json
 godot --headless --path . -s res://scripts/tools/build_customization_catalog.gd
 ```
 
-La prueba de humo usa su propio archivo de guardado; no toca tu partida.
+**Partida alterna:** `SaveSystem` acepta otra ruta de guardado con `-- --save-path=<ruta>` o con la variable de entorno `SERVERFLOW_SAVE_PATH`. Las pruebas la exigen: sin ella terminan de inmediato sin tocar nada, y `smoke_test.gd` falla si se lee o escribe la partida real (`user://savegame.cfg`). Úsala también en mediciones y partidas de prueba. En Android la app no recibe argumentos (la plantilla de exportación ignora los del intent), así que en builds **debug** se usa el archivo `user://save_path_override.txt` con la ruta alterna:
+
+```bash
+adb shell "echo user://medicion.cfg | run-as com.nexuscode.serverflow2d sh -c 'cat > files/save_path_override.txt'"
+```
+
+Al terminar la medición, bórralo: `adb shell run-as com.nexuscode.serverflow2d rm files/save_path_override.txt`. En builds release ese archivo se ignora.
 
 > **Al exportar:** `customization.gd` lee `data/customization/paleta.json` y `layer_offsets.json` en tiempo de ejecución. Los presets de `export_presets.cfg` ya incluyen `data/*.json`; si creas uno nuevo, agrégalo en *Recursos → Filtros para exportar archivos que no son recursos*.
 
@@ -111,13 +123,13 @@ adb install -r build/android/server-flow-2d-debug.apk
 | Carpeta | Contenido |
 |---|---|
 | `assets/` | Arte, audio y fuentes que usa el juego. Las capas del cuarto viven en `assets/art/rooms/<cuarto>/<capa>/<id>.png`. |
-| `data/` | Datos editables en JSON (p. ej. `data/customization/paleta.json`). |
+| `data/` | Datos editables en JSON: `customization/` (paleta y offsets del garage), `rooms/<cuarto>.json` (lienzo, offsets, proyección, cuadrícula, zonas ocupadas, sprites reutilizados, paleta de piso) y `decor/catalogo.json`. |
 | `resources/` | Recursos `.tres` (`UpgradeData`, `StageData`, catálogo de personalización). |
 | `scenes/` | Escenas `.tscn` agrupadas por área (`main`, `ui`, `rooms`, `dashboard`, `characters`). |
 | `scripts/` | GDScript. `autoload/` contiene los singletons globales. |
 | `source_art/` | Archivos fuente de Blender y scripts. Godot la ignora (`.gdignore`). |
 | `docs/` | Documentación del proyecto. |
-| `tests/` | Pruebas automáticas (`smoke_test.gd`, `test_simulation.gd`). |
+| `tests/` | Pruebas automáticas (`smoke_test.gd`, `test_simulation.gd`, `test_decor.gd`). |
 
 ### Autoloads
 
@@ -143,6 +155,12 @@ Los textos que se dirigen al jugador usan `TextUtil`, que elige la forma según 
 - En textos y datos (`.tres`): `TextUtil.format("¡Bienvenid{o|a}!")`. Los tutoriales de BYTE (`tutorial_text`) ya pasan por `format`.
 
 Prefiere frases neutras. Antes de elegir personaje (título, carga) solo usa frases neutras.
+
+### Cuartos y decoración
+
+Cada cuarto lee `data/rooms/<id>.json` con `RoomData`. La oficina reutiliza la puerta, la mesa, los racks y el avatar del garage sumando a su offset el `(dx, dy)` de `reutilizados_del_garage`; tiene dos racks (uno por servidor web, cada uno se pone en rojo cuando su servidor se satura). Paredes, puerta y mesa comparten colores entre cuartos; el **piso es propio de cada cuarto** (`piso_garage`, `piso_oficina`).
+
+`RoomProjection` convierte metros ↔ píxeles del lienzo 2x: `lienzo = origen + x·ex + y·ey + z·ez`. `DecorLayout` tiene las reglas de colocación (zonas ocupadas, tapete en capa inferior, muros con tramos prohibidos en `tramos_prohibidos_pared`), `DecorShop` las monedas e inventario y `DecorPlacer` el dibujo y la interacción. Cada objeto es un `Node2D` en el centro de su huella (para el y-sort) y su sprite va en `proj(esquina mínima) − proj(centro) − ancla`. Los objetos de piso, la mesa con el avatar y los racks se ordenan en `YSort` por el centro de su huella (`ysort_m`).
 
 ### Arte del cuarto
 

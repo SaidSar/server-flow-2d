@@ -68,6 +68,14 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 text = "Volver al cuarto"
 
+[node name="ShopButton" type="Button" parent="Center/Window/Content/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "Tienda"
+
 [node name="NextButton" type="Button" parent="Center/Window/Content/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 72)

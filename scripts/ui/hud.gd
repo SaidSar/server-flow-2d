@@ -1,9 +1,11 @@
 class_name Hud
 extends CanvasLayer
 ## HUD del cuarto: "{empresa} · {etapa}" (igual que el dashboard), aviso de cuarto temporal,
-## monedas, usuarios, oleada, barra de SLA, aviso cuando la PC necesita atención y botón de personalizar.
+## monedas, usuarios, oleada, barra de SLA, aviso cuando la PC necesita atención y botones de
+## personalizar y de la tienda (deshabilitada en la etapa 1 y durante las oleadas).
 
 signal customize_requested
+signal shop_requested
 
 const DEFAULT_COMPANY_NAME := "Mi empresa"
 
@@ -19,18 +21,24 @@ const DEFAULT_COMPANY_NAME := "Mi empresa"
 @onready var _sla_bar: ProgressBar = %SlaBar
 @onready var _alert_label: Label = %AlertLabel
 @onready var _brush_button: Button = %BrushButton
+@onready var _shop_button: Button = %ShopButton
+@onready var _shop_hint_label: Label = %ShopHintLabel
 @onready var _root: Control = $Root
 
 var _users_fill := DashboardColors.bar_style(DashboardColors.ACCENT)
+var _buttons_enabled := true
+var _alert_suppressed := false
 
 
 func _ready() -> void:
 	_fit_safe_area()
 	SceneRouter.safe_area_changed.connect(_fit_safe_area)
 	_brush_button.visible = show_customize_button
+	_shop_button.visible = show_customize_button
 	_users_bar.add_theme_stylebox_override(&"fill", _users_fill)
 	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(Color(0.2, 0.22, 0.28)))
 	_brush_button.pressed.connect(_on_brush_pressed)
+	_shop_button.pressed.connect(shop_requested.emit)
 	GameState.changed.connect(_refresh)
 	Simulation.tick.connect(_on_simulation_tick)
 	Simulation.infrastructure_changed.connect(_refresh)
@@ -47,8 +55,11 @@ func _fit_safe_area() -> void:
 	SafeArea.fit_full_rect(_root)
 
 
-func set_customize_enabled(enabled: bool) -> void:
+## El cuarto los bloquea mientras hay un panel abierto o se coloca decoración.
+func set_buttons_enabled(enabled: bool) -> void:
+	_buttons_enabled = enabled
 	_brush_button.disabled = not enabled
+	_refresh_shop_button()
 
 
 func _on_brush_pressed() -> void:
@@ -79,8 +90,22 @@ func _refresh() -> void:
 	_sla_label.text = "SLA %.1f %%" % Simulation.sla
 	_sla_bar.value = Simulation.sla
 	var alert := _get_alert_text()
-	_alert_label.visible = not alert.is_empty()
+	_alert_label.visible = not alert.is_empty() and not _alert_suppressed
 	_alert_label.text = alert
+	_refresh_shop_button()
+
+
+## Oculta el aviso de la PC mientras la barra de decoración ocupa la parte de abajo.
+func set_alert_suppressed(suppressed: bool) -> void:
+	_alert_suppressed = suppressed
+	_refresh()
+
+
+func _refresh_shop_button() -> void:
+	var reason := DecorShop.get_closed_reason() if GameState.is_active else DecorShop.TEXT_LOCKED
+	_shop_button.disabled = not _buttons_enabled or not reason.is_empty()
+	_shop_hint_label.visible = not reason.is_empty()
+	_shop_hint_label.text = reason
 
 
 ## Aviso para que el jugador vuelva a la PC; vacío mientras la oleada corre.

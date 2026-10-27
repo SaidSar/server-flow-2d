@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" path="res://assets/art/ui/icon_brush.svg" id="2_brush"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/icon_coin.svg" id="3_coin"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/icon_users.svg" id="4_users"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icon_bag.svg" id="5_bag"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 24.0
@@ -187,3 +188,41 @@ tooltip_text = "Personalizar cuarto"
 icon = ExtResource("2_brush")
 icon_alignment = 1
 expand_icon = true
+
+[node name="ShopButton" type="Button" parent="Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 88)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -264.0
+offset_top = 136.0
+offset_right = -24.0
+offset_bottom = 224.0
+grow_horizontal = 0
+tooltip_text = "Tienda de decoración"
+theme_override_font_sizes/font_size = 32
+text = "Tienda"
+icon = ExtResource("5_bag")
+expand_icon = true
+
+[node name="ShopHintLabel" type="Label" parent="Root"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -424.0
+offset_top = 228.0
+offset_right = -24.0
+offset_bottom = 264.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.0431373, 0.0666667, 0.109804, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 24
+text = "Disponible en Scale-up"
+horizontal_alignment = 2

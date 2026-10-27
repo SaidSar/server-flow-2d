@@ -23,10 +23,10 @@ static func from_palette_json(json_path: String) -> CustomizationCatalog:
 		return catalog
 
 	var palette: Dictionary = (parsed as Dictionary).get("paleta", {})
-	catalog.walls = _parse_options(palette.get("pared", []))
-	catalog.floors = _parse_options(palette.get("piso", []))
-	catalog.doors = _parse_options(palette.get("puerta", []))
-	catalog.desks = _parse_options(palette.get("mesa", []))
+	catalog.walls = parse_options(palette.get("pared", []))
+	catalog.floors = parse_options(palette.get("piso", []))
+	catalog.doors = parse_options(palette.get("puerta", []))
+	catalog.desks = parse_options(palette.get("mesa", []))
 	return catalog
 
 
@@ -52,7 +52,7 @@ func find_option(group: StringName, option_id: StringName) -> CustomizationOptio
 	return null
 
 
-static func _parse_options(raw: Variant) -> Array[CustomizationOption]:
+static func parse_options(raw: Variant) -> Array[CustomizationOption]:
 	var options: Array[CustomizationOption] = []
 	if not raw is Array:
 		return options

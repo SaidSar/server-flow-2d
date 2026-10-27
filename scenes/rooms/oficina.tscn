@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/rooms/room_base.tscn" id="1_base"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/oficina/piso/laminado_claro.png" id="2_floor"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/oficina/pared_izq/blanco_hueso.png" id="3_wall_left"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/oficina/pared_der/blanco_hueso.png" id="4_wall_right"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/garage/puerta/madera_natural.png" id="5_door"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/garage/fijos/rack_ok.png" id="6_rack_ok"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/garage/fijos/rack_saturado.png" id="7_rack_saturated"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/garage/mesa/roble.png" id="8_desk"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_monitor"]
+size = Vector2(130, 160)
+
+[node name="Oficina" instance=ExtResource("1_base")]
+room_id = &"oficina"
+rack_ok_texture = ExtResource("6_rack_ok")
+rack_saturated_texture = ExtResource("7_rack_saturated")
+
+[node name="Floor" parent="Layers" index="0"]
+position = Vector2(32, 528)
+texture = ExtResource("2_floor")
+
+[node name="WallLeft" parent="Layers" index="1"]
+position = Vector2(16, 16)
+texture = ExtResource("3_wall_left")
+
+[node name="WallRight" parent="Layers" index="2"]
+position = Vector2(1176, 16)
+texture = ExtResource("4_wall_right")
+
+[node name="Door" parent="Layers" index="3"]
+position = Vector2(592, 424)
+texture = ExtResource("5_door")
+
+[node name="Rack" parent="Layers/YSort/RackHolder" index="0"]
+position = Vector2(1192, 280)
+texture = ExtResource("6_rack_ok")
+
+[node name="Rack2Holder" parent="Layers/YSort" index="1"]
+visible = true
+
+[node name="Rack2" parent="Layers/YSort/Rack2Holder" index="0"]
+position = Vector2(1288, 328)
+texture = ExtResource("6_rack_ok")
+
+[node name="Desk" parent="Layers/YSort/Workstation" index="0"]
+position = Vector2(200, 720)
+texture = ExtResource("8_desk")
+
+[node name="Shape" parent="Layers/PcArea" index="0"]
+position = Vector2(366, 810)
+shape = SubResource("RectangleShape2D_monitor")
+
+[node name="MonitorFocus" parent="Layers" index="9"]
+position = Vector2(366, 805)

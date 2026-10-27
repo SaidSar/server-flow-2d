@@ -592,6 +592,30 @@ func set_firewall_on(enabled: bool) -> void:
 	infrastructure_changed.emit()
 
 
+## Un servidor web está saturado si su recurso más cargado pasa el umbral (se ve en su rack).
+func is_server_saturated(index: int) -> bool:
+	if phase != Phase.RUNNING or index < 0 or index >= servers.size():
+		return false
+	return servers[index].get_peak() >= config.saturation_utilization
+
+
+## Gasta o devuelve monedas fuera de las oleadas (tienda de decoración). También corrige los
+## checkpoints de la oleada y de la etapa para que reintentar o repetir no regrese ese gasto.
+func adjust_coins(delta: int) -> void:
+	coins = maxi(coins + delta, 0)
+	for checkpoint: Dictionary in [_checkpoint, _stage_checkpoint]:
+		if checkpoint.has("coins"):
+			checkpoint["coins"] = maxi(int(checkpoint["coins"]) + delta, 0)
+	var stage_start: Dictionary = _checkpoint.get("stage_start", {})
+	if stage_start.has("coins"):
+		stage_start["coins"] = maxi(int(stage_start["coins"]) + delta, 0)
+	infrastructure_changed.emit()
+
+
+func is_stage_completed(stage_id: StringName) -> bool:
+	return stage_stats.has(stage_id)
+
+
 func has_load_balancer() -> bool:
 	return servers.size() >= 2
 
