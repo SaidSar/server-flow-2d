@@ -43,7 +43,7 @@ extends Resource
 @export_group("Umbrales")
 ## Las barras pasan a amarillo arriba de este valor.
 @export var warning_utilization := 0.65
-## Cuello de botella: barras en rojo, rack rojo y Alex estresado.
+## Cuello de botella: barras en rojo, rack rojo y avatar estresado.
 @export var saturation_utilization := 0.85
 ## Debajo de esto la respuesta es rápida (verde); arriba, lenta (amarillo).
 @export var fast_latency_ms := 200.0

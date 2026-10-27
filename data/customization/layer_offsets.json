@@ -24,6 +24,24 @@
    "w": 176,
    "h": 288
   },
+  "alexa/alexa_estres": {
+   "x": 384,
+   "y": 616,
+   "w": 176,
+   "h": 272
+  },
+  "alexa/alexa_teclea_a": {
+   "x": 384,
+   "y": 600,
+   "w": 176,
+   "h": 288
+  },
+  "alexa/alexa_teclea_b": {
+   "x": 384,
+   "y": 600,
+   "w": 176,
+   "h": 288
+  },
   "fijos/cajas": {
    "x": 704,
    "y": 944,

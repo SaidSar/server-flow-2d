@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/ui/new_game_setup.gd" id="1_setup"]
 [ext_resource type="PackedScene" path="res://scenes/ui/name_prompt.tscn" id="2_prompt"]
+[ext_resource type="PackedScene" path="res://scenes/ui/character_select.tscn" id="3_select"]
 
 [node name="NewGameSetup" type="Control"]
 layout_mode = 3
@@ -29,17 +30,25 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="AvatarPrompt" parent="Center" instance=ExtResource("2_prompt")]
+[node name="CharacterSelect" parent="Center" instance=ExtResource("3_select")]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="AvatarPrompt" parent="Center" instance=ExtResource("2_prompt")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+step_text = "Paso 2 de 3"
 title_text = "¿Cómo te llamas?"
 placeholder_text = "Alex"
 confirm_text = "Siguiente"
+back_text = "Atrás"
 
 [node name="CompanyPrompt" parent="Center" instance=ExtResource("2_prompt")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+step_text = "Paso 3 de 3"
 title_text = "¿Cómo se llama tu empresa?"
 placeholder_text = "NexusSoft"
 confirm_text = "Comenzar"

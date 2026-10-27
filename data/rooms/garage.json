@@ -1,0 +1,9 @@
+{
+ "room": "garage",
+ "canvas": [
+  1592,
+  1318
+ ],
+ "escala_nodo": 0.5,
+ "nota": "El garage no tiene decoración: sin proyección ni cuadrícula. Sus capas usan layer_offsets.json y su piso la paleta de paleta.json."
+}

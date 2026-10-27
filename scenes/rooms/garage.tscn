@@ -34,11 +34,11 @@ texture = ExtResource("4_wall_right")
 position = Vector2(584, 224)
 texture = ExtResource("5_door")
 
-[node name="Rack" parent="Layers" index="4"]
+[node name="Rack" parent="Layers/YSort/RackHolder" index="0"]
 position = Vector2(800, 272)
 texture = ExtResource("6_rack_ok")
 
-[node name="Desk" parent="Layers" index="5"]
+[node name="Desk" parent="Layers/YSort/Workstation" index="0"]
 position = Vector2(192, 520)
 texture = ExtResource("8_desk")
 

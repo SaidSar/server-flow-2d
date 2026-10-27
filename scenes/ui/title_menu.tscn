@@ -203,7 +203,7 @@ theme_override_constants/separation = 28
 [node name="QuestionLabel" type="Label" parent="QuitConfirmPanel/Center/Window/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "¿Estás seguro de que quieres salir?"
+text = "¿Quieres salir del juego?"
 horizontal_alignment = 1
 autowrap_mode = 3
 

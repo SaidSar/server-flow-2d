@@ -5,6 +5,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/customize_panel.tscn" id="4_customize"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_button.tscn" id="5_settings"]
+[ext_resource type="Script" path="res://scripts/rooms/decor_placer.gd" id="6_placer"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shop_panel.tscn" id="7_shop"]
+[ext_resource type="PackedScene" path="res://scenes/ui/decor_toolbar.tscn" id="8_toolbar"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pc"]
 size = Vector2(128, 128)
@@ -32,15 +35,39 @@ centered = false
 unique_name_in_owner = true
 centered = false
 
-[node name="Rack" type="Sprite2D" parent="Layers"]
+[node name="WallDecor" type="Node2D" parent="Layers"]
+unique_name_in_owner = true
+
+[node name="Rugs" type="Node2D" parent="Layers"]
+unique_name_in_owner = true
+
+[node name="YSort" type="Node2D" parent="Layers"]
+unique_name_in_owner = true
+y_sort_enabled = true
+
+[node name="RackHolder" type="Node2D" parent="Layers/YSort"]
+unique_name_in_owner = true
+
+[node name="Rack" type="Sprite2D" parent="Layers/YSort/RackHolder"]
 unique_name_in_owner = true
 centered = false
 
-[node name="Desk" type="Sprite2D" parent="Layers"]
+[node name="Rack2Holder" type="Node2D" parent="Layers/YSort"]
+unique_name_in_owner = true
+visible = false
+
+[node name="Rack2" type="Sprite2D" parent="Layers/YSort/Rack2Holder"]
 unique_name_in_owner = true
 centered = false
 
-[node name="Avatar" parent="Layers" instance=ExtResource("2_avatar")]
+[node name="Workstation" type="Node2D" parent="Layers/YSort"]
+unique_name_in_owner = true
+
+[node name="Desk" type="Sprite2D" parent="Layers/YSort/Workstation"]
+unique_name_in_owner = true
+centered = false
+
+[node name="Avatar" parent="Layers/YSort/Workstation" instance=ExtResource("2_avatar")]
 unique_name_in_owner = true
 
 [node name="Boxes" type="Sprite2D" parent="Layers"]
@@ -60,10 +87,20 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 zoom = Vector2(1.5, 1.5)
 
+[node name="DecorPlacer" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("6_placer")
+
 [node name="Hud" parent="." instance=ExtResource("3_hud")]
 unique_name_in_owner = true
 
 [node name="CustomizePanel" parent="." instance=ExtResource("4_customize")]
+unique_name_in_owner = true
+
+[node name="ShopPanel" parent="." instance=ExtResource("7_shop")]
+unique_name_in_owner = true
+
+[node name="DecorToolbar" parent="." instance=ExtResource("8_toolbar")]
 unique_name_in_owner = true
 
 [node name="SettingsButton" parent="." instance=ExtResource("5_settings")]

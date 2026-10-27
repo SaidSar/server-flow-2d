@@ -8,7 +8,7 @@ extends Node
 signal tick(snapshot: SimSnapshot)
 ## Cambió el recurso cuello de botella (&"" = ya no hay) o el nodo donde está.
 signal bottleneck_changed(resource: StringName, node: StringName)
-## Algo pasó (o dejó de pasar) el umbral de saturación. Lo usa el garage (rack rojo, Alex estresado).
+## Algo pasó (o dejó de pasar) el umbral de saturación. Lo usa el garage (rack rojo, avatar estresado).
 signal saturation_changed(is_saturated: bool)
 signal phase_changed(phase: Phase)
 signal wave_started(wave_number: int)
@@ -73,7 +73,7 @@ var last_snapshot := SimSnapshot.new()
 var report: WaveReport
 ## Etapa completada cuya victoria el jugador aún no ha visto (pudo terminar mientras estaba en el garage).
 var pending_stage_report: WaveReport
-## Ronda de inversión que se entrega cuando el jugador acepta la victoria (después del diálogo de Valeria).
+## Ronda de inversión que se entrega cuando el jugador acepta la victoria (después del diálogo de Briseida).
 var pending_investment := 0
 var is_saturated := false
 var bottleneck: StringName = &""
@@ -590,6 +590,30 @@ func set_firewall_on(enabled: bool) -> void:
 		return
 	firewall_on = enabled
 	infrastructure_changed.emit()
+
+
+## Un servidor web está saturado si su recurso más cargado pasa el umbral (se ve en su rack).
+func is_server_saturated(index: int) -> bool:
+	if phase != Phase.RUNNING or index < 0 or index >= servers.size():
+		return false
+	return servers[index].get_peak() >= config.saturation_utilization
+
+
+## Gasta o devuelve monedas fuera de las oleadas (tienda de decoración). También corrige los
+## checkpoints de la oleada y de la etapa para que reintentar o repetir no regrese ese gasto.
+func adjust_coins(delta: int) -> void:
+	coins = maxi(coins + delta, 0)
+	for checkpoint: Dictionary in [_checkpoint, _stage_checkpoint]:
+		if checkpoint.has("coins"):
+			checkpoint["coins"] = maxi(int(checkpoint["coins"]) + delta, 0)
+	var stage_start: Dictionary = _checkpoint.get("stage_start", {})
+	if stage_start.has("coins"):
+		stage_start["coins"] = maxi(int(stage_start["coins"]) + delta, 0)
+	infrastructure_changed.emit()
+
+
+func is_stage_completed(stage_id: StringName) -> bool:
+	return stage_stats.has(stage_id)
 
 
 func has_load_balancer() -> bool:

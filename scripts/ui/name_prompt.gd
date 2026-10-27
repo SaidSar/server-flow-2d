@@ -9,12 +9,15 @@ signal back_requested
 const MAX_LENGTH := 16
 const INVALID_CHARS_PATTERN := "[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ ._\\-]"
 
+## Paso del flujo ("Paso 2 de 3"), arriba a la izquierda. Vacío = sin etiqueta.
+@export var step_text := ""
 @export var title_text := "¿Cómo te llamas?"
 @export var placeholder_text := "Alex"
 @export var confirm_text := "Siguiente"
 ## Texto del botón para regresar. Vacío = sin botón.
 @export var back_text := ""
 
+@onready var _step_label: Label = %StepLabel
 @onready var _title_label: Label = %TitleLabel
 @onready var _name_edit: LineEdit = %NameEdit
 @onready var _confirm_button: Button = %ConfirmButton
@@ -25,6 +28,8 @@ var _invalid_chars := RegEx.new()
 
 func _ready() -> void:
 	_invalid_chars.compile(INVALID_CHARS_PATTERN)
+	_step_label.text = step_text
+	_step_label.visible = not step_text.is_empty()
 	_title_label.text = title_text
 	_name_edit.placeholder_text = placeholder_text
 	_name_edit.max_length = MAX_LENGTH
@@ -44,6 +49,13 @@ func _ready() -> void:
 ## Texto escrito, sin espacios al inicio ni al final.
 func get_value() -> String:
 	return _name_edit.text.strip_edges()
+
+
+## Texto de ejemplo del campo (p. ej. el nombre del personaje elegido).
+func set_placeholder(text: String) -> void:
+	placeholder_text = text
+	if is_node_ready():
+		_name_edit.placeholder_text = text
 
 
 func is_value_valid() -> bool:

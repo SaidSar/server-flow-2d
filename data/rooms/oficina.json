@@ -1,0 +1,357 @@
+{
+ "room": "oficina",
+ "canvas": [
+  2368,
+  1712
+ ],
+ "escala_nodo": 0.5,
+ "proyeccion": {
+  "nota": "pixel(lienzo 2x) = origen + x*ex + y*ey + z*ez  (x, y, z en metros del mundo)",
+  "origen": [
+   36.0,
+   1105.829
+  ],
+  "ex": [
+   127.9999978093733,
+   63.99999890468665
+  ],
+  "ey": [
+   127.9999978093733,
+   -63.99999350989004
+  ],
+  "ez": [
+   0.0,
+   -156.76735151402002
+  ]
+ },
+ "cuadricula": {
+  "celda_m": 0.5,
+  "x": [
+   0,
+   9
+  ],
+  "y": [
+   0,
+   9
+  ],
+  "ocupado_m": [
+   {
+    "id": "escritorio_y_silla",
+    "x": [
+     0.0,
+     2.0
+    ],
+    "y": [
+     1.0,
+     3.6
+    ]
+   },
+   {
+    "id": "puerta",
+    "x": [
+     0.0,
+     1.2
+    ],
+    "y": [
+     4.3,
+     5.5
+    ]
+   },
+   {
+    "id": "racks",
+    "x": [
+     0.8,
+     2.5
+    ],
+    "y": [
+     8.0,
+     9.0
+    ]
+   }
+  ],
+  "nota": "zonas ocupadas en metros (no se puede colocar decoración ahí)."
+ },
+ "reutilizados_del_garage": {
+  "nota": "Usar el MISMO sprite del garage y sumar (dx, dy) a su offset del garage (lienzo 2x).",
+  "mesa/*": [
+   8.0,
+   200.0
+  ],
+  "puerta/*": [
+   8.0,
+   200.0
+  ],
+  "alex/*": [
+   8.0,
+   200.0
+  ],
+  "alexa/*": [
+   8.0,
+   200.0
+  ],
+  "rack_1 (fijos/rack_ok|rack_saturado)": [
+   392.0,
+   8.0
+  ],
+  "rack_2 (fijos/rack_ok|rack_saturado)": [
+   488.0,
+   56.0
+  ]
+ },
+ "orden_capas": [
+  "piso",
+  "pared_izq",
+  "pared_der",
+  "puerta",
+  "racks",
+  "decoracion (y-sort)",
+  "mesa",
+  "avatar"
+ ],
+ "paleta_piso": [
+  {
+   "id": "laminado_claro",
+   "nombre": "Laminado claro",
+   "color": "#c9a77c"
+  },
+  {
+   "id": "laminado_oscuro",
+   "nombre": "Laminado nogal",
+   "color": "#7a5638"
+  },
+  {
+   "id": "alfombra_gris",
+   "nombre": "Alfombra gris",
+   "color": "#8c929b"
+  }
+ ],
+ "capas_offsets": {
+  "oficina/pared_der/azul_acero": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/azul_marino": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/blanco_hueso": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/grafito": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/gris_calido": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/lavanda": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/menta": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/mostaza": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/terracota": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_der/verde_salvia": {
+   "x": 1176,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/azul_acero": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/azul_marino": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/blanco_hueso": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/grafito": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/gris_calido": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/lavanda": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/menta": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/mostaza": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/terracota": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/pared_izq/verde_salvia": {
+   "x": 16,
+   "y": 16,
+   "w": 1184,
+   "h": 1096
+  },
+  "oficina/piso/alfombra_gris": {
+   "x": 32,
+   "y": 528,
+   "w": 2312,
+   "h": 1176
+  },
+  "oficina/piso/laminado_claro": {
+   "x": 32,
+   "y": 528,
+   "w": 2312,
+   "h": 1176
+  },
+  "oficina/piso/laminado_oscuro": {
+   "x": 32,
+   "y": 528,
+   "w": 2312,
+   "h": 1176
+  }
+ },
+ "nota_capas": "Capas propias de la oficina recortadas (offset x,y en lienzo 2x, múltiplos de 8). Puerta, mesa, racks y avatar reutilizan los sprites del garage sumando reutilizados_del_garage (dx,dy) a su offset del garage.",
+ "tramos_prohibidos_pared": {
+  "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura (metros). Un objeto choca solo si se encima en los dos. der = pared y=9 (eje x), izq = pared x=0 (eje y).",
+  "der": [
+   {
+    "id": "racks",
+    "tramo": [
+     0.8,
+     2.5
+    ],
+    "z": [
+     0.0,
+     2.05
+    ]
+   },
+   {
+    "id": "ventana_1",
+    "tramo": [
+     4.0,
+     5.9
+    ],
+    "z": [
+     1.0,
+     2.5
+    ]
+   },
+   {
+    "id": "ventana_2",
+    "tramo": [
+     6.5,
+     8.4
+    ],
+    "z": [
+     1.0,
+     2.5
+    ]
+   }
+  ],
+  "izq": [
+   {
+    "id": "monitor",
+    "tramo": [
+     1.1,
+     3.5
+    ],
+    "z": [
+     0.75,
+     1.6
+    ]
+   },
+   {
+    "id": "puerta",
+    "tramo": [
+     4.3,
+     5.5
+    ],
+    "z": [
+     0.0,
+     2.15
+    ]
+   },
+   {
+    "id": "pizarron",
+    "tramo": [
+     6.2,
+     8.6
+    ],
+    "z": [
+     1.25,
+     2.55
+    ]
+   }
+  ]
+ },
+ "ysort_m": {
+  "nota": "Centro de la huella (metros) de lo que se ordena con la decoración: la mesa con el avatar y cada rack.",
+  "mesa": [
+   1.0,
+   2.3
+  ],
+  "rack_1": [
+   1.2,
+   8.6
+  ],
+  "rack_2": [
+   1.95,
+   8.6
+  ]
+ }
+}
