@@ -590,6 +590,7 @@ func _test_office_and_shop(game_state: Node, simulation: Node) -> void:
 	shop_button.pressed.emit()
 	var shop_panel: CanvasLayer = office.get_node("%ShopPanel")
 	_check(shop_panel.visible, "Tienda abre el panel")
+	await _test_shop_width(shop_panel)
 	await _test_shop_scroll(office, shop_panel, simulation)
 	if not shop_panel.visible:
 		shop_button.pressed.emit()
@@ -629,6 +630,20 @@ func _test_office_and_shop(game_state: Node, simulation: Node) -> void:
 	_check(not toolbar.visible and placer.call("get_mode") == 0, "después de vender no queda nada seleccionado")
 
 
+## El panel de la Tienda mide como máximo 560 px (o el 30 % de la pantalla, lo que sea menor):
+## los nombres largos se ajustan en dos líneas en vez de ensanchar la fila.
+func _test_shop_width(shop_panel: CanvasLayer) -> void:
+	await process_frame
+	var panel := shop_panel.get_node("%Panel") as Control
+	var max_width := minf(560.0, root.get_visible_rect().size.x * 0.3)
+	_check(panel.size.x <= max_width + 0.5, "el panel de la Tienda no pasa de %d px (mide %d)" % [max_width, panel.size.x])
+	var neon_name: Label = null
+	for label: Node in shop_panel.get_node("%RowsBox").find_children("*", "Label", true, false):
+		if (label as Label).text == "Letrero de neón (nombre de tu empresa)":
+			neon_name = label
+	_check(neon_name != null and neon_name.get_line_count() >= 2, "el nombre del neón se ajusta en dos líneas")
+
+
 ## La lista de la Tienda se desplaza con el dedo (también empezando encima de un botón) y con la rueda.
 ## Un arrastre no compra; un toque corto sí. Los eventos pasan por Input como en el celular
 ## (el toque genera también el clic emulado).
@@ -643,12 +658,12 @@ func _test_shop_scroll(office: Node, shop_panel: CanvasLayer, simulation: Node) 
 
 	var start := (shop_panel.call("get_row_button", &"sillon") as Button).get_global_rect().get_center()
 	await _send_touch(start, true)
-	for i in range(1, 9):
+	for i in range(1, 17):
 		var drag := InputEventScreenDrag.new()
-		drag.position = root.get_final_transform() * (start - Vector2(0.0, 50.0 * i))
-		drag.relative = Vector2(0.0, -50.0)
+		drag.position = root.get_final_transform() * (start - Vector2(0.0, 100.0 * i))
+		drag.relative = Vector2(0.0, -100.0)
 		await _send_input(drag)
-	await _send_touch(start - Vector2(0.0, 400.0), false)
+	await _send_touch(start - Vector2(0.0, 1600.0), false)
 	_check(scroll.scroll_vertical > 0, "arrastrar con el dedo desplaza la Tienda (%d)" % scroll.scroll_vertical)
 	neon_buy = shop_panel.call("get_row_button", &"neon")
 	_check(scroll.get_global_rect().encloses(neon_buy.get_global_rect()), "después del arrastre se ve el botón de comprar del neón")
