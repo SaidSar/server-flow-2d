@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/shop_panel.gd" id="1_shop"]
+[ext_resource type="Script" path="res://scripts/ui/touch_scroll_container.gd" id="2_scroll"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 28.0
@@ -76,9 +77,11 @@ toggle_mode = true
 text = "Inventario"
 
 [node name="Scroll" type="ScrollContainer" parent="Panel/Content"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
+script = ExtResource("2_scroll")
 
 [node name="RowsBox" type="VBoxContainer" parent="Panel/Content/Scroll"]
 unique_name_in_owner = true
