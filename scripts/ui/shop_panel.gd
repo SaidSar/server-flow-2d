@@ -27,6 +27,7 @@ const BLOCKED_COLOR := Color(0.96, 0.6, 0.45)
 var _tab: Tab = Tab.SHOP
 ## id → botón de la fila visible (Comprar o Colocar), para las pruebas.
 var _row_buttons: Dictionary[StringName, Button] = {}
+var _refresh_queued := false
 
 
 func _ready() -> void:
@@ -39,8 +40,8 @@ func _ready() -> void:
 	_shop_tab.pressed.connect(show_tab.bind(Tab.SHOP))
 	_inventory_tab.pressed.connect(show_tab.bind(Tab.INVENTORY))
 	_close_button.pressed.connect(close)
-	GameState.decor_changed.connect(_refresh)
-	Simulation.infrastructure_changed.connect(_refresh)
+	GameState.decor_changed.connect(_queue_refresh)
+	Simulation.infrastructure_changed.connect(_queue_refresh)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -81,7 +82,16 @@ func get_row_button(decor_id: StringName) -> Button:
 	return _row_buttons.get(decor_id)
 
 
+## Las filas se reconstruyen al final del cuadro: comprar ocurre dentro de la señal del botón y
+## borrarlo ahí mismo lo sacaría del árbol mientras todavía atiende el toque.
+func _queue_refresh() -> void:
+	if not _refresh_queued:
+		_refresh_queued = true
+		_refresh.call_deferred()
+
+
 func _refresh() -> void:
+	_refresh_queued = false
 	if not is_node_ready() or not visible:
 		return
 	_coins_label.text = "%s monedas" % NumberFormat.thousands(Simulation.coins)
