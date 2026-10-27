@@ -590,6 +590,9 @@ func _test_office_and_shop(game_state: Node, simulation: Node) -> void:
 	shop_button.pressed.emit()
 	var shop_panel: CanvasLayer = office.get_node("%ShopPanel")
 	_check(shop_panel.visible, "Tienda abre el panel")
+	await _test_shop_scroll(office, shop_panel, simulation)
+	if not shop_panel.visible:
+		shop_button.pressed.emit()
 	(shop_panel.call("get_row_button", &"sillon") as Button).pressed.emit()
 	_check(simulation.get("coins") == 1400 and not shop_panel.visible, "Comprar el sillón cobra 600 y entra a colocarlo")
 	var placer: Node = office.get_node("%DecorPlacer")
@@ -624,6 +627,67 @@ func _test_office_and_shop(game_state: Node, simulation: Node) -> void:
 	(toolbar.get_node("%SellButton") as Button).pressed.emit()
 	_check(placed.is_empty() and simulation.get("coins") == 1700, "Vender devuelve el 50 %% (%d)" % simulation.get("coins"))
 	_check(not toolbar.visible and placer.call("get_mode") == 0, "después de vender no queda nada seleccionado")
+
+
+## La lista de la Tienda se desplaza con el dedo (también empezando encima de un botón) y con la rueda.
+## Un arrastre no compra; un toque corto sí. Los eventos pasan por Input como en el celular
+## (el toque genera también el clic emulado).
+func _test_shop_scroll(office: Node, shop_panel: CanvasLayer, simulation: Node) -> void:
+	var scroll := shop_panel.get_node("%Scroll") as ScrollContainer
+	var placer: Node = office.get_node("%DecorPlacer")
+	scroll.scroll_vertical = 0
+	await process_frame
+	var neon_buy: Button = shop_panel.call("get_row_button", &"neon")
+	_check(not scroll.get_global_rect().encloses(neon_buy.get_global_rect()), "al abrir, el botón del neón no se ve completo")
+	var coins: int = simulation.get("coins")
+
+	var start := (shop_panel.call("get_row_button", &"sillon") as Button).get_global_rect().get_center()
+	await _send_touch(start, true)
+	for i in range(1, 9):
+		var drag := InputEventScreenDrag.new()
+		drag.position = root.get_final_transform() * (start - Vector2(0.0, 50.0 * i))
+		drag.relative = Vector2(0.0, -50.0)
+		await _send_input(drag)
+	await _send_touch(start - Vector2(0.0, 400.0), false)
+	_check(scroll.scroll_vertical > 0, "arrastrar con el dedo desplaza la Tienda (%d)" % scroll.scroll_vertical)
+	neon_buy = shop_panel.call("get_row_button", &"neon")
+	_check(scroll.get_global_rect().encloses(neon_buy.get_global_rect()), "después del arrastre se ve el botón de comprar del neón")
+	_check(simulation.get("coins") == coins and placer.call("get_mode") == 0 and shop_panel.visible, "arrastrar sobre Comprar no compra nada")
+
+	scroll.scroll_vertical = 0
+	await process_frame
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	wheel.pressed = true
+	wheel.position = root.get_final_transform() * scroll.get_global_rect().get_center()
+	await _send_input(wheel)
+	var wheel_release := wheel.duplicate() as InputEventMouseButton
+	wheel_release.pressed = false
+	await _send_input(wheel_release)
+	_check(scroll.scroll_vertical > 0, "la rueda del mouse desplaza la Tienda (%d)" % scroll.scroll_vertical)
+
+	scroll.scroll_vertical = 0
+	await process_frame
+	var tap := (shop_panel.call("get_row_button", &"planta") as Button).get_global_rect().get_center()
+	await _send_touch(tap, true)
+	await _send_touch(tap, false)
+	_check(simulation.get("coins") == coins - 150 and placer.call("get_mode") == 1, "un toque corto en Comprar sí compra")
+	placer.call("cancel_placement")
+	_check(simulation.get("coins") == coins, "cancelar devuelve la planta")
+
+
+func _send_touch(position: Vector2, pressed: bool) -> void:
+	var touch := InputEventScreenTouch.new()
+	touch.position = root.get_final_transform() * position
+	touch.pressed = pressed
+	await _send_input(touch)
+
+
+## Input.parse_input_event se procesa en el siguiente cuadro (y emula el mouse a partir del toque).
+func _send_input(event: InputEvent) -> void:
+	Input.parse_input_event(event)
+	await process_frame
+	await process_frame
 
 
 func _vec(raw: Array) -> Vector2:
