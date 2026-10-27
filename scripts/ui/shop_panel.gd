@@ -13,6 +13,8 @@ signal place_requested(decor_id: StringName)
 enum Tab { SHOP, INVENTORY }
 
 const THUMB_SIZE := Vector2(104, 104)
+## Ancho máximo del panel: 560 px o el 30 % del ancho de la pantalla, lo que sea menor.
+const MAX_WIDTH_RATIO := 0.3
 const ROW_BG := Color("#1b2232")
 const INFO_COLOR := Color(0.7, 0.75, 0.82)
 const BLOCKED_COLOR := Color(0.96, 0.6, 0.45)
@@ -34,6 +36,7 @@ func _ready() -> void:
 	hide()
 	_fit_safe_area()
 	SceneRouter.safe_area_changed.connect(_fit_safe_area)
+	get_viewport().size_changed.connect(_fit_safe_area)
 	var tabs := ButtonGroup.new()
 	_shop_tab.button_group = tabs
 	_inventory_tab.button_group = tabs
@@ -53,7 +56,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func _fit_safe_area() -> void:
 	var insets := SafeArea.get_insets(get_viewport())
 	_panel.offset_right = -insets.z
-	_panel.offset_left = -CustomizePanel.PANEL_WIDTH - insets.z
+	_panel.offset_left = -get_panel_width() - insets.z
+
+
+## Los textos de las filas se ajustan en varias líneas para no ensanchar el panel.
+func get_panel_width() -> float:
+	return minf(CustomizePanel.PANEL_WIDTH, get_viewport().get_visible_rect().size.x * MAX_WIDTH_RATIO)
 
 
 func open(tab: Tab = Tab.SHOP) -> void:
@@ -110,9 +118,7 @@ func _refresh() -> void:
 			shown.append(decor_id)
 			_rows_box.add_child(_inventory_row(DecorData.find(decor_id)))
 		if shown.is_empty():
-			var empty := _label("Tu inventario está vacío. Lo que guardes de la oficina aparece aquí.", 24, INFO_COLOR)
-			empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			_rows_box.add_child(empty)
+			_rows_box.add_child(_label("Tu inventario está vacío. Lo que guardes de la oficina aparece aquí.", 24, INFO_COLOR))
 
 
 func _shop_row(decor: DecorData) -> Control:
@@ -156,9 +162,7 @@ func _row(decor: DecorData, info: String, blocked: String, button: Button) -> Co
 	var texts := VBoxContainer.new()
 	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	texts.alignment = BoxContainer.ALIGNMENT_CENTER
-	var name_label := _label(decor.display_name, 28, Color.WHITE)
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	texts.add_child(name_label)
+	texts.add_child(_label(decor.display_name, 28, Color.WHITE))
 	texts.add_child(_label(info, 22, INFO_COLOR))
 	if not blocked.is_empty():
 		texts.add_child(_label(blocked, 22, BLOCKED_COLOR))
@@ -181,4 +185,5 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	label.text = text
 	label.add_theme_font_size_override(&"font_size", font_size)
 	label.add_theme_color_override(&"font_color", color)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	return label
