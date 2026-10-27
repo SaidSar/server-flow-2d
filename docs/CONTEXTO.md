@@ -59,9 +59,12 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
   Por eso el neón cabe sobre el escritorio. Dos objetos del mismo muro siguen la misma regla (un neón puede ir encima de un cuadro).
 
 ## 8. Estado (actualiza esta sección en cada PR grande)
-- **v0.3.1 (en `main`):** garage personalizable, dashboard jugable con 3 etapas (oficina y data center usan el garage como cuarto temporal), ajustes, balance de la etapa 1, exportación Android/Windows, capas recortadas.
-- **Hecho (en `develop`):** elegir personaje (Alex/Alexa) + textos con género + CEO Briseida (PR #10).
-- **En revisión:** oficina (Scale-up) + tienda y decoración con colocación libre (PR #11). Mientras no exista el data center, la etapa 3 usa la oficina como cuarto temporal.
+- **v0.4.0 (en `main`, tag `v0.4.0`):** todo lo de v0.3.1 (garage personalizable, dashboard jugable con 3 etapas, ajustes, balance de la etapa 1, exportación Android/Windows, capas recortadas) más:
+  - elegir personaje (Alex/Alexa), textos con género y CEO Briseida (PR #10);
+  - oficina de Scale-up con piso propio y un rack por servidor; mientras no exista el data center, la etapa 3 usa la oficina como cuarto temporal (PR #11);
+  - tienda y decoración con colocación libre, muros con zonas prohibidas con altura y letrero de neón con el nombre de la empresa (PR #11);
+  - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
+  - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
 - **Pendiente:** data center (etapa 3) y su catálogo personal, balance fino de etapas 2 y 3, audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
 
 ## 9. Cómo trabajar
