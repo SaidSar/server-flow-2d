@@ -2,6 +2,8 @@
 
 > Título de trabajo. Videojuego educativo de infraestructura web — **NEXUS CODE**, UAdeO.
 
+Contexto y decisiones del proyecto: [docs/CONTEXTO.md](docs/CONTEXTO.md) · Reglas para Claude Code: [CLAUDE.md](CLAUDE.md)
+
 Simulador *tycoon* 2D en el que eres el **SysAdmin** de una startup y tu trabajo es mantener sus servidores en pie mientras la empresa crece.
 
 - **Vista principal:** un cuarto isométrico con arte pre-renderizado en Blender. Al hacer clic en la PC, la cámara hace zoom al monitor y entras al **panel de control** (dashboard), donde se juega.
