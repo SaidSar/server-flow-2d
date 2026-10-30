@@ -676,6 +676,7 @@ func _test_data_center(game_state: Node, simulation: Node) -> void:
 	var plate: Sprite2D = room.get_node("%FirewallPlate")
 	_check(plate.texture.resource_path.ends_with("firewall/apagado.png"), "data center: placa de Firewall apagada sin comprarla")
 	_check(_canvas_position(plate) == _offset(layers["data_center/firewall/apagado"]), "data center: placa de Firewall en su offset")
+	_check(plate.get_index() < room.get_node("%RackBay").get_index(), "data center: la placa de Firewall se dibuja detrás de los racks")
 
 	# Con un solo servidor saturado solo se pone rojo su rack (rack_1 → servidor 1).
 	simulation.call("start_wave")

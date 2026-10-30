@@ -67,12 +67,12 @@ position = Vector2(760, 312)
 texture = ExtResource("10_glass")
 centered = false
 
-[node name="RackBay" type="Node2D" parent="Layers" index="11"]
-unique_name_in_owner = true
-y_sort_enabled = true
-
-[node name="FirewallPlate" type="Sprite2D" parent="Layers" index="12"]
+[node name="FirewallPlate" type="Sprite2D" parent="Layers" index="11"]
 unique_name_in_owner = true
 position = Vector2(2472, 616)
 texture = ExtResource("11_firewall_off")
 centered = false
+
+[node name="RackBay" type="Node2D" parent="Layers" index="12"]
+unique_name_in_owner = true
+y_sort_enabled = true

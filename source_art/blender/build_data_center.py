@@ -205,7 +205,6 @@ meta = {
       "vidrio": {"sprite": "vidrio/vidrio.png", "pos_m": [5.4, 6.0, 0], "nota": "decorativo, no bloquea el paso, no admite objetos del catálogo pegados"},
       "firewall": {"apagado": "firewall/apagado.png", "activo": "firewall/activo.png", "pos_m": [7.6, 12.0, 1.45], "nota": "mejora comprable en la consola; activo cuando firewall_activo=true"},
   },
-  "orden_capas": ["piso", "pared_izq", "pared_der", "puerta", "vidrio", "racks", "firewall", "decoracion (y-sort)", "mesa", "avatar"],
   "paleta_piso": [dict(id=v[0], nombre=v[1], color=v[2]) for v in PAL_PISO],
 }
 
@@ -228,6 +227,9 @@ def completar_meta(meta, rack_xs, rack_ys, n):
         {"id": "pared_izq_1", "tipo": "pared", "x": [0.0, 0.3], "y": [0.0, 1.1], "nota": "a un lado del escritorio, antes del monitor"},
         {"id": "pared_izq_2", "tipo": "pared", "x": [0.0, 0.3], "y": [3.5, 4.3], "nota": "al otro lado del escritorio, entre el monitor y la puerta"},
     ] + [zone for zone in grid["zonas_catalogo_extra"] if zone["tipo"] != "pared"]
+
+    # La placa está en la pared, atrás de los racks: se dibuja antes que ellos.
+    meta["orden_capas"] = ["piso", "pared_izq", "pared_der", "puerta", "vidrio", "firewall", "racks", "decoracion (y-sort)", "mesa", "avatar"]
 
     # Los (dx, dy) de los racks deben caer exactos en múltiplos de 8 (RACK_XS/RACK_YS están alineados).
     for key, value in meta["reutilizados_del_garage"].items():

@@ -4,7 +4,7 @@ extends RoomBase
 ## su offset de capas_offsets (data/rooms/data_center.json):
 ## - el vidrio: partición solo decorativa entre el escritorio y el bay (no bloquea ni habilita nada);
 ## - la placa del Firewall en la pared: apagada hasta que se compra y se enciende la mejora.
-## El bay de 9 racks va en RackBay, encima del vidrio (orden_capas del JSON).
+## El bay de 9 racks va en RackBay, encima del vidrio y de la placa (orden_capas del JSON).
 
 @export var glass_texture: Texture2D
 @export var firewall_off_texture: Texture2D
