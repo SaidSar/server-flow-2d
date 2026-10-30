@@ -74,7 +74,7 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
   - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
   - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
 - **En revisión (`feature/data-center`):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos sorteados por oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`.
-- **Pendiente:** catálogo de referencias personales del data center, balance fino de etapas 2 y 3 (incluido el DDoS), pasar a `build_data_center.py` lo que se completó a mano en `data_center.json`, audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
+- **Pendiente:** catálogo de referencias personales del data center, balance fino de etapas 2 y 3 (incluido el DDoS), audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
 
 ## 9. Cómo trabajar
 1. `git checkout develop && git pull` → crea `feature/<tu-tarea>`.

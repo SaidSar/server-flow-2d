@@ -5,7 +5,9 @@ garage/oficina (se reutilizan con (dx,dy)). Nuevo: bay de 9 racks (reutiliza el 
 garage x9, solo cambia la posición), partición de vidrio (decorativa) y placa de Firewall (2 estados).
 Renderiza a 2x: piso (3 variantes), pared_izq (10), pared_der (10), vidrio (1), firewall (2 estados),
 y escribe data_center_meta.json con proyección, cuadrícula, reutilizados_del_garage (desk/door/avatar +
-9 racks) y zonas reservadas para el catálogo extra del equipo.
+9 racks) y zonas reservadas para el catálogo extra del equipo. completar_meta() agrega lo que usa el
+juego: lado de servidores ocupado, tramos prohibidos de pared, ysort_m, fijos.racks (rack_id → servidor)
+y los (dx, dy) de los racks redondeados a múltiplos de 8.
 Uso: python3 build_data_center.py <salida> <menu.png>
 """
 import sys, math, json, os
@@ -203,6 +205,64 @@ meta = {
   "orden_capas": ["piso", "pared_izq", "pared_der", "puerta", "vidrio", "racks", "firewall", "decoracion (y-sort)", "mesa", "avatar"],
   "paleta_piso": [dict(id=v[0], nombre=v[1], color=v[2]) for v in PAL_PISO],
 }
+
+
+def completar_meta(meta, rack_xs, rack_ys, n):
+    """Lo que el juego necesita además de la geometría (antes se completaba a mano en el JSON).
+    No usa bpy: tests/ no lo corre, pero se puede revisar aparte con los deltas del JSON."""
+    grid = meta["cuadricula"]
+    # Todo el lado de los servidores (detrás del vidrio) no es decorable.
+    grid["ocupado_m"].append({"id": "lado_servidores", "x": [5.3, float(n)], "y": [0.0, float(n)]})
+    grid["nota"] = (
+        "zonas ocupadas en metros (no se puede colocar decoración ahí). lado_servidores cubre todo el sector "
+        "del bay detrás del vidrio (x >= 5.3): la planta decorable es 5.3 x 12 m. zonas_catalogo_extra reservadas "
+        "para las referencias personales del equipo; sin objetos todavía."
+    )
+
+    # Racks: (dx, dy) a múltiplos de 8 (a 1.1 m de separación salen con decimales y se ven borrosos).
+    reuse = meta["reutilizados_del_garage"]
+    originals = {}
+    for key, value in reuse.items():
+        if key.startswith("rack_"):
+            originals[key.split(" ")[0]] = value
+            reuse[key] = [float(round(v / 8.0) * 8) for v in value]
+    reuse["nota_racks"] = (
+        "Los (dx, dy) de los racks se redondearon a múltiplos de 8 (máx. 4 px en el lienzo 2x); "
+        "build_data_center.py los da con decimales porque los racks están a 1.1 m. Originales: "
+        + ", ".join("%s %s" % (k, v) for k, v in originals.items())
+    )
+
+    # Centro de la huella para el y-sort (ancla del rack + (0.3, 0.45), igual que en la oficina).
+    ysort = {"nota": "Centro de la huella (metros) de la mesa con el avatar y de cada rack.", "mesa": [1.0, 2.3]}
+    racks = []
+    index = 1
+    for ry in rack_ys:
+        for rx in rack_xs:
+            rack_id = "rack_%d" % index
+            ysort[rack_id] = [round(rx + 0.3, 2), round(ry + 0.45, 2)]
+            racks.append({"rack_id": rack_id, "servidor": index})
+            index += 1
+    meta["ysort_m"] = ysort
+
+    meta["fijos"]["racks"] = {
+        "nota": "Bay fijo de 9 racks (no es decoración). 'servidor' es el número de servidor web (1 = el primero) "
+        "cuyo estado muestra el rack: se pone rojo cuando ese servidor se satura. Sin ese servidor, el rack se ve normal.",
+        "lista": racks,
+    }
+
+    meta["tramos_prohibidos_pared"] = {
+        "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura "
+        "(metros). der = pared y=12 (eje x), izq = pared x=0 (eje y). Los muros miden 3.2 m.",
+        "der": [{"id": "lado_servidores", "tramo": [5.3, float(n)], "z": [0.0, 3.2]}],
+        "izq": [
+            {"id": "monitor", "tramo": [1.1, 3.5], "z": [0.75, 1.6]},
+            {"id": "puerta", "tramo": [4.3, 5.5], "z": [0.0, 2.15]},
+        ],
+    }
+    return meta
+
+
+completar_meta(meta, RACK_XS, RACK_YS, N)
 json.dump(meta, open(f"{OUTDIR}/data_center_meta.json", "w"), ensure_ascii=False, indent=1)
 for o in ALL: o.visible_camera = True
 bpy.ops.wm.save_as_mainfile(filepath=f"{OUTDIR}/data_center.blend")
