@@ -42,7 +42,7 @@
 
 ## 3. Personajes
 - **Avatar del jugador:** se elige al iniciar ("Elige tu personaje", paso 1 de 3) entre **Alex** (sudadera azul) y **Alexa** (sudadera rosa, coleta alta). Luego el jugador escribe el nombre del avatar (paso 2) y el de la empresa (paso 3). Los textos se adaptan al género del avatar (bienvenido/bienvenida).
-- **Briseida:** CEO de la empresa (antes se llamaba Valeria; ya no se usa ese nombre). Anuncia metas, eventos y rondas de inversión.
+- **Briseida:** CEO de la empresa (antes se llamaba Valeria; ya no se usa ese nombre). Anuncia metas, eventos y rondas de inversión. **Retrato:** `assets/art/characters/briseida/briseida_retrato.png` (ruta en `Paths.CEO_PORTRAIT`), ilustración 2D (no viene de Blender) de 512×512 con fondo transparente, recortada en círculo sobre su color (`DashboardColors.CEO`) en el `DialogBox`. Todo diálogo de Briseida debe pasar ese retrato a `show_dialog`.
 - **BYTE:** asistente de monitoreo/tutorial: da pistas y avisa cuando un recurso pasa de 85 %.
 - **Phantom:** grupo de atacantes sin rostro (DDoS de la etapa 3).
 
@@ -62,6 +62,7 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
 - **Proyección mundo→píxel** en el JSON de cada cuarto: `pixel = origen + x·ex + y·ey + z·ez` (lienzo 2x). La cámara mira desde +x/−y, así que el `y_sort` de Godot ordena bien usando el centro de la huella en el piso.
 - **Personalización:** paredes (10 colores, cada pared por separado), puerta (6), mesa (3); el **piso es propio de cada cuarto** (garage: 3 concretos; oficina: laminado claro, laminado nogal, alfombra gris). Paleta en `data/customization/`.
 - **Oficina y data center:** reutilizan los sprites del garage para puerta, mesa, racks y avatar sumando un desplazamiento `(dx, dy)` definido en su JSON. Cada hueco `rack_N` de `reutilizados_del_garage` es un rack (2 en la oficina, 9 en el data center). El data center agrega capas fijas propias (vidrio y placa de Firewall) con su offset en `capas_offsets`.
+- **Excepción:** los retratos de diálogo (por ahora el de Briseida) son ilustraciones 2D, no renders de Blender. Van cuadrados, con fondo transparente real (sin tablero falso) y el personaje centrado para que el círculo no corte el cabello.
 - Estilo: colores planos, sombreado suave, sin contorno (el contorno está "en veremos"). Paleta de interfaz oscura tipo panel de monitoreo (#0b111c, acento #5aa9ff, verde #3ddc84, amarillo #f5c542, rojo #ff4d5e), con una variante **clara**. Los colores de los paneles son **tokens** con un valor por tema (`scripts/autoload/ui_theme.gd`): las escenas los declaran en `metadata/ui_tokens` y los scripts los leen de `DashboardColors`, así que cambiar de tema es un solo cambio. El tema se guarda en `settings.cfg`. El arte del cuarto y el texto que flota sobre él no cambian con el tema.
 
 ## 7. Tienda y decoración (desde la etapa 2)
@@ -85,7 +86,8 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
   - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
   - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
 - **v0.5.0 (en `main`, tag `v0.5.0`; PR #13 y #14):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
-- **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
+- **En revisión:** retrato de Briseida en sus diálogos (PNG transparente recortado en círculo; la prueba de humo lo verifica).
+- **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retrato de BYTE en diálogos.
 
 ## 9. Cómo trabajar
 1. `git checkout develop && git pull` → crea `feature/<tu-tarea>`.

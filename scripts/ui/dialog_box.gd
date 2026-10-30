@@ -1,8 +1,9 @@
 class_name DialogBox
 extends Control
 ## Diálogo reutilizable: retrato, hablante, texto y un botón.
-## Sin arte, el retrato es un círculo de color con las iniciales del hablante.
-## Uso: dialog.show_dialog("Briseida", "CEO", texto, "¡Vamos!", color); await dialog.closed
+## Sin arte, el retrato es un círculo de color con las iniciales del hablante; con arte, la imagen
+## (PNG cuadrado con fondo transparente) se dibuja sobre el círculo, recortada a él.
+## Uso: dialog.show_dialog("Briseida", "CEO", texto, "¡Vamos!", color, retrato); await dialog.closed
 
 signal closed
 

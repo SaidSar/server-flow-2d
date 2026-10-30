@@ -42,7 +42,7 @@ El monitor de la PC es donde se juega:
 - **Consola de administración:** una mejora por cada `UpgradeData`. Se resalta en rojo la que arregla el cuello de botella actual.
 - **Oleadas:** son 5 por etapa. Entre oleadas aparece el post-mortem con la causa principal y su explicación educativa.
 - **Fin de etapa:** siempre se juegan las 5 oleadas y la etapa se decide al terminar la quinta.
-  - **Victoria:** se alcanzó la meta de usuarios. Muestra estrellas y Briseida (CEO) anuncia la ronda de inversión.
+  - **Victoria:** se alcanzó la meta de usuarios. Muestra estrellas y Briseida (CEO), con su retrato, anuncia la ronda de inversión.
   - **Meta no alcanzada:** no es quiebra; "Repetir etapa" vuelve a la oleada 1 con los ahorros con que empezó la etapa.
 - **Quiebra (game over):** solo si el SLA llega a 0. Se puede reintentar la oleada.
 - **Ficha de cada mejora:** se abre al mantenerla presionada (0.4 s) o con su botón "i". En PC también aparece como tooltip. Muestra el efecto, el nivel, el costo y qué concepto enseña.

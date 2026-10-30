@@ -2,6 +2,21 @@
 
 [ext_resource type="Script" path="res://scripts/ui/dialog_box.gd" id="1_dialog"]
 
+[sub_resource type="Shader" id="Shader_circle"]
+code = "shader_type canvas_item;
+// Recorta el retrato al círculo de fondo (borde suavizado). El retrato debe ser cuadrado.
+void fragment() {
+	vec4 color = texture(TEXTURE, UV) * COLOR;
+	float dist = length(UV - vec2(0.5));
+	float edge = fwidth(dist);
+	color.a *= 1.0 - smoothstep(0.5 - edge, 0.5, dist);
+	COLOR = color;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_circle"]
+shader = SubResource("Shader_circle")
+
 [node name="DialogBox" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -74,6 +89,7 @@ metadata/ui_tokens = {"font_color": "text_on_accent"}
 [node name="PortraitTexture" type="TextureRect" parent="Window/Row/Portrait"]
 unique_name_in_owner = true
 visible = false
+material = SubResource("ShaderMaterial_circle")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
