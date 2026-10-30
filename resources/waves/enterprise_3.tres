@@ -7,5 +7,4 @@ script = ExtResource("1_wave")
 duration_s = 110.0
 ramp = Vector2(1.0, 1.3)
 spikes = Array[Vector3]([Vector3(20, 10, 0.6)])
-ddos = Array[Vector3]([Vector3(35, 15, 1.5), Vector3(65, 15, 1.5)])
 tutorial_text = ""

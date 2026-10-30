@@ -187,12 +187,13 @@ func _test_load_balancer() -> void:
 		_check(absf(ratio - 0.5) < 0.05, "cada servidor recibe ~50 %% de la carga (recibió %.0f %%)" % (ratio * 100.0))
 
 
-## 5. El firewall deja pasar el 15 % del tráfico malicioso y suma latencia.
+## 5. El firewall deja pasar lo que no filtra (100 % − firewall_filter_pct de la etapa) y suma latencia.
 func _test_firewall() -> void:
 	var off := _ddos_sample(false)
 	var on := _ddos_sample(true)
+	var passes := 1.0 - (_sim.call("load_stage", &"enterprise") as StageData).firewall_filter_pct / 100.0
 	_check(off.x > 0.0, "la oleada de prueba tiene DDoS")
-	_check(absf(on.x / off.x - 0.15) < 0.01, "con firewall llega el 15 %% del tráfico malicioso (llegó %.1f %%)" % (on.x / off.x * 100.0))
+	_check(absf(on.x / off.x - passes) < 0.01, "con firewall llega el %.0f %% del tráfico malicioso (llegó %.1f %%)" % [passes * 100.0, on.x / off.x * 100.0])
 	_check(absf(on.y - off.y - 15.0) < 1.0, "el firewall suma ~15 ms de latencia (sumó %.1f ms)" % (on.y - off.y))
 
 
@@ -322,7 +323,8 @@ func _load_after_one_step(levels: Dictionary) -> float:
 	return (servers[0] as ServerState).load_rps
 
 
-## Corre la oleada 1 de Enterprise hasta la mitad del DDoS. Devuelve (malicioso que llega al servidor, latencia).
+## Corre la oleada 1 de Enterprise hasta la cima del primer pico de DDoS.
+## Devuelve (malicioso que llega al servidor, latencia).
 func _ddos_sample(firewall_on: bool) -> Vector2:
 	_sim.call("set_seed", SEED)
 	_sim.call("load_checkpoint", {"stage": "enterprise", "wave": 1, "upgrade_levels": {"firewall": 1}, "firewall_on": firewall_on})
@@ -330,8 +332,7 @@ func _ddos_sample(firewall_on: bool) -> Vector2:
 	_set_huge_server_capacity()
 	var db: DbState = _sim.get("db")
 	db.iops = 1e6
-	var wave: WaveData = _sim.get("wave")
-	var attack := wave.ddos[0]
+	var attack: Vector3 = (_sim.get("ddos_spikes") as Array)[0]
 	_sim.call("run_for", attack.x + attack.y * 0.5)
 	var web: ServerState = (_sim.get("servers") as Array)[0]
 	var snapshot: SimSnapshot = _sim.get("last_snapshot")

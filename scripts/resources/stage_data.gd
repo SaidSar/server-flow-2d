@@ -34,6 +34,21 @@ extends Resource
 @export var waves: Array[WaveData] = []
 ## Ids de las mejoras que se desbloquean al llegar a esta etapa.
 @export var unlocks: Array[StringName] = []
+## Costo base de las mejoras que desbloquea esta etapa (id → monedas). Si no aparece, se usa el
+## base_cost de su .tres.
+@export var upgrade_costs: Dictionary[StringName, int] = {}
+
+@export_group("DDoS")
+## Tráfico malicioso de fondo, constante en toda la oleada (múltiplos de base_rps). 0 = sin DDoS.
+@export var ddos_background_rate := 0.0
+## Picos de ataque por oleada: se sortean entre 1 y este número. 0 = sin picos.
+@export_range(0, 5) var ddos_spike_count := 0
+## Duración de cada pico (sube y baja en una curva suave).
+@export var ddos_spike_duration_s := 0.0
+## Tráfico malicioso extra en la cima del pico (múltiplos de base_rps).
+@export var ddos_spike_intensity := 0.0
+## Porcentaje del tráfico malicioso (fondo y picos) que descarta el Firewall encendido.
+@export_range(0.0, 100.0, 0.5, "suffix:%") var firewall_filter_pct := 0.0
 
 
 func get_wave(wave_number: int) -> WaveData:
@@ -44,3 +59,9 @@ func get_wave(wave_number: int) -> WaveData:
 
 func get_wave_count() -> int:
 	return waves.size()
+
+
+## true si en esta etapa hay ataques (solo Enterprise los define).
+func has_ddos() -> bool:
+	return ddos_background_rate > 0.0 or (ddos_spike_count > 0 and ddos_spike_intensity > 0.0 and ddos_spike_duration_s > 0.0)
+

@@ -7,5 +7,4 @@ script = ExtResource("1_wave")
 duration_s = 80.0
 ramp = Vector2(0.5, 0.8)
 spikes = Array[Vector3]([Vector3(40, 15, 0.5)])
-ddos = Array[Vector3]([])
 tutorial_text = "La base de datos recibe muchas lecturas repetidas. La caché las responde sin tocar el disco."

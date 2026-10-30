@@ -148,6 +148,15 @@ func get_packet_count() -> int:
 	return _packet_count
 
 
+## Paquetes en pantalla de un color (p. ej. DashboardColors.MALICIOUS, los morados del DDoS).
+func get_packet_count_by_color(color: Color) -> int:
+	var count := 0
+	for i in _packet_count:
+		if _packet_color[i] == color:
+			count += 1
+	return count
+
+
 func _add_node(title: String, width: float = 0.0) -> TrafficNode:
 	var node := TRAFFIC_NODE_SCENE.instantiate() as TrafficNode
 	if width > 0.0:
