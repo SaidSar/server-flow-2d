@@ -5,9 +5,9 @@ garage/oficina (se reutilizan con (dx,dy)). Nuevo: bay de 9 racks (reutiliza el 
 garage x9, solo cambia la posición), partición de vidrio (decorativa) y placa de Firewall (2 estados).
 Renderiza a 2x: piso (3 variantes), pared_izq (10), pared_der (10), vidrio (1), firewall (2 estados),
 y escribe data_center_meta.json con proyección, cuadrícula, reutilizados_del_garage (desk/door/avatar +
-9 racks) y zonas reservadas para el catálogo extra del equipo. completar_meta() agrega lo que usa el
-juego: lado de servidores ocupado, tramos prohibidos de pared, ysort_m, fijos.racks (rack_id → servidor)
-y los (dx, dy) de los racks redondeados a múltiplos de 8.
+9 racks) y zonas reservadas para el catálogo extra del equipo.
+completar_meta() agrega lo que usa el juego: lado de servidores ocupado, tramos prohibidos de pared,
+ysort_m y fijos.racks (rack_id → servidor).
 Uso: python3 build_data_center.py <salida> <menu.png>
 """
 import sys, math, json, os
@@ -23,7 +23,10 @@ N = 12
 P3 = dict(piso_dc="#394153", junta_dc="#2b3243", vidrio="#9fd3f2", fw_off="#2a3242", fw_on="#5aa9ff")
 M["piso_dc"] = mat("piso_dc", P3["piso_dc"], 0.55)
 M["junta_dc"] = mat("junta_dc", P3["junta_dc"], 0.6)
-M["vidrio_dc"] = mat("vidrio_dc", P3["vidrio"], 0.1, 0.9)
+M["vidrio_dc"] = mat("vidrio_dc", "#8cb8cc", 0.08, 0.0)
+_vb = M["vidrio_dc"].node_tree.nodes["Principled BSDF"]
+if "Alpha" in _vb.inputs: _vb.inputs["Alpha"].default_value = 0.22
+M["vidrio_dc"].blend_method = "BLEND"
 M["fw_panel"] = mat("fw_panel", "#1f2c3f", 0.5)
 M["fw_led"] = mat("fw_led_e", P3["fw_off"], 0.4, 0.0)
 
@@ -67,7 +70,9 @@ vidrio = build_vidrio()
 firewall = build_firewall()
 
 # 9 racks (solo para encuadre/sombra; el sprite real se reutiliza del garage)
-RACK_XS = [7.0, 8.1, 9.2]; RACK_YS = [7.0, 9.0, 11.0]
+# posiciones alineadas a múltiplos de 0.125 m respecto a RACK_REF (0.9, 5.15) para que el
+# delta de cada rack caiga EXACTO en múltiplos de 8 px (sin redondeo, 0 px de desvío).
+RACK_XS = [7.025, 8.15, 9.275]; RACK_YS = [7.025, 9.025, 11.025]
 racks = []
 ri = 1
 for ry in RACK_YS:
@@ -219,18 +224,10 @@ def completar_meta(meta, rack_xs, rack_ys, n):
         "para las referencias personales del equipo; sin objetos todavía."
     )
 
-    # Racks: (dx, dy) a múltiplos de 8 (a 1.1 m de separación salen con decimales y se ven borrosos).
-    reuse = meta["reutilizados_del_garage"]
-    originals = {}
-    for key, value in reuse.items():
-        if key.startswith("rack_"):
-            originals[key.split(" ")[0]] = value
-            reuse[key] = [float(round(v / 8.0) * 8) for v in value]
-    reuse["nota_racks"] = (
-        "Los (dx, dy) de los racks se redondearon a múltiplos de 8 (máx. 4 px en el lienzo 2x); "
-        "build_data_center.py los da con decimales porque los racks están a 1.1 m. Originales: "
-        + ", ".join("%s %s" % (k, v) for k, v in originals.items())
-    )
+    # Los (dx, dy) de los racks deben caer exactos en múltiplos de 8 (RACK_XS/RACK_YS están alineados).
+    for key, value in meta["reutilizados_del_garage"].items():
+        if key.startswith("rack_") and any(v % 8.0 != 0.0 for v in value):
+            raise ValueError("%s no cae en múltiplos de 8: %s" % (key, value))
 
     # Centro de la huella para el y-sort (ancla del rack + (0.3, 0.45), igual que en la oficina).
     ysort = {"nota": "Centro de la huella (metros) de la mesa con el avatar y de cada rack.", "mesa": [1.0, 2.3]}
@@ -239,7 +236,7 @@ def completar_meta(meta, rack_xs, rack_ys, n):
     for ry in rack_ys:
         for rx in rack_xs:
             rack_id = "rack_%d" % index
-            ysort[rack_id] = [round(rx + 0.3, 2), round(ry + 0.45, 2)]
+            ysort[rack_id] = [round(rx + 0.3, 3), round(ry + 0.45, 3)]
             racks.append({"rack_id": rack_id, "servidor": index})
             index += 1
     meta["ysort_m"] = ysort

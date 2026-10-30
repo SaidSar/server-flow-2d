@@ -153,42 +153,41 @@
    392.0
   ],
   "rack_1 (fijos/rack_ok|rack_saturado)": [
-   1024.0,
+   1032.0,
    664.0
   ],
   "rack_2 (fijos/rack_ok|rack_saturado)": [
-   1168.0,
+   1176.0,
    736.0
   ],
   "rack_3 (fijos/rack_ok|rack_saturado)": [
-   1304.0,
+   1320.0,
    808.0
   ],
   "rack_4 (fijos/rack_ok|rack_saturado)": [
-   1280.0,
+   1288.0,
    536.0
   ],
   "rack_5 (fijos/rack_ok|rack_saturado)": [
-   1424.0,
+   1432.0,
    608.0
   ],
   "rack_6 (fijos/rack_ok|rack_saturado)": [
-   1560.0,
+   1576.0,
    680.0
   ],
   "rack_7 (fijos/rack_ok|rack_saturado)": [
-   1536.0,
+   1544.0,
    408.0
   ],
   "rack_8 (fijos/rack_ok|rack_saturado)": [
-   1680.0,
+   1688.0,
    480.0
   ],
   "rack_9 (fijos/rack_ok|rack_saturado)": [
-   1816.0,
+   1832.0,
    552.0
-  ],
-  "nota_racks": "Los (dx, dy) de los racks se redondearon a múltiplos de 8 (máx. 4 px en el lienzo 2x); build_data_center.py los da con decimales porque los racks están a 1.1 m. Originales: rack_1 [1025.6, 664.0], rack_2 [1166.4, 734.4], rack_3 [1307.2, 804.8], rack_4 [1281.6, 536.0], rack_5 [1422.4, 606.4], rack_6 [1563.2, 676.8], rack_7 [1537.6, 408.0], rack_8 [1678.4, 478.4], rack_9 [1819.2, 548.8]"
+  ]
  },
  "fijos": {
   "nota": "Objetos propios del data center, no se reutilizan de otro cuarto; van siempre en esta posición.",
@@ -448,40 +447,40 @@
    2.3
   ],
   "rack_1": [
-   7.3,
-   7.45
+   7.325,
+   7.475
   ],
   "rack_2": [
-   8.4,
-   7.45
+   8.45,
+   7.475
   ],
   "rack_3": [
-   9.5,
-   7.45
+   9.575,
+   7.475
   ],
   "rack_4": [
-   7.3,
-   9.45
+   7.325,
+   9.475
   ],
   "rack_5": [
-   8.4,
-   9.45
+   8.45,
+   9.475
   ],
   "rack_6": [
-   9.5,
-   9.45
+   9.575,
+   9.475
   ],
   "rack_7": [
-   7.3,
-   11.45
+   7.325,
+   11.475
   ],
   "rack_8": [
-   8.4,
-   11.45
+   8.45,
+   11.475
   ],
   "rack_9": [
-   9.5,
-   11.45
+   9.575,
+   11.475
   ]
  },
  "tramos_prohibidos_pared": {
