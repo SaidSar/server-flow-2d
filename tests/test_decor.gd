@@ -74,6 +74,19 @@ func _test_room_sizes() -> void:
 	var zones: Array = raw["cuadricula"]["zonas_catalogo_extra"]
 	var kinds := zones.map(func(zone: Dictionary) -> String: return str(zone["tipo"]))
 	_check(zones.size() == 3 and kinds.count("pared") == 2 and kinds.count("piso") == 1, "3 zonas reservadas del catálogo extra (2 de pared y 1 de piso)")
+	# Las de pared van a los lados del escritorio, sin tramos en común con el monitor ni con la puerta.
+	var desk: Dictionary = raw["cuadricula"]["ocupado_m"][0]
+	var side_of_desk := {"antes": false, "despues": false}
+	for zone: Dictionary in zones:
+		if zone["tipo"] != "pared":
+			continue
+		var start := float(zone["y"][0])
+		var end := float(zone["y"][1])
+		side_of_desk["antes"] = side_of_desk["antes"] or (start < float(desk["y"][0]) and end <= 1.1)
+		side_of_desk["despues"] = side_of_desk["despues"] or (start >= 3.5 and end <= 4.3)
+		for forbidden: Rect2 in data_center.wall_forbidden[RoomProjection.WALL_LEFT]:
+			_check(end <= forbidden.position.x or start >= forbidden.end.x, "zona %s sin encimarse con un tramo prohibido del muro izquierdo" % zone["id"])
+	_check(side_of_desk["antes"] and side_of_desk["despues"], "hay una zona de pared a cada lado del escritorio")
 
 
 func _test_projection() -> void:

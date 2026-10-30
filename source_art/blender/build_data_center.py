@@ -196,8 +196,6 @@ meta = {
                                {"id": "vidrio", "x": [5.3, 5.5], "y": [0.0, N]},
                                {"id": "bay_racks", "x": [6.8, 10.0], "y": [6.8, 12.0]}],
                  "zonas_catalogo_extra": [
-                     {"id": "pared_izq_1", "tipo": "pared", "x": [0.0, 0.3], "y": [6.0, 8.0], "nota": "pared izquierda, lejos de la puerta y del escritorio"},
-                     {"id": "pared_izq_2", "tipo": "pared", "x": [0.0, 0.3], "y": [8.6, 10.6], "nota": "pared izquierda"},
                      {"id": "piso_1", "tipo": "piso", "x": [2.3, 3.9], "y": [4.3, 5.9], "nota": "piso/tapete frente al escritorio"}
                  ],
                  "nota": "zonas ocupadas en metros (no se puede colocar decoración ahí). zonas_catalogo_extra reservadas para las referencias personales del equipo; sin objetos todavía."},
@@ -223,6 +221,13 @@ def completar_meta(meta, rack_xs, rack_ys, n):
         "del bay detrás del vidrio (x >= 5.3): la planta decorable es 5.3 x 12 m. zonas_catalogo_extra reservadas "
         "para las referencias personales del equipo; sin objetos todavía."
     )
+
+    # Zonas de pared del catálogo extra: a los lados del escritorio (boceto aprobado), en los huecos
+    # del muro izquierdo entre el borde, el monitor (y 1.1–3.5) y la puerta (y 4.3–5.5).
+    grid["zonas_catalogo_extra"] = [
+        {"id": "pared_izq_1", "tipo": "pared", "x": [0.0, 0.3], "y": [0.0, 1.1], "nota": "a un lado del escritorio, antes del monitor"},
+        {"id": "pared_izq_2", "tipo": "pared", "x": [0.0, 0.3], "y": [3.5, 4.3], "nota": "al otro lado del escritorio, entre el monitor y la puerta"},
+    ] + [zone for zone in grid["zonas_catalogo_extra"] if zone["tipo"] != "pared"]
 
     # Los (dx, dy) de los racks deben caer exactos en múltiplos de 8 (RACK_XS/RACK_YS están alineados).
     for key, value in meta["reutilizados_del_garage"].items():

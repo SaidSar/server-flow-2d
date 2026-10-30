@@ -100,10 +100,10 @@
      0.3
     ],
     "y": [
-     6.0,
-     8.0
+     0.0,
+     1.1
     ],
-    "nota": "pared izquierda, lejos de la puerta y del escritorio"
+    "nota": "a un lado del escritorio, antes del monitor"
    },
    {
     "id": "pared_izq_2",
@@ -113,10 +113,10 @@
      0.3
     ],
     "y": [
-     8.6,
-     10.6
+     3.5,
+     4.3
     ],
-    "nota": "pared izquierda"
+    "nota": "al otro lado del escritorio, entre el monitor y la puerta"
    },
    {
     "id": "piso_1",
