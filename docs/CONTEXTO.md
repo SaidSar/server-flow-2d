@@ -84,7 +84,7 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
   - tienda y decoración con colocación libre, muros con zonas prohibidas con altura y letrero de neón con el nombre de la empresa (PR #11);
   - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
   - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
-- **En `develop`, sin publicar en `main` (PR #13):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
+- **v0.5.0 (en `develop`, por llegar a `main`; PR #13):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
 - **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
 
 ## 9. Cómo trabajar
