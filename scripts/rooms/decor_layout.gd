@@ -2,7 +2,8 @@ class_name DecorLayout
 extends RefCounted
 ## Reglas de colocación de la decoración en un cuarto (en metros, cuadrícula de 0.5 m).
 ## - Piso: dentro del cuarto, fuera de las zonas ocupadas y sin encimarse con otros objetos de piso.
-## - Tapete: capa inferior; otros objetos pueden ir encima, pero no otro tapete.
+## - Tapete: capa inferior; otros objetos pueden ir encima, pero no otro tapete. También respeta las
+##   zonas ocupadas (vidrio, racks, escritorio, puerta).
 ## - Pared: pegado a un muro ("der": y = fondo − grosor, se mueve en x; "izq": x = 0, se mueve en y).
 ##   En el plano del muro ocupa (tramo a lo largo del muro) × (altura_m): choca con una zona prohibida
 ##   o con otro objeto del mismo muro solo si se enciman en las dos (un neón puede ir sobre el monitor).
@@ -74,10 +75,9 @@ func can_place(decor: DecorData, orientation_id: StringName, position: Vector2, 
 	if not bounds.encloses(rect):
 		return false
 	var inner := rect.grow(-EPSILON)
-	if decor.kind == DecorData.KIND_FLOOR:
-		for zone: Rect2 in room.projection.occupied:
-			if inner.intersects(zone):
-				return false
+	for zone: Rect2 in room.projection.occupied:
+		if inner.intersects(zone):
+			return false
 	for i in placed.size():
 		if i == ignore_index:
 			continue

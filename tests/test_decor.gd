@@ -76,6 +76,16 @@ func _test_room_sizes() -> void:
 	_check(not in_data_center.can_place(picture, &"izq", Vector2(0.0, 4.5)), "data center: no sobre la puerta")
 	_check(in_data_center.can_place(picture, &"izq", Vector2(0.0, 9.0)), "data center: el muro izquierdo es más largo que en la oficina")
 
+	# El tapete respeta las mismas zonas que los demás objetos de piso.
+	var rug := DecorData.find(&"tapete")
+	_check(not in_data_center.can_place(rug, &"a", Vector2(4.5, 2.0)), "data center: el tapete no atraviesa el vidrio")
+	_check(not in_data_center.can_place(rug, &"a", Vector2(7.5, 8.0)), "data center: el tapete no va sobre los racks")
+	_check(not in_data_center.can_place(rug, &"a", Vector2(0.5, 1.5)), "data center: el tapete no va bajo el escritorio")
+	_check(not in_data_center.can_place(rug, &"a", Vector2(0.0, 4.5)), "data center: el tapete no va frente a la puerta")
+	_check(in_data_center.can_place(rug, &"a", Vector2(2.5, 6.0)), "data center: el tapete cabe del lado del escritorio")
+	_check(in_data_center.can_place(rug, &"a", Vector2(6.0, 2.0)), "data center: el tapete cabe en el pasillo")
+	_check(not in_office.can_place(rug, &"a", Vector2(0.5, 1.5)), "oficina: el tapete no va bajo el escritorio")
+
 	# Zonas reservadas para el catálogo de referencias personales (todavía sin objetos).
 	var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.ROOM_DATA % "data_center"))
 	var zones: Array = raw["cuadricula"]["zonas_catalogo_extra"]
