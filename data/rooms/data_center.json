@@ -71,12 +71,12 @@
    {
     "id": "bay_racks",
     "x": [
-     7.025,
-     9.975
+     5.5,
+     12.0
     ],
     "y": [
-     7.025,
-     11.725
+     7.0,
+     12.0
     ]
    }
   ],
@@ -121,7 +121,7 @@
     "nota": "piso/tapete frente al escritorio"
    }
   ],
-  "nota": "zonas ocupadas en metros (no se puede colocar decoración ahí). bay_racks es el rectángulo justo de los 9 racks; el pasillo entre el vidrio y los racks sí se decora. zonas_catalogo_extra reservadas para las referencias personales del equipo; sin objetos todavía."
+  "nota": "zonas ocupadas en metros (no se puede colocar decoración ahí). bay_racks es todo el sector de los racks; delante de él (x 5.5-12, y 0-7) sí se decora. zonas_catalogo_extra reservadas para las referencias personales del equipo; sin objetos todavía."
  },
  "reutilizados_del_garage": {
   "nota": "Usar el MISMO sprite del garage y sumar (dx, dy) a su offset del garage (lienzo 2x).",

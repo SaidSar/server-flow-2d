@@ -46,7 +46,7 @@ func _run() -> void:
 
 
 ## Cada cuarto lee el tamaño de su cuadrícula de su JSON: la oficina mide 9×9 m y el data center
-## 12×12 m. En el data center el vidrio y la huella de los racks están ocupados, pero el pasillo no.
+## 12×12 m. En el data center el vidrio y el sector de los racks están ocupados; delante de ellos no.
 func _test_room_sizes() -> void:
 	var office := RoomData.load_room(&"oficina")
 	var data_center := RoomData.load_room(&"data_center")
@@ -60,10 +60,13 @@ func _test_room_sizes() -> void:
 	var in_data_center := DecorLayout.new(data_center)
 	_check(not in_office.can_place(sofa, &"a", Vector2(3.0, 10.0)), "y = 10 m queda fuera de la oficina")
 	_check(in_data_center.can_place(sofa, &"a", Vector2(3.0, 10.0)), "y = 10 m sí cabe en el data center")
-	_check(in_data_center.can_place(sofa, &"a", Vector2(7.0, 2.0)), "data center: el pasillo del bay se decora (lejos de los racks)")
-	_check(in_data_center.can_place(sofa, &"a", Vector2(5.5, 8.0)), "data center: el pasillo entre el vidrio y los racks se decora")
-	_check(in_data_center.can_place(sofa, &"a", Vector2(10.0, 8.0)), "data center: se decora del otro lado de los racks")
-	_check(not in_data_center.can_place(sofa, &"a", Vector2(6.0, 8.0)), "data center: no se encima con el primer rack")
+	# Zona azul del playtest: x 5.5–12, y 0–7. Zona roja: x 5.5–12, y 7–12.
+	_check(in_data_center.can_place(sofa, &"a", Vector2(7.0, 2.0)), "data center: se decora delante del sector de los racks")
+	_check(in_data_center.can_place(sofa, &"a", Vector2(5.5, 0.0)), "data center: esquina junto al vidrio")
+	_check(in_data_center.can_place(sofa, &"a", Vector2(10.5, 6.0)), "data center: esquina hasta el límite (x 12, y 7)")
+	_check(not in_data_center.can_place(sofa, &"a", Vector2(7.0, 6.5)), "data center: no se cruza el límite y = 7")
+	for corner: Vector2 in [Vector2(5.5, 8.0), Vector2(6.0, 10.5), Vector2(10.0, 8.0), Vector2(10.5, 11.0)]:
+		_check(not in_data_center.can_place(sofa, &"a", corner), "data center: sector de los racks bloqueado en %s" % corner)
 	for x: float in [7.025, 8.15, 9.275]:
 		for y: float in [7.025, 9.025, 11.025]:
 			_check(not in_data_center.can_place(DecorData.find(&"planta"), &"a", Vector2(x, y)), "data center: no sobre el rack en (%.3f, %.3f)" % [x, y])
@@ -116,7 +119,7 @@ func _test_data_center_layers(game_state: Node, simulation: Node) -> void:
 	await process_frame
 	var placer: Node = room.get_node("%DecorPlacer")
 	game_state.call("place_decor", &"data_center", {"id": "sillon", "ori": "a", "x": 3.0, "y": 8.0})
-	game_state.call("place_decor", &"data_center", {"id": "sillon", "ori": "a", "x": 5.5, "y": 8.0})
+	game_state.call("place_decor", &"data_center", {"id": "sillon", "ori": "a", "x": 5.5, "y": 2.0})
 	_check((placer.call("get_item_node", 0) as Node2D).get_parent() == room.get_node("%YSort"), "detrás del vidrio se dibuja en YSort")
 	_check((placer.call("get_item_node", 1) as Node2D).get_parent() == room.get_node("%RackBay"), "en el pasillo se dibuja en RackBay")
 	placer.call("start_placement", DecorData.find(&"planta"), 1)

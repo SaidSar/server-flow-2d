@@ -212,19 +212,15 @@ def completar_meta(meta, rack_xs, rack_ys, n):
     """Lo que el juego necesita además de la geometría (antes se completaba a mano en el JSON).
     No usa bpy: tests/ no lo corre, pero se puede revisar aparte con los deltas del JSON."""
     grid = meta["cuadricula"]
-    # El bay bloquea solo la huella de los racks (0.7 x 0.7 m desde su ancla, ver build_rack): el pasillo
-    # entre el vidrio y los racks sí se decora.
+    # Se bloquea todo el sector de los racks (de y = 7 hasta el muro). Delante de él, entre el vidrio y
+    # la pared abierta (x 5.5–12, y 0–7), sí se decora.
     rack_size = 0.7
     grid["ocupado_m"] = [zone for zone in grid["ocupado_m"] if zone["id"] != "bay_racks"]
-    grid["ocupado_m"].append({
-        "id": "bay_racks",
-        "x": [min(rack_xs), round(max(rack_xs) + rack_size, 3)],
-        "y": [min(rack_ys), round(max(rack_ys) + rack_size, 3)],
-    })
+    grid["ocupado_m"].append({"id": "bay_racks", "x": [5.5, float(n)], "y": [7.0, float(n)]})
     grid["nota"] = (
-        "zonas ocupadas en metros (no se puede colocar decoración ahí). bay_racks es el rectángulo justo de los "
-        "9 racks; el pasillo entre el vidrio y los racks sí se decora. zonas_catalogo_extra reservadas para las "
-        "referencias personales del equipo; sin objetos todavía."
+        "zonas ocupadas en metros (no se puede colocar decoración ahí). bay_racks es todo el sector de los racks; "
+        "delante de él (x 5.5-12, y 0-7) sí se decora. zonas_catalogo_extra reservadas para las referencias "
+        "personales del equipo; sin objetos todavía."
     )
 
     # Zonas de pared del catálogo extra: a los lados del escritorio (boceto aprobado), en los huecos
