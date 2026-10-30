@@ -85,6 +85,9 @@ func setup(room: RoomBase) -> void:
 	_toolbar.done_pressed.connect(deselect)
 	GameState.decor_changed.connect(_rebuild)
 	GameState.changed.connect(_rebuild)
+	# Al llegar al cuarto de una etapa nueva, también recupera partidas guardadas antes de este arreglo.
+	if _room_data.has_decor():
+		GameState.collect_decor_from_other_rooms(room_id)
 	_rebuild()
 
 

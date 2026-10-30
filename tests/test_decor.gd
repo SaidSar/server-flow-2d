@@ -33,6 +33,7 @@ func _run() -> void:
 	_test_shop_availability(game_state, simulation)
 	await _test_buy_place_cancel(game_state, simulation)
 	await _test_data_center_layers(game_state, simulation)
+	await _test_stage_change_keeps_decor(game_state, save_system, simulation)
 	_test_save_load(game_state, save_system, simulation)
 
 	save_system.call("delete_save")
@@ -126,6 +127,49 @@ func _test_data_center_layers(game_state: Node, simulation: Node) -> void:
 	placer.call("cancel_placement")
 	game_state.call("remove_placed_decor", &"data_center", 1)
 	game_state.call("remove_placed_decor", &"data_center", 0)
+	room.free()
+	await process_frame
+
+
+## Al pasar de la oficina al data center, lo colocado pasa al inventario (trofeo incluido), se puede
+## volver a colocar y sobrevive a guardar y cargar. No se duplica ni se puede reclamar otro trofeo.
+func _test_stage_change_keeps_decor(game_state: Node, save_system: Node, simulation: Node) -> void:
+	game_state.call("start_new_game", "Prueba", "TestCorp")
+	simulation.get("stage_stats")[&"scale_up"] = {"stars": 1}
+	game_state.call("add_to_inventory", &"planta")
+	game_state.call("place_decor", &"oficina", {"id": "sillon", "ori": "a", "x": 4.0, "y": 4.0})
+	game_state.call("place_decor", &"oficina", {"id": "trofeo", "ori": "a", "x": 6.0, "y": 6.0})
+	game_state.call("place_decor", &"oficina", {"id": "cuadro", "ori": "der", "x": 2.5, "y": 8.95})
+	simulation.call("load_checkpoint", {"stage": "enterprise", "wave": 1, "coins": 500, "stage_stats": {"scale_up": {"stars": 1}}})
+	var room := (load("res://scenes/rooms/data_center.tscn") as PackedScene).instantiate()
+	root.add_child(room)
+	await process_frame
+	_check((game_state.call("get_placed_decor", &"oficina") as Array).is_empty(), "al llegar al data center ya nada queda en la oficina")
+	for decor_id: StringName in [&"planta", &"sillon", &"trofeo", &"cuadro"]:
+		_check(game_state.call("count_in_inventory", decor_id) == 1, "%s está una sola vez en el inventario" % decor_id)
+	_check(not _shop.call("is_trophy_claimable"), "el trofeo no se reclama dos veces")
+
+	var placer: Node = room.get_node("%DecorPlacer")
+	placer.call("_on_place_requested", &"trofeo")
+	placer.call("move_ghost_to", Vector2(3.0, 8.0))
+	_check(placer.call("confirm_placement"), "el trofeo se vuelve a colocar en el data center")
+	_check(game_state.call("count_in_inventory", &"trofeo") == 0 and (game_state.call("get_placed_decor", &"data_center") as Array).size() == 1, "colocarlo lo saca del inventario")
+
+	_check(save_system.call("save_game"), "guardar después de cambiar de etapa")
+	_check(save_system.call("load_game"), "cargar después de cambiar de etapa")
+	_check(game_state.call("count_in_inventory", &"sillon") == 1 and game_state.call("count_in_inventory", &"cuadro") == 1, "el inventario sobrevive a guardar y cargar")
+	_check(game_state.call("count_owned", &"trofeo") == 1, "el trofeo sobrevive a guardar y cargar")
+	room.free()
+	await process_frame
+
+	# Una partida guardada con objetos atorados en la oficina los recupera al abrir el cuarto.
+	game_state.call("place_decor", &"oficina", {"id": "acuario", "ori": "a", "x": 6.5, "y": 2.0})
+	_check(save_system.call("save_game") and save_system.call("load_game"), "partida con objetos atorados en la oficina")
+	room = (load("res://scenes/rooms/data_center.tscn") as PackedScene).instantiate()
+	root.add_child(room)
+	await process_frame
+	_check(game_state.call("count_in_inventory", &"acuario") == 1, "abrir el cuarto recupera lo atorado de una partida vieja")
+	_check(game_state.call("count_owned", &"trofeo") == 1, "el trofeo colocado en este cuarto no se mueve")
 	room.free()
 	await process_frame
 
