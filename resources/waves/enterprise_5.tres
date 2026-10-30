@@ -7,4 +7,4 @@ script = ExtResource("1_wave")
 duration_s = 120.0
 ramp = Vector2(1.6, 2.0)
 spikes = Array[Vector3]([Vector3(30, 12, 1)])
-tutorial_text = "Último reto: un DDoS masivo. ¡Llega a 100,000 usuarios!"
+tutorial_text = "Último reto: un DDoS masivo. ¡Llega a 110,000 usuarios!"
