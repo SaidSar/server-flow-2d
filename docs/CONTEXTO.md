@@ -15,7 +15,7 @@
 |---|---|---|---|
 | 1 · Startup | Garage | 1,000 | Mejoras de RAM, CPU, red, disco y respaldo |
 | 2 · Scale-up | Oficina | 10,000 | 2.º servidor + Load Balancer, caché, **tienda de decoración** |
-| 3 · Enterprise | Data center | 100,000 | Firewall, ataques DDoS; catálogo ampliado con **referencias personales del equipo** |
+| 3 · Enterprise | Data center | 110,000 | Firewall, ataques DDoS; catálogo ampliado con **referencias personales del equipo** |
 
 - 5 oleadas por etapa. Siempre se juegan las 5; la etapa se decide al terminar la quinta.
 - **Quiebra (game over):** solo cuando el SLA llega a 0. **Meta no alcanzada:** termina la etapa con SLA > 0 pero sin la meta → "Repetir etapa" (vuelve a la oleada 1 con las monedas y mejoras del inicio de la etapa).

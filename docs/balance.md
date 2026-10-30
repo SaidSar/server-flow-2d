@@ -88,25 +88,25 @@ No se cambiaron en esta ronda: solo se comprobó que la estrategia buena las sig
 
 | | Scale-up | Enterprise |
 |---|---|---|
-| Meta | 10,000 | 100,000 |
+| Meta | 10,000 | 110,000 |
 | `base_rps` | 24 (2,400 req/s en pantalla) | 180 (18,000 req/s en pantalla) |
 | Monedas por petición | 1.0 | 0.5 |
 | Ronda de inversión al llegar | 1,500 | 5,000 |
 | Desbloquea | Optimizar caché, + Servidor web | Firewall |
-| Resultado de la estrategia buena | Gana con 10,718 usuarios | Gana con 124,629 usuarios (124.6 % de la meta; 84 % al terminar la oleada 4) |
+| Resultado de la estrategia buena | Gana con 10,718 usuarios | Gana con 124,629 usuarios (113.3 % de la meta; 76.7 % al terminar la oleada 4) |
 
 En Enterprise (`enterprise.tres`): fondo de 0.1× `base_rps`, picos de 20 s con cima de 1.5× `base_rps` (1, 1, 2, 3 y 3 por oleada), firewall que filtra el 70 % y cuesta 880 monedas. `tests/test_ddos.gd` comprueba que, con servidores al 45 % por el tráfico legítimo, un pico sin firewall baja el SLA (98.7 → 68.5 con la semilla de la prueba) y con firewall no lo baja.
 
-### Por qué Enterprise sigue en 124.6 %
+### Por qué la meta de Enterprise es 110,000
 
-Con la estrategia buena no hay fallos: se atiende todo el tráfico de las 5 oleadas, así que **124.6 % es el techo** que da ese tráfico contra la meta. Bajar el % exige que fallen peticiones, y estas palancas casi no lo logran (la estrategia buena reacciona cada segundo y compra capacidad):
+Con la estrategia buena no hay fallos: se atiende todo el tráfico de las 5 oleadas (124,629 usuarios), así que ese total es el **techo**. Con la meta de 100,000 daba 124.6 %, y bajarlo exige que fallen peticiones, algo que estas palancas casi no logran (la estrategia buena reacciona cada segundo y compra capacidad):
 
-| Cambio probado (el resto igual) | % de la meta |
-|---|---|
-| Firewall 70 %, 880 monedas y 1–3 picos (actual) | 124.6 |
-| Intensidad del pico 8× `base_rps` | 124.5 |
-| Intensidad del pico 12× `base_rps` | 124.3 |
-| Duración del pico 40 s, intensidad 12× | 124.5 |
-| `coin_per_req` 0.02 (25 veces menos dinero) | 123.6 |
+| Cambio probado (el resto igual) | Usuarios | % de 110,000 |
+|---|---:|---:|
+| Firewall 70 %, 880 monedas y 1–3 picos (actual) | 124,629 | 113.3 |
+| Intensidad del pico 8× `base_rps` | 124,510 | 113.2 |
+| Intensidad del pico 12× `base_rps` | 124,337 | 113.0 |
+| Duración del pico 40 s, intensidad 12× | 124,543 | 113.2 |
+| `coin_per_req` 0.02 (25 veces menos dinero) | 123,587 | 112.4 |
 
-Para bajarlo hay que cambiar el techo: más meta o menos tráfico total. Ojo con la comparación: el ~126 % de la etapa 1 se mide **al terminar la oleada 4**; con esa misma medida Enterprise da 84 % y necesita la oleada 5 para ganar. Al final de la oleada 5 la etapa 1 llega a 196 %.
+Por eso se ajustó la meta y no el ataque: 110,000 deja 113 %, dentro del objetivo de 110–115 %. Es una excepción consciente a que la dificultad venga de los servidores; si cambia el tráfico de las oleadas, hay que recalcular la meta. Ojo con la comparación: el ~126 % de la etapa 1 se mide **al terminar la oleada 4**; con esa misma medida Enterprise da 76.7 % y necesita la oleada 5 para ganar. Al final de la oleada 5 la etapa 1 llega a 196 %.
