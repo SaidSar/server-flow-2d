@@ -103,9 +103,11 @@ Con la estrategia buena no hay fallos: se atiende todo el tráfico de las 5 olea
 
 | Cambio probado (el resto igual) | Usuarios | % de 110,000 |
 |---|---:|---:|
+| Firewall 70 % y 880 monedas, con 1 o 2 picos fijos por oleada | 124,623–124,626 | 113.3 |
 | Firewall 70 %, 880 monedas y 1–3 picos (actual) | 124,629 | 113.3 |
 | Intensidad del pico 8× `base_rps` | 124,510 | 113.2 |
 | Intensidad del pico 12× `base_rps` | 124,337 | 113.0 |
+| Duración del pico 40 s (intensidad 1.5×, sin cambio) | 124,626 | 113.3 |
 | Duración del pico 40 s, intensidad 12× | 124,543 | 113.2 |
 | `coin_per_req` 0.02 (25 veces menos dinero) | 123,587 | 112.4 |
 

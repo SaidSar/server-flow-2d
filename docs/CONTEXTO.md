@@ -15,7 +15,7 @@
 |---|---|---|---|
 | 1 · Startup | Garage | 1,000 | Mejoras de RAM, CPU, red, disco y respaldo |
 | 2 · Scale-up | Oficina | 10,000 | 2.º servidor + Load Balancer, caché, **tienda de decoración** |
-| 3 · Enterprise | Data center | 110,000 | Firewall, ataques DDoS; catálogo ampliado con **referencias personales del equipo** |
+| 3 · Enterprise | Data center | 110,000 (ver 2.2) | Firewall, ataques DDoS; catálogo ampliado con **referencias personales del equipo** |
 
 - 5 oleadas por etapa. Siempre se juegan las 5; la etapa se decide al terminar la quinta.
 - **Quiebra (game over):** solo cuando el SLA llega a 0. **Meta no alcanzada:** termina la etapa con SLA > 0 pero sin la meta → "Repetir etapa" (vuelve a la oleada 1 con las monedas y mejoras del inicio de la etapa).
@@ -30,6 +30,15 @@
 - **Firewall en la pared del bay:** es una **mejora de la consola** (etapa 3, costo en `enterprise.tres` → `upgrade_costs`), no un objeto de decoración. Al comprarla queda encendida (`firewall_on` en la simulación, el "firewall_activo" de la ficha) y la placa de la pared pasa de apagada a encendida, igual que un rack saturado cambia de sprite.
 - **Ataques DDoS (Phantom):** en cada paso de 0.1 s llega, además del tráfico normal, **tráfico malicioso de fondo** bajo y constante, y en cada oleada **picos** que suben unos segundos y vuelven a bajar (1, 1, 2, 3 y 3 por oleada). El Firewall encendido filtra un % alto de todo ese tráfico; lo que pasa se suma como carga de CPU/RAM/red de los servidores. Parámetros en `enterprise.tres`: `ddos_background_rate`, `ddos_spike_count`, `ddos_spike_duration_s`, `ddos_spike_intensity`, `firewall_filter_pct`. El monitor lo pinta en morado y el post-mortem tiene la causa `ddos`.
 - **Decoración:** cuadrícula de 0.5 m; cada cuarto lee su tamaño de su JSON. Todo el lado de los servidores (x ≥ 5.3, detrás del vidrio) y su muro están ocupados, así que la planta decorable es 5.3×12 m. Hay **3 zonas reservadas** (`zonas_catalogo_extra`: 2 de pared y 1 de piso) para el catálogo de referencias personales, todavía sin objetos.
+- **Boceto de referencia** (Artifact, versión final aprobada el 29-oct): https://claude.ai/artifact/GRr7D8wiZWJjC72NHGmHeV
+- **Arte v2 integrado en el PR #13:** los 9 racks reutilizan el sprite del garage con **0 px de desvío** (posiciones alineadas a múltiplos de 0.125 m respecto al rack de referencia del garage) y el vidrio tiene su material translúcido final.
+
+### 2.2 Balance de la etapa 3 (Enterprise): excepción documentada
+- Con el Firewall al 90 % y la meta de 100,000, la estrategia buena (compra el cuello de botella cada segundo y no falla peticiones) llegaba al 124.6 % de la meta; el objetivo es 110–115 %.
+- Se probó el Firewall al 70 % con costo de 880 monedas, picos por oleada `[1, 1, 2, 3, 3]`, intensidad del pico 8× y 12×, duración de 40 s y `coin_per_req` 0.02. **Ninguno lo acercó al objetivo** (el mínimo fue 123.6 %): esa estrategia atiende todo el tráfico, así que el % solo cambia con la meta o con el tráfico total.
+- **Decisión del equipo (PR #13):** subir la meta a **110,000**. La etapa queda en 113.3 %.
+- **Es una excepción consciente** a la regla de la sección 2 ("la dificultad debe venir de los servidores, no de la meta"), escrita para la etapa 1. El Firewall y los picos conservan su ajuste más difícil; solo el número de la meta se cambió para llegar al objetivo.
+- **Falta jugarlo a mano:** el 113.3 % mide una estrategia robot. Alguien del equipo debe confirmar que se siente justo antes de fusionar el PR. Detalle numérico en `docs/balance.md`.
 
 ## 3. Personajes
 - **Avatar del jugador:** se elige al iniciar ("Elige tu personaje", paso 1 de 3) entre **Alex** (sudadera azul) y **Alexa** (sudadera rosa, coleta alta). Luego el jugador escribe el nombre del avatar (paso 2) y el de la empresa (paso 3). Los textos se adaptan al género del avatar (bienvenido/bienvenida).
@@ -73,8 +82,8 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
   - tienda y decoración con colocación libre, muros con zonas prohibidas con altura y letrero de neón con el nombre de la empresa (PR #11);
   - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
   - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
-- **En revisión (`feature/data-center`):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos sorteados por oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`.
-- **Pendiente:** catálogo de referencias personales del data center, balance fino de etapas 2 y 3 (incluido el DDoS), audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
+- **En revisión (`feature/data-center`):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
+- **Pendiente:** fusionar el PR #13 tras jugarlo a mano; catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
 
 ## 9. Cómo trabajar
 1. `git checkout develop && git pull` → crea `feature/<tu-tarea>`.
