@@ -7,5 +7,4 @@ script = ExtResource("1_wave")
 duration_s = 90.0
 ramp = Vector2(3, 3.8)
 spikes = Array[Vector3]([Vector3(20, 10, 1), Vector3(50, 10, 1.3), Vector3(75, 10, 1.5)])
-ddos = Array[Vector3]([])
 tutorial_text = "Última oleada del garage. Si llegas a la meta de usuarios, ¡tu startup crece!"

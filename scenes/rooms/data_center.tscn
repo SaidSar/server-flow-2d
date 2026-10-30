@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/rooms/room_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/rooms/data_center.gd" id="2_script"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/data_center/piso/tecnico_gris.png" id="3_floor"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/data_center/pared_izq/blanco_hueso.png" id="4_wall_left"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/data_center/pared_der/blanco_hueso.png" id="5_wall_right"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/garage/puerta/madera_natural.png" id="6_door"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/garage/fijos/rack_ok.png" id="7_rack_ok"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/garage/fijos/rack_saturado.png" id="8_rack_saturated"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/garage/mesa/roble.png" id="9_desk"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/data_center/vidrio/vidrio.png" id="10_glass"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/data_center/firewall/apagado.png" id="11_firewall_off"]
+[ext_resource type="Texture2D" path="res://assets/art/rooms/data_center/firewall/activo.png" id="12_firewall_on"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_monitor"]
+size = Vector2(130, 160)
+
+[node name="DataCenter" instance=ExtResource("1_base")]
+script = ExtResource("2_script")
+glass_texture = ExtResource("10_glass")
+firewall_off_texture = ExtResource("11_firewall_off")
+firewall_on_texture = ExtResource("12_firewall_on")
+room_id = &"data_center"
+rack_ok_texture = ExtResource("7_rack_ok")
+rack_saturated_texture = ExtResource("8_rack_saturated")
+
+[node name="Floor" parent="Layers" index="0"]
+position = Vector2(32, 528)
+texture = ExtResource("3_floor")
+
+[node name="WallLeft" parent="Layers" index="1"]
+position = Vector2(16, 16)
+texture = ExtResource("4_wall_left")
+
+[node name="WallRight" parent="Layers" index="2"]
+position = Vector2(1560, 16)
+texture = ExtResource("5_wall_right")
+
+[node name="Door" parent="Layers" index="3"]
+position = Vector2(592, 616)
+texture = ExtResource("6_door")
+
+[node name="Rack" parent="Layers/YSort/RackHolder" index="0"]
+texture = ExtResource("7_rack_ok")
+
+[node name="Rack2Holder" parent="Layers/YSort" index="1"]
+visible = true
+
+[node name="Rack2" parent="Layers/YSort/Rack2Holder" index="0"]
+texture = ExtResource("7_rack_ok")
+
+[node name="Desk" parent="Layers/YSort/Workstation" index="0"]
+position = Vector2(200, 912)
+texture = ExtResource("9_desk")
+
+[node name="Shape" parent="Layers/PcArea" index="0"]
+position = Vector2(366, 1002)
+shape = SubResource("RectangleShape2D_monitor")
+
+[node name="MonitorFocus" parent="Layers" index="9"]
+position = Vector2(366, 997)
+
+[node name="Glass" type="Sprite2D" parent="Layers" index="10"]
+unique_name_in_owner = true
+position = Vector2(760, 312)
+texture = ExtResource("10_glass")
+centered = false
+
+[node name="FirewallPlate" type="Sprite2D" parent="Layers" index="11"]
+unique_name_in_owner = true
+position = Vector2(2472, 616)
+texture = ExtResource("11_firewall_off")
+centered = false
+
+[node name="RackBay" type="Node2D" parent="Layers" index="12"]
+unique_name_in_owner = true
+y_sort_enabled = true

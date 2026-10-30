@@ -34,6 +34,21 @@ extends Resource
 @export var waves: Array[WaveData] = []
 ## Ids de las mejoras que se desbloquean al llegar a esta etapa.
 @export var unlocks: Array[StringName] = []
+## Costo base de las mejoras que desbloquea esta etapa (id → monedas). Si no aparece, se usa el
+## base_cost de su .tres.
+@export var upgrade_costs: Dictionary[StringName, int] = {}
+
+@export_group("DDoS")
+## Tráfico malicioso de fondo, constante en toda la oleada (múltiplos de base_rps). 0 = sin DDoS.
+@export var ddos_background_rate := 0.0
+## Picos de ataque de cada oleada, en orden (el primero es de la oleada 1). Vacío = sin picos.
+@export var ddos_spike_count: Array[int] = []
+## Duración de cada pico (sube y baja en una curva suave).
+@export var ddos_spike_duration_s := 0.0
+## Tráfico malicioso extra en la cima del pico (múltiplos de base_rps).
+@export var ddos_spike_intensity := 0.0
+## Porcentaje del tráfico malicioso (fondo y picos) que descarta el Firewall encendido.
+@export_range(0.0, 100.0, 0.5, "suffix:%") var firewall_filter_pct := 0.0
 
 
 func get_wave(wave_number: int) -> WaveData:
@@ -44,3 +59,16 @@ func get_wave(wave_number: int) -> WaveData:
 
 func get_wave_count() -> int:
 	return waves.size()
+
+
+## true si en esta etapa hay ataques (solo Enterprise los define).
+func has_ddos() -> bool:
+	return ddos_background_rate > 0.0 or (ddos_spike_count.any(func(count: int) -> bool: return count > 0) and ddos_spike_intensity > 0.0 and ddos_spike_duration_s > 0.0)
+
+
+## Picos de ataque de una oleada. Si faltan oleadas en la lista, usan el último valor.
+func get_ddos_spike_count(wave_number: int) -> int:
+	if ddos_spike_count.is_empty():
+		return 0
+	return ddos_spike_count[clampi(wave_number - 1, 0, ddos_spike_count.size() - 1)]
+

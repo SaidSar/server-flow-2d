@@ -3,6 +3,9 @@ extends Node
 ## No conoce la UI: las escenas escuchan sus señales y leen su estado.
 ## Avanza en pasos fijos (config.step_seconds) aunque el jugador esté en el garage.
 ## En depuración: F9 fuerza una sobrecarga y F10 acelera ×8.
+## DDoS (solo en las etapas que lo definen, hoy Enterprise): tráfico malicioso de fondo constante más
+## los picos de cada oleada (ddos_spike_count). El Firewall encendido descarta firewall_filter_pct de todo
+## ese tráfico; lo que pasa se suma a la carga de CPU, RAM y red de los servidores.
 
 ## Un paso de simulación terminó.
 signal tick(snapshot: SimSnapshot)
@@ -58,7 +61,10 @@ var overload_enabled := false
 var servers: Array[ServerState] = []
 var db := DbState.new()
 var has_firewall := false
+## Firewall encendido (el "firewall_activo" de la ficha). Al comprarlo se enciende solo.
 var firewall_on := false
+## Picos de ataque de la oleada en curso: (inicio s, duración s, intensidad en múltiplos de base_rps).
+var ddos_spikes: Array[Vector3] = []
 var sla := 90.0
 var coins := 0
 var users_served := 0
@@ -86,6 +92,8 @@ var _stage_checkpoint: Dictionary = {}
 ## Fallos de toda la etapa por causa (para el consejo de "Meta no alcanzada").
 var _stage_failures: Dictionary[StringName, float] = {}
 var _upgrades: Dictionary[StringName, UpgradeData] = {}
+## Costo base de cada mejora según la etapa que la desbloquea (StageData.upgrade_costs).
+var _stage_costs: Dictionary[StringName, int] = {}
 var _rng := RandomNumberGenerator.new()
 var _accumulator := 0.0
 var _coin_fraction := 0.0
@@ -170,6 +178,7 @@ func start_wave() -> void:
 	report.wave_number = wave_number
 	report.sla_start = sla
 	report.stage_user_goal = stage.user_goal
+	_schedule_ddos_spikes()
 	# El checkpoint incluye lo que se compró entre oleadas.
 	_create_checkpoint()
 	_set_phase(Phase.RUNNING)
@@ -238,13 +247,13 @@ func step() -> void:
 		multiplier *= config.debug_overload_multiplier
 	var noise := 1.0 + _rng.randf_range(-config.traffic_noise, config.traffic_noise)
 	var legit_rps := stage.base_rps * multiplier * noise
-	var incoming_malicious := stage.base_rps * wave.ddos_multiplier(wave_time)
+	var incoming_malicious := stage.base_rps * ddos_multiplier(wave_time)
 
 	# 2. Firewall
 	var malicious_rps := incoming_malicious
 	var extra_latency := 0.0
-	if has_firewall and firewall_on:
-		malicious_rps *= 1.0 - config.firewall_block_ratio
+	if is_firewall_active():
+		malicious_rps *= 1.0 - stage.firewall_filter_pct / 100.0
 		extra_latency += config.firewall_latency_ms
 
 	# 3–4. Reparto entre servidores (con Load Balancer) y utilización de cada uno
@@ -337,6 +346,30 @@ func run_for(seconds: float) -> void:
 
 func set_seed(seed_value: int) -> void:
 	_rng.seed = seed_value
+
+
+## Tráfico malicioso (en múltiplos de base_rps) en el segundo `t` de la oleada: fondo + picos.
+func ddos_multiplier(t: float) -> float:
+	if not stage.has_ddos():
+		return 0.0
+	var multiplier := stage.ddos_background_rate
+	for spike: Vector3 in ddos_spikes:
+		multiplier += WaveData.envelope(t, spike) * spike.z
+	return multiplier
+
+
+## Sortea cuándo caen los picos de la oleada: uno en cada tramo igual de la oleada, con el inicio
+## al azar dentro de su tramo (lejos de los bordes).
+func _schedule_ddos_spikes() -> void:
+	ddos_spikes.clear()
+	var count := stage.get_ddos_spike_count(wave_number)
+	if not stage.has_ddos() or count <= 0 or stage.ddos_spike_intensity <= 0.0:
+		return
+	var section := wave.duration_s / count
+	var duration := minf(stage.ddos_spike_duration_s, section)
+	for i in count:
+		var start := section * i + (section - duration) * _rng.randf_range(0.2, 0.8)
+		ddos_spikes.append(Vector3(start, duration, stage.ddos_spike_intensity))
 
 
 func _load_server(server: ServerState, legit: float, malicious: float) -> void:
@@ -507,6 +540,7 @@ func _enter_stage(stage_id: StringName) -> void:
 	_stage_latency_sum = 0.0
 	_stage_requests = 0.0
 	_stage_failures.clear()
+	ddos_spikes.clear()
 	_rebuild_infrastructure()
 	_reset_utilization()
 
@@ -557,7 +591,7 @@ func is_unlocked(upgrade: UpgradeData) -> bool:
 
 
 func get_cost(upgrade: UpgradeData) -> int:
-	return upgrade.cost_at(get_level(upgrade.id))
+	return upgrade.cost_at(get_level(upgrade.id), _stage_costs.get(upgrade.id, -1))
 
 
 func can_purchase(upgrade: UpgradeData) -> bool:
@@ -583,6 +617,10 @@ func purchase(upgrade_id: StringName) -> bool:
 		_rebuild_infrastructure()
 	infrastructure_changed.emit()
 	return true
+
+
+func is_firewall_active() -> bool:
+	return has_firewall and firewall_on
 
 
 func set_firewall_on(enabled: bool) -> void:
@@ -661,8 +699,12 @@ func _apply_upgrades(target: StringName, base_value: float) -> float:
 
 func _load_upgrades() -> void:
 	_upgrades.clear()
+	_stage_costs.clear()
 	for stage_id: StringName in Paths.STAGE_ORDER:
-		for upgrade_id: StringName in load_stage(stage_id).unlocks:
+		var stage_data := load_stage(stage_id)
+		for upgrade_id: StringName in stage_data.upgrade_costs:
+			_stage_costs[upgrade_id] = stage_data.upgrade_costs[upgrade_id]
+		for upgrade_id: StringName in stage_data.unlocks:
 			var upgrade := load(Paths.UPGRADE % upgrade_id) as UpgradeData
 			if upgrade == null:
 				push_error("No existe la mejora %s" % upgrade_id)

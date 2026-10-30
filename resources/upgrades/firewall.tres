@@ -6,14 +6,14 @@
 script = ExtResource("1_upgrade")
 id = &"firewall"
 display_name = "Firewall"
-short_effect = "Bloquea 85 % del DDoS"
-description = "Instala un firewall. Después se puede encender o apagar."
+short_effect = "Filtra el tráfico DDoS"
+description = "Instala un firewall en el data center. Después se puede encender o apagar."
 concept = "Seguridad: el firewall revisa cada paquete y descarta el tráfico malicioso, a cambio de un poco de latencia."
 target = &"firewall"
 effect_mode = 0
 effect_per_level = 1.0
 max_level = 1
-base_cost = 600
+base_cost = 880
 cost_growth = 1.0
 unlock_stage = 3
 fixes = Array[StringName]([&"ddos"])

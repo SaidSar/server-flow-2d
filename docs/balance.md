@@ -4,10 +4,10 @@ Todos los números viven en recursos `.tres`; el código no tiene constantes de 
 
 | Qué | Dónde |
 |---|---|
-| Infraestructura inicial, umbrales, SLA, firewall, respaldos, estrellas, `display_scale` | `resources/simulation/simulation_config.tres` (valores por defecto en `scripts/resources/simulation_config.gd`) |
-| Meta, tráfico base, monedas, ronda de inversión | `resources/stages/<etapa>.tres` |
-| Duración, rampa, picos y DDoS de cada oleada | `resources/waves/<etapa>_<n>.tres` |
-| Costo, efecto y nivel máximo de cada mejora | `resources/upgrades/<id>.tres` |
+| Infraestructura inicial, umbrales, SLA, latencia del firewall, respaldos, estrellas, `display_scale` | `resources/simulation/simulation_config.tres` (valores por defecto en `scripts/resources/simulation_config.gd`) |
+| Meta, tráfico base, monedas, ronda de inversión, DDoS y % que filtra el firewall, costo de las mejoras de la etapa (`upgrade_costs`) | `resources/stages/<etapa>.tres` |
+| Duración, rampa y picos de tráfico legítimo de cada oleada | `resources/waves/<etapa>_<n>.tres` |
+| Costo (si la etapa no lo define), efecto y nivel máximo de cada mejora | `resources/upgrades/<id>.tres` |
 
 Después de cambiar algo, corre `tests/test_simulation.gd`. Juega la etapa 1 con 3 estrategias (siempre con la misma semilla) e imprime un resumen por oleada:
 
@@ -32,6 +32,7 @@ Cada paso dura 0.1 s:
 - **Tráfico:** `λ = base_rps × multiplicador de la oleada` (rampa lineal + picos con forma de seno) ± 5 % de ruido.
 - **Servidor:** `u_cpu = L / cpu_cap`, `u_net = L / net_cap`, `u_ram = L × 2 s / ram_slots` (concurrencia, Ley de Little).
 - **BD:** `u_db = (lecturas × (1 − caché) + escrituras) / iops`, con 70 % lecturas y 30 % escrituras.
+- **DDoS (solo Enterprise):** `malicioso = base_rps × (ddos_background_rate + picos)`. Cada oleada tiene los picos que indica su posición en `ddos_spike_count`, de `ddos_spike_duration_s` con forma de seno y cima `ddos_spike_intensity`; se sortea en qué momento cae cada uno. Con el firewall encendido llega solo `100 % − firewall_filter_pct` de ese tráfico; lo que llega se suma a la carga `L` del servidor como si fuera legítimo, pero no cuenta para el SLA ni da monedas.
 - **Latencia:** `35 ms / (1 − min(u, 0.95))` (+15 ms con firewall). Es verde debajo de 200 ms (u < 0.825) y amarilla desde ahí.
 - **Fallos:** `(u − 1) / u` cuando u > 1, más las escrituras con el disco lleno (error 500).
 - **SLA:** `sla += (éxito − 0.95) × 8 × dt`. Empieza en 90.
@@ -87,11 +88,27 @@ No se cambiaron en esta ronda: solo se comprobó que la estrategia buena las sig
 
 | | Scale-up | Enterprise |
 |---|---|---|
-| Meta | 10,000 | 100,000 |
+| Meta | 10,000 | 110,000 |
 | `base_rps` | 24 (2,400 req/s en pantalla) | 180 (18,000 req/s en pantalla) |
 | Monedas por petición | 1.0 | 0.5 |
 | Ronda de inversión al llegar | 1,500 | 5,000 |
 | Desbloquea | Optimizar caché, + Servidor web | Firewall |
-| Resultado de la estrategia buena | Gana con 10,718 usuarios | Gana con 124,627 usuarios; parece fácil |
+| Resultado de la estrategia buena | Gana con 10,718 usuarios | Gana con 124,629 usuarios (113.3 % de la meta; 76.7 % al terminar la oleada 4) |
 
-En Enterprise los DDoS van de 0.8× a 2.5× `base_rps` de tráfico malicioso.
+En Enterprise (`enterprise.tres`): fondo de 0.1× `base_rps`, picos de 20 s con cima de 1.5× `base_rps` (1, 1, 2, 3 y 3 por oleada), firewall que filtra el 70 % y cuesta 880 monedas. `tests/test_ddos.gd` comprueba que, con servidores al 45 % por el tráfico legítimo, un pico sin firewall baja el SLA (98.7 → 68.5 con la semilla de la prueba) y con firewall no lo baja.
+
+### Por qué la meta de Enterprise es 110,000
+
+Con la estrategia buena no hay fallos: se atiende todo el tráfico de las 5 oleadas (124,629 usuarios), así que ese total es el **techo**. Con la meta de 100,000 daba 124.6 %, y bajarlo exige que fallen peticiones, algo que estas palancas casi no logran (la estrategia buena reacciona cada segundo y compra capacidad):
+
+| Cambio probado (el resto igual) | Usuarios | % de 110,000 |
+|---|---:|---:|
+| Firewall 70 % y 880 monedas, con 1 o 2 picos fijos por oleada | 124,623–124,626 | 113.3 |
+| Firewall 70 %, 880 monedas y 1–3 picos (actual) | 124,629 | 113.3 |
+| Intensidad del pico 8× `base_rps` | 124,510 | 113.2 |
+| Intensidad del pico 12× `base_rps` | 124,337 | 113.0 |
+| Duración del pico 40 s (intensidad 1.5×, sin cambio) | 124,626 | 113.3 |
+| Duración del pico 40 s, intensidad 12× | 124,543 | 113.2 |
+| `coin_per_req` 0.02 (25 veces menos dinero) | 123,587 | 112.4 |
+
+Por eso se ajustó la meta y no el ataque: 110,000 deja 113 %, dentro del objetivo de 110–115 %. Es una excepción consciente a que la dificultad venga de los servidores; si cambia el tráfico de las oleadas, hay que recalcular la meta. Ojo con la comparación: el ~126 % de la etapa 1 se mide **al terminar la oleada 4**; con esa misma medida Enterprise da 76.7 % y necesita la oleada 5 para ganar. Al final de la oleada 5 la etapa 1 llega a 196 %.

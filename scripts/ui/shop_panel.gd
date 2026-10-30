@@ -118,7 +118,7 @@ func _refresh() -> void:
 			shown.append(decor_id)
 			_rows_box.add_child(_inventory_row(DecorData.find(decor_id)))
 		if shown.is_empty():
-			_rows_box.add_child(_label("Tu inventario está vacío. Lo que guardes de la oficina aparece aquí.", 24, INFO_COLOR))
+			_rows_box.add_child(_label("Tu inventario está vacío. Lo que guardes de un cuarto aparece aquí.", 24, INFO_COLOR))
 
 
 func _shop_row(decor: DecorData) -> Control:

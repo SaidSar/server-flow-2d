@@ -36,10 +36,12 @@ func is_action() -> bool:
 	return max_level == 0
 
 
-func cost_at(level: int) -> int:
+## `stage_base_cost` ≥ 0 reemplaza a base_cost (StageData.upgrade_costs).
+func cost_at(level: int, stage_base_cost: int = -1) -> int:
+	var base := stage_base_cost if stage_base_cost >= 0 else base_cost
 	if is_action():
-		return base_cost
-	return roundi(base_cost * pow(cost_growth, level))
+		return base
+	return roundi(base * pow(cost_growth, level))
 
 
 func is_maxed(level: int) -> bool:
