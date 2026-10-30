@@ -23,6 +23,14 @@
 - **Post-mortem** al final de cada oleada: explica la causa principal de los fallos (cpu, ram, net, db, disk, ddos) como lección corta. Es el corazón educativo del juego.
 - **Balance de la etapa 1** (detalle en `docs/balance.md`): sin compras se quiebra en la oleada 2; comprando lo más barato se quiebra en la 3; comprando el cuello de botella se llega al ~126 % de la meta al terminar la oleada 4. La dificultad debe venir de los servidores, no de la meta.
 
+### 2.1 Data center (etapa 3 · Enterprise)
+- **Cuarto de 12×12 m** (`scenes/rooms/data_center.tscn`, hereda de `room_base.tscn`; datos en `data/rooms/data_center.json`, arte de `source_art/blender/build_data_center.py`). El escritorio, la PC, el avatar y la puerta están en la misma posición del mundo que en el garage y la oficina, y reutilizan sus sprites con su propio `(dx, dy)`.
+- **Bay de 9 racks detrás de una partición de vidrio.** Los racks son el sprite del garage ×9, en posiciones **fijas** (no se compran ni se mueven). Cada uno tiene su `rack_id` (`rack_1`…`rack_9`) y en `fijos.racks` dice qué servidor web muestra: se pone rojo cuando ese servidor se satura; sin ese servidor se ve normal.
+- **El vidrio es solo decorativo:** una capa más del cuarto, no bloquea ni habilita el paso del avatar.
+- **Firewall en la pared del bay:** es una **mejora de la consola** (etapa 3, costo en `enterprise.tres` → `upgrade_costs`), no un objeto de decoración. Al comprarla queda encendida (`firewall_on` en la simulación, el "firewall_activo" de la ficha) y la placa de la pared pasa de apagada a encendida, igual que un rack saturado cambia de sprite.
+- **Ataques DDoS (Phantom):** en cada paso de 0.1 s llega, además del tráfico normal, **tráfico malicioso de fondo** bajo y constante, y 1–2 veces por oleada un **pico** que sube unos segundos y vuelve a bajar. El Firewall encendido filtra un % alto de todo ese tráfico; lo que pasa se suma como carga de CPU/RAM/red de los servidores. Parámetros en `enterprise.tres`: `ddos_background_rate`, `ddos_spike_count`, `ddos_spike_duration_s`, `ddos_spike_intensity`, `firewall_filter_pct` (provisionales). El monitor lo pinta en morado y el post-mortem tiene la causa `ddos`.
+- **Decoración:** cuadrícula de 0.5 m; cada cuarto lee su tamaño de su JSON. Todo el lado de los servidores (x ≥ 5.3, detrás del vidrio) y su muro están ocupados, así que la planta decorable es 5.3×12 m. Hay **3 zonas reservadas** (`zonas_catalogo_extra`: 2 de pared y 1 de piso) para el catálogo de referencias personales, todavía sin objetos.
+
 ## 3. Personajes
 - **Avatar del jugador:** se elige al iniciar ("Elige tu personaje", paso 1 de 3) entre **Alex** (sudadera azul) y **Alexa** (sudadera rosa, coleta alta). Luego el jugador escribe el nombre del avatar (paso 2) y el de la empresa (paso 3). Los textos se adaptan al género del avatar (bienvenido/bienvenida).
 - **Briseida:** CEO de la empresa (antes se llamaba Valeria; ya no se usa ese nombre). Anuncia metas, eventos y rondas de inversión.
@@ -44,7 +52,7 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
 - **Capas:** cada cuarto se divide en capas (piso, pared izquierda, pared derecha, puerta, racks, mesa, avatar…) renderizadas al mismo lienzo y **recortadas a su contenido**. Su posición está en el JSON del cuarto, con offsets **múltiplos de 8 px** (evita bordes borrosos por mipmaps). Las sombras de los objetos fijos van horneadas en el piso.
 - **Proyección mundo→píxel** en el JSON de cada cuarto: `pixel = origen + x·ex + y·ey + z·ez` (lienzo 2x). La cámara mira desde +x/−y, así que el `y_sort` de Godot ordena bien usando el centro de la huella en el piso.
 - **Personalización:** paredes (10 colores, cada pared por separado), puerta (6), mesa (3); el **piso es propio de cada cuarto** (garage: 3 concretos; oficina: laminado claro, laminado nogal, alfombra gris). Paleta en `data/customization/`.
-- **Oficina:** reutiliza los sprites del garage para puerta, mesa, racks y avatar sumando un desplazamiento `(dx, dy)` definido en su JSON.
+- **Oficina y data center:** reutilizan los sprites del garage para puerta, mesa, racks y avatar sumando un desplazamiento `(dx, dy)` definido en su JSON. Cada hueco `rack_N` de `reutilizados_del_garage` es un rack (2 en la oficina, 9 en el data center). El data center agrega capas fijas propias (vidrio y placa de Firewall) con su offset en `capas_offsets`.
 - Estilo: colores planos, sombreado suave, sin contorno (el contorno está "en veremos"). Paleta de interfaz oscura tipo panel de monitoreo (#0b111c, acento #5aa9ff, verde #3ddc84, amarillo #f5c542, rojo #ff4d5e).
 
 ## 7. Tienda y decoración (desde la etapa 2)
@@ -65,7 +73,8 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
   - tienda y decoración con colocación libre, muros con zonas prohibidas con altura y letrero de neón con el nombre de la empresa (PR #11);
   - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
   - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
-- **Pendiente:** data center (etapa 3) y su catálogo personal, balance fino de etapas 2 y 3, audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
+- **En revisión (`feature/data-center`):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos sorteados por oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`.
+- **Pendiente:** catálogo de referencias personales del data center, balance fino de etapas 2 y 3 (incluido el DDoS), pasar a `build_data_center.py` lo que se completó a mano en `data_center.json`, audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
 
 ## 9. Cómo trabajar
 1. `git checkout develop && git pull` → crea `feature/<tu-tarea>`.

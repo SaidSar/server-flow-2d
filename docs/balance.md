@@ -4,10 +4,10 @@ Todos los números viven en recursos `.tres`; el código no tiene constantes de 
 
 | Qué | Dónde |
 |---|---|
-| Infraestructura inicial, umbrales, SLA, firewall, respaldos, estrellas, `display_scale` | `resources/simulation/simulation_config.tres` (valores por defecto en `scripts/resources/simulation_config.gd`) |
-| Meta, tráfico base, monedas, ronda de inversión | `resources/stages/<etapa>.tres` |
-| Duración, rampa, picos y DDoS de cada oleada | `resources/waves/<etapa>_<n>.tres` |
-| Costo, efecto y nivel máximo de cada mejora | `resources/upgrades/<id>.tres` |
+| Infraestructura inicial, umbrales, SLA, latencia del firewall, respaldos, estrellas, `display_scale` | `resources/simulation/simulation_config.tres` (valores por defecto en `scripts/resources/simulation_config.gd`) |
+| Meta, tráfico base, monedas, ronda de inversión, DDoS y % que filtra el firewall, costo de las mejoras de la etapa (`upgrade_costs`) | `resources/stages/<etapa>.tres` |
+| Duración, rampa y picos de tráfico legítimo de cada oleada | `resources/waves/<etapa>_<n>.tres` |
+| Costo (si la etapa no lo define), efecto y nivel máximo de cada mejora | `resources/upgrades/<id>.tres` |
 
 Después de cambiar algo, corre `tests/test_simulation.gd`. Juega la etapa 1 con 3 estrategias (siempre con la misma semilla) e imprime un resumen por oleada:
 
@@ -32,6 +32,7 @@ Cada paso dura 0.1 s:
 - **Tráfico:** `λ = base_rps × multiplicador de la oleada` (rampa lineal + picos con forma de seno) ± 5 % de ruido.
 - **Servidor:** `u_cpu = L / cpu_cap`, `u_net = L / net_cap`, `u_ram = L × 2 s / ram_slots` (concurrencia, Ley de Little).
 - **BD:** `u_db = (lecturas × (1 − caché) + escrituras) / iops`, con 70 % lecturas y 30 % escrituras.
+- **DDoS (solo Enterprise):** `malicioso = base_rps × (ddos_background_rate + picos)`. Cada oleada sortea entre 1 y `ddos_spike_count` picos de `ddos_spike_duration_s` con forma de seno y cima `ddos_spike_intensity`. Con el firewall encendido llega solo `100 % − firewall_filter_pct` de ese tráfico; lo que llega se suma a la carga `L` del servidor como si fuera legítimo, pero no cuenta para el SLA ni da monedas.
 - **Latencia:** `35 ms / (1 − min(u, 0.95))` (+15 ms con firewall). Es verde debajo de 200 ms (u < 0.825) y amarilla desde ahí.
 - **Fallos:** `(u − 1) / u` cuando u > 1, más las escrituras con el disco lleno (error 500).
 - **SLA:** `sla += (éxito − 0.95) × 8 × dt`. Empieza en 90.
@@ -94,4 +95,4 @@ No se cambiaron en esta ronda: solo se comprobó que la estrategia buena las sig
 | Desbloquea | Optimizar caché, + Servidor web | Firewall |
 | Resultado de la estrategia buena | Gana con 10,718 usuarios | Gana con 124,627 usuarios; parece fácil |
 
-En Enterprise los DDoS van de 0.8× a 2.5× `base_rps` de tráfico malicioso.
+En Enterprise (valores provisionales en `enterprise.tres`, falta afinarlos): fondo de 0.1× `base_rps`, 1 o 2 picos por oleada de 20 s con cima de 1.5× `base_rps`, firewall que filtra el 90 % y cuesta 600 monedas. `tests/test_ddos.gd` comprueba que, con servidores al 45 % por el tráfico legítimo, un pico sin firewall baja el SLA (96.7 → 64.8 con la semilla de la prueba) y con firewall casi no lo mueve.
