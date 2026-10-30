@@ -38,7 +38,7 @@
 - Se probó el Firewall al 70 % con costo de 880 monedas, picos por oleada `[1, 1, 2, 3, 3]`, intensidad del pico 8× y 12×, duración de 40 s y `coin_per_req` 0.02. **Ninguno lo acercó al objetivo** (el mínimo fue 123.6 %): esa estrategia atiende todo el tráfico, así que el % solo cambia con la meta o con el tráfico total.
 - **Decisión del equipo (PR #13):** subir la meta a **110,000**. La etapa queda en 113.3 %.
 - **Es una excepción consciente** a la regla de la sección 2 ("la dificultad debe venir de los servidores, no de la meta"), escrita para la etapa 1. El Firewall y los picos conservan su ajuste más difícil; solo el número de la meta se cambió para llegar al objetivo.
-- **Falta jugarlo a mano:** el 113.3 % mide una estrategia robot. Alguien del equipo debe confirmar que se siente justo antes de fusionar el PR. Detalle numérico en `docs/balance.md`.
+- **Jugado a mano:** el 113.3 % mide una estrategia robot; el equipo jugó Enterprise a mano y lo confirmó antes de fusionar el PR. Detalle numérico en `docs/balance.md`.
 
 ## 3. Personajes
 - **Avatar del jugador:** se elige al iniciar ("Elige tu personaje", paso 1 de 3) entre **Alex** (sudadera azul) y **Alexa** (sudadera rosa, coleta alta). Luego el jugador escribe el nombre del avatar (paso 2) y el de la empresa (paso 3). Los textos se adaptan al género del avatar (bienvenido/bienvenida).
@@ -84,8 +84,8 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
   - tienda y decoración con colocación libre, muros con zonas prohibidas con altura y letrero de neón con el nombre de la empresa (PR #11);
   - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
   - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
-- **En revisión (`feature/data-center`):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
-- **Pendiente:** fusionar el PR #13 tras jugarlo a mano; catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
+- **En `develop`, sin publicar en `main` (PR #13):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
+- **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
 
 ## 9. Cómo trabajar
 1. `git checkout develop && git pull` → crea `feature/<tu-tarea>`.
