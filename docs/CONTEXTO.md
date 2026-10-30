@@ -15,13 +15,30 @@
 |---|---|---|---|
 | 1 · Startup | Garage | 1,000 | Mejoras de RAM, CPU, red, disco y respaldo |
 | 2 · Scale-up | Oficina | 10,000 | 2.º servidor + Load Balancer, caché, **tienda de decoración** |
-| 3 · Enterprise | Data center | 100,000 | Firewall, ataques DDoS; catálogo ampliado con **referencias personales del equipo** |
+| 3 · Enterprise | Data center | 110,000 (ver 2.2) | Firewall, ataques DDoS; catálogo ampliado con **referencias personales del equipo** |
 
 - 5 oleadas por etapa. Siempre se juegan las 5; la etapa se decide al terminar la quinta.
 - **Quiebra (game over):** solo cuando el SLA llega a 0. **Meta no alcanzada:** termina la etapa con SLA > 0 pero sin la meta → "Repetir etapa" (vuelve a la oleada 1 con las monedas y mejoras del inicio de la etapa).
 - Al pasar a Scale-up y a Enterprise hay una **ronda de inversión** (+1,500 y +5,000 monedas) que anuncia la CEO en un diálogo.
 - **Post-mortem** al final de cada oleada: explica la causa principal de los fallos (cpu, ram, net, db, disk, ddos) como lección corta. Es el corazón educativo del juego.
 - **Balance de la etapa 1** (detalle en `docs/balance.md`): sin compras se quiebra en la oleada 2; comprando lo más barato se quiebra en la 3; comprando el cuello de botella se llega al ~126 % de la meta al terminar la oleada 4. La dificultad debe venir de los servidores, no de la meta.
+
+### 2.1 Data center (etapa 3 · Enterprise)
+- **Cuarto de 12×12 m** (`scenes/rooms/data_center.tscn`, hereda de `room_base.tscn`; datos en `data/rooms/data_center.json`, arte de `source_art/blender/build_data_center.py`). El escritorio, la PC, el avatar y la puerta están en la misma posición del mundo que en el garage y la oficina, y reutilizan sus sprites con su propio `(dx, dy)`.
+- **Bay de 9 racks detrás de una partición de vidrio.** Los racks son el sprite del garage ×9, en posiciones **fijas** (no se compran ni se mueven). Cada uno tiene su `rack_id` (`rack_1`…`rack_9`) y en `fijos.racks` dice qué servidor web muestra: se pone rojo cuando ese servidor se satura; sin ese servidor se ve normal.
+- **El vidrio es solo decorativo:** una capa más del cuarto, no bloquea ni habilita el paso del avatar.
+- **Firewall en la pared derecha del bay** (x 7.15–8.05, semi-visible entre los racks de atrás, que tapan su parte baja; sus LEDs quedan libres y se distingue si está apagado o activo, también en una ventana de 800×370): es una **mejora de la consola** (etapa 3, costo en `enterprise.tres` → `upgrade_costs`), no un objeto de decoración. Al comprarla queda encendida (`firewall_on` en la simulación, el "firewall_activo" de la ficha) y la placa de la pared pasa de apagada a encendida, igual que un rack saturado cambia de sprite.
+- **Ataques DDoS (Phantom):** en cada paso de 0.1 s llega, además del tráfico normal, **tráfico malicioso de fondo** bajo y constante, y en cada oleada **picos** que suben unos segundos y vuelven a bajar (1, 1, 2, 3 y 3 por oleada). El Firewall encendido filtra un % alto de todo ese tráfico; lo que pasa se suma como carga de CPU/RAM/red de los servidores. Parámetros en `enterprise.tres`: `ddos_background_rate`, `ddos_spike_count`, `ddos_spike_duration_s`, `ddos_spike_intensity`, `firewall_filter_pct`. El monitor lo pinta en morado y el post-mortem tiene la causa `ddos`.
+- **Decoración:** cuadrícula de 0.5 m; cada cuarto lee su tamaño de su JSON. El piso bloquea el vidrio y todo el sector de los racks (`bay_racks`: x 5.5–12, y 7–12). Delante de ese sector (x 5.5–12, y 0–7) sí se decora, y esos objetos se dibujan delante del vidrio. El muro derecho, desde el vidrio, sigue sin decoración (placa de Firewall). Hay **3 zonas reservadas** (`zonas_catalogo_extra`: 2 de pared a los lados del escritorio, y 1 de piso frente a él) para el catálogo de referencias personales, todavía sin objetos.
+- **Boceto de referencia** (Artifact, versión final aprobada el 29-oct): https://claude.ai/artifact/GRr7D8wiZWJjC72NHGmHeV
+- **Arte v2 integrado en el PR #13:** los 9 racks reutilizan el sprite del garage con **0 px de desvío** (posiciones alineadas a múltiplos de 0.125 m respecto al rack de referencia del garage) y el vidrio tiene su material translúcido final.
+
+### 2.2 Balance de la etapa 3 (Enterprise): excepción documentada
+- Con el Firewall al 90 % y la meta de 100,000, la estrategia buena (compra el cuello de botella cada segundo y no falla peticiones) llegaba al 124.6 % de la meta; el objetivo es 110–115 %.
+- Se probó el Firewall al 70 % con costo de 880 monedas, picos por oleada `[1, 1, 2, 3, 3]`, intensidad del pico 8× y 12×, duración de 40 s y `coin_per_req` 0.02. **Ninguno lo acercó al objetivo** (el mínimo fue 123.6 %): esa estrategia atiende todo el tráfico, así que el % solo cambia con la meta o con el tráfico total.
+- **Decisión del equipo (PR #13):** subir la meta a **110,000**. La etapa queda en 113.3 %.
+- **Es una excepción consciente** a la regla de la sección 2 ("la dificultad debe venir de los servidores, no de la meta"), escrita para la etapa 1. El Firewall y los picos conservan su ajuste más difícil; solo el número de la meta se cambió para llegar al objetivo.
+- **Jugado a mano:** el 113.3 % mide una estrategia robot; el equipo jugó Enterprise a mano y lo confirmó antes de fusionar el PR. Detalle numérico en `docs/balance.md`.
 
 ## 3. Personajes
 - **Avatar del jugador:** se elige al iniciar ("Elige tu personaje", paso 1 de 3) entre **Alex** (sudadera azul) y **Alexa** (sudadera rosa, coleta alta). Luego el jugador escribe el nombre del avatar (paso 2) y el de la empresa (paso 3). Los textos se adaptan al género del avatar (bienvenido/bienvenida).
@@ -44,7 +61,7 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
 - **Capas:** cada cuarto se divide en capas (piso, pared izquierda, pared derecha, puerta, racks, mesa, avatar…) renderizadas al mismo lienzo y **recortadas a su contenido**. Su posición está en el JSON del cuarto, con offsets **múltiplos de 8 px** (evita bordes borrosos por mipmaps). Las sombras de los objetos fijos van horneadas en el piso.
 - **Proyección mundo→píxel** en el JSON de cada cuarto: `pixel = origen + x·ex + y·ey + z·ez` (lienzo 2x). La cámara mira desde +x/−y, así que el `y_sort` de Godot ordena bien usando el centro de la huella en el piso.
 - **Personalización:** paredes (10 colores, cada pared por separado), puerta (6), mesa (3); el **piso es propio de cada cuarto** (garage: 3 concretos; oficina: laminado claro, laminado nogal, alfombra gris). Paleta en `data/customization/`.
-- **Oficina:** reutiliza los sprites del garage para puerta, mesa, racks y avatar sumando un desplazamiento `(dx, dy)` definido en su JSON.
+- **Oficina y data center:** reutilizan los sprites del garage para puerta, mesa, racks y avatar sumando un desplazamiento `(dx, dy)` definido en su JSON. Cada hueco `rack_N` de `reutilizados_del_garage` es un rack (2 en la oficina, 9 en el data center). El data center agrega capas fijas propias (vidrio y placa de Firewall) con su offset en `capas_offsets`.
 - Estilo: colores planos, sombreado suave, sin contorno (el contorno está "en veremos"). Paleta de interfaz oscura tipo panel de monitoreo (#0b111c, acento #5aa9ff, verde #3ddc84, amarillo #f5c542, rojo #ff4d5e).
 
 ## 7. Tienda y decoración (desde la etapa 2)
@@ -52,6 +69,8 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
 - **Colocación libre** en una cuadrícula de 0.5 m, **con giro** (cada objeto tiene 2 orientaciones renderizadas; los de pared cambian de muro al girar). Huella verde/roja; en celular se confirma con "✓ Colocar". Los objetos colocados se pueden mover, girar, guardar en el inventario o vender (50 %).
 - Catálogo inicial (12): planta, lámpara de pie, sillón, mesita con cafetera, librero, tapete (va debajo, admite objetos encima), máquina de snacks, consola de videojuegos, acuario, trofeo Scale-up (gratis al completar la etapa 2), cuadro (pared) y letrero de neón con el **nombre de la empresa** del jugador (pared). Datos en `data/decor/catalogo.json`.
 - En la etapa 3 se agregan objetos inspirados en referencias personales del equipo (diseños propios, sin copiar logos ni personajes con derechos).
+- **El inventario es del jugador, no del cuarto:** al abrir el cuarto de una etapa nueva, lo colocado en cuartos anteriores vuelve al inventario (trofeo incluido) para colocarlo otra vez.
+- **Tamaño del catálogo extra:** las 2 zonas de pared del data center (`zonas_catalogo_extra`) miden 1.1 m (`pared_izq_1`) y 0.8 m (`pared_izq_2`). Las referencias personales de pared deben medir **≤ 0.8 m de ancho** para caber en cualquiera de las dos, o se amplían las zonas más adelante. El cuadro actual (0.9 m) solo cabe en la de 1.1 m y el neón (1.4 m) en ninguna.
 - **Ancla de los sprites:** el `ancla` de cada orientación en `catalogo.json` es el píxel del punto (0,0,0) del objeto, que es la **esquina mínima de su huella** (no el centro). El `Node2D` de cada objeto va en `world_to_canvas` del centro de la huella (para el `y_sort`) y su `Sprite2D` en `proj(esquina mínima) − proj(centro) − ancla`.
 - **Muros con altura:** los objetos de pared (cuadro z 1.25–1.95 m, neón z 1.95–2.45 m, en `altura_m` del catálogo) ocupan en el muro su tramo × su altura. Las zonas prohibidas (`tramos_prohibidos_pared` en `data/rooms/oficina.json`) también tienen tramo y altura, y solo chocan si se enciman en los dos:
   - pared derecha: ventanas x 4.0–5.9 y 6.5–8.4 (z 1.0–2.5); racks x 0.8–2.5 (z 0–2.05);
@@ -59,10 +78,14 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
   Por eso el neón cabe sobre el escritorio. Dos objetos del mismo muro siguen la misma regla (un neón puede ir encima de un cuadro).
 
 ## 8. Estado (actualiza esta sección en cada PR grande)
-- **v0.3.1 (en `main`):** garage personalizable, dashboard jugable con 3 etapas (oficina y data center usan el garage como cuarto temporal), ajustes, balance de la etapa 1, exportación Android/Windows, capas recortadas.
-- **Hecho (en `develop`):** elegir personaje (Alex/Alexa) + textos con género + CEO Briseida (PR #10).
-- **En revisión:** oficina (Scale-up) + tienda y decoración con colocación libre (PR #11). Mientras no exista el data center, la etapa 3 usa la oficina como cuarto temporal.
-- **Pendiente:** data center (etapa 3) y su catálogo personal, balance fino de etapas 2 y 3, audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
+- **v0.4.0 (en `main`, tag `v0.4.0`):** todo lo de v0.3.1 (garage personalizable, dashboard jugable con 3 etapas, ajustes, balance de la etapa 1, exportación Android/Windows, capas recortadas) más:
+  - elegir personaje (Alex/Alexa), textos con género y CEO Briseida (PR #10);
+  - oficina de Scale-up con piso propio y un rack por servidor; mientras no exista el data center, la etapa 3 usa la oficina como cuarto temporal (PR #11);
+  - tienda y decoración con colocación libre, muros con zonas prohibidas con altura y letrero de neón con el nombre de la empresa (PR #11);
+  - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
+  - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
+- **v0.5.0 (en `develop`, por llegar a `main`; PR #13):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
+- **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retratos de Briseida y BYTE.
 
 ## 9. Cómo trabajar
 1. `git checkout develop && git pull` → crea `feature/<tu-tarea>`.

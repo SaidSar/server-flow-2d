@@ -5,7 +5,8 @@ extends Node
 ## Las reglas viven en DecorLayout (dónde cabe) y DecorShop (monedas e inventario).
 ## Dibujo: cada objeto es un Node2D en world_to_canvas del centro de su huella; su Sprite2D va en
 ## proj(esquina mínima) − proj(centro) − ancla, así el y-sort usa el centro y el sprite cae en su
-## lugar. Piso → YSort (con la mesa y los racks), tapete → Rugs, pared → WallDecor.
+## lugar. Piso → YSort (con la mesa y los racks), tapete → Rugs, pared → WallDecor. En el data center,
+## lo de piso delante del vidrio va en RackBay: se ordena con los racks y queda encima del vidrio.
 ## PC: el fantasma sigue al mouse y un clic coloca. Celular: el toque mueve el fantasma y se confirma
 ## con "Colocar" (para no colocar por accidente).
 
@@ -34,6 +35,8 @@ var _layers: Node2D
 var _wall_layer: Node2D
 var _rug_layer: Node2D
 var _ysort: Node2D
+## Y-sort de lo que está delante de la partición de vidrio (null si el cuarto no tiene).
+var _bay: Node2D
 ## Huellas y marca de selección: arriba de los tapetes (piso) y de la decoración de pared.
 var _floor_marks: Node2D
 var _wall_marks: Node2D
@@ -64,6 +67,7 @@ func setup(room: RoomBase) -> void:
 	_wall_layer = room.get_node("%WallDecor")
 	_rug_layer = room.get_node("%Rugs")
 	_ysort = room.get_node("%YSort")
+	_bay = room.get_node_or_null("%RackBay") as Node2D
 	_floor_marks = _add_marks_layer("FloorMarks", _rug_layer)
 	_wall_marks = _add_marks_layer("WallMarks", _wall_layer)
 	_shop_panel = room.get_node("%ShopPanel")
@@ -81,6 +85,9 @@ func setup(room: RoomBase) -> void:
 	_toolbar.done_pressed.connect(deselect)
 	GameState.decor_changed.connect(_rebuild)
 	GameState.changed.connect(_rebuild)
+	# Al llegar al cuarto de una etapa nueva, también recupera partidas guardadas antes de este arreglo.
+	if _room_data.has_decor():
+		GameState.collect_decor_from_other_rooms(room_id)
 	_rebuild()
 
 
@@ -454,7 +461,7 @@ func _pick(screen_position: Vector2) -> int:
 ## pared y al final los tapetes.
 func _pick_priority(index: int) -> float:
 	var node := _nodes[index]
-	if node.get_parent() == _ysort:
+	if node.get_parent() == _ysort or node.get_parent() == _bay:
 		return 100000.0 + node.position.y
 	return 50000.0 + node.position.y if node.get_parent() == _wall_layer else node.position.y
 
@@ -499,6 +506,11 @@ func _layout_item(item: Node2D, decor: DecorData, orientation_id: StringName, po
 	var projection := _room_data.projection
 	var orientation := decor.orientations[orientation_id]
 	var center := _layout().get_center(decor, orientation_id, position)
+	if not decor.is_wall() and decor.kind != DecorData.KIND_RUG:
+		# El fantasma puede cruzar de un lado al otro del vidrio.
+		var container := _bay if _bay != null and center.x > _room_data.partition_x else _ysort
+		if item.get_parent() != container:
+			item.reparent(container, false)
 	item.position = projection.world_to_canvas(center.x, center.y)
 	var sprite := item.get_child(0) as Sprite2D
 	sprite.texture = orientation.load_texture()

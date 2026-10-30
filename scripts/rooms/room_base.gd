@@ -4,7 +4,9 @@ extends Node2D
 ## offset (Customization.apply_layer) dentro de Layers (escala 0.5). Cada cuarto hereda esta escena,
 ## asigna sus texturas y lee de data/rooms/<room_id>.json (RoomData) su lienzo, los sprites que
 ## reutiliza del garage con su desplazamiento y, si admite decoración, su proyección.
-## Los racks y la mesa con el avatar van en YSort, ordenados con la decoración de piso.
+## Los racks y la mesa con el avatar van en YSort, ordenados con la decoración de piso. Hay un rack
+## por hueco rack_N del JSON (2 en la oficina, 9 en el data center); si la escena tiene un nodo
+## RackBay, los racks van ahí (el bay del data center se dibuja sobre el vidrio).
 ## Clic en la PC → zoom al monitor → dashboard.
 
 ## Zoom máximo del cuarto completo; los cuartos grandes se alejan para caber en pantalla.
@@ -17,8 +19,6 @@ const CAMERA_PAN_SECONDS := 0.35
 const DASHBOARD_FADE_SECONDS := 0.15
 ## Alto aproximado de la barra de decoración: la cámara sube la mitad para que no tape el piso.
 const DECOR_TOOLBAR_HEIGHT := 200.0
-## Hueco de cada rack en reutilizados_del_garage / ysort_m; rack i = servidor web i.
-const RACK_SLOTS: Array[StringName] = [&"rack_1", &"rack_2"]
 ## Hueco de la mesa con el avatar en ysort_m.
 const DESK_SLOT := &"mesa"
 
@@ -44,7 +44,9 @@ const DESK_SLOT := &"mesa"
 var room_data: RoomData
 ## Capa personalizable → sprite que la dibuja.
 var _layer_sprites: Dictionary[StringName, Sprite2D] = {}
-var _rack_saturated: Array[bool] = [false, false]
+## Hueco de cada rack en reutilizados_del_garage / ysort_m, en el mismo orden que _racks.
+var _rack_slots: Array[StringName] = []
+var _rack_saturated: Array[bool] = []
 var _room_zoom := Vector2.ONE * CAMERA_MAX_ZOOM_ROOM
 var _pc_enabled := true
 var _camera_tween: Tween
@@ -62,6 +64,7 @@ func _ready() -> void:
 		&"puerta": %Door as Sprite2D,
 		&"mesa": %Desk as Sprite2D,
 	}
+	_build_racks()
 	_place_ysort_holders()
 
 	for layer: StringName in _layer_sprites:
@@ -105,10 +108,39 @@ func get_layers() -> Node2D:
 	return _layers
 
 
+func get_rack_sprites() -> Array[Sprite2D]:
+	return _racks
+
+
+func get_rack_slots() -> Array[StringName]:
+	return _rack_slots
+
+
 ## Abre la tienda de decoración (si la etapa y la fase lo permiten).
 func open_shop() -> void:
 	if _pc_enabled and DecorShop.is_open():
 		_decor_placer.open_shop()
+
+
+## Los dos racks de la escena base sirven a los primeros huecos; los demás se crean aquí.
+func _build_racks() -> void:
+	_rack_slots = room_data.get_rack_slots()
+	var ysort := _racks[0].get_parent().get_parent()
+	for i in range(_racks.size(), _rack_slots.size()):
+		var holder := Node2D.new()
+		holder.name = "Rack%dHolder" % (i + 1)
+		var sprite := Sprite2D.new()
+		sprite.name = "Rack%d" % (i + 1)
+		sprite.centered = false
+		holder.add_child(sprite)
+		ysort.add_child(holder)
+		_racks.append(sprite)
+	var bay := get_node_or_null("%RackBay") as Node2D
+	if bay != null:
+		for sprite: Sprite2D in _racks:
+			sprite.get_parent().reparent(bay, false)
+	_rack_saturated.resize(_racks.size())
+	_rack_saturated.fill(false)
 
 
 ## La mesa con el avatar y los racks se ordenan con la decoración por el centro de su huella.
@@ -117,8 +149,9 @@ func _place_ysort_holders() -> void:
 	_workstation.position = room_data.get_ysort_position(DESK_SLOT)
 	for i in _racks.size():
 		var holder := _racks[i].get_parent() as Node2D
-		holder.position = room_data.get_ysort_position(RACK_SLOTS[i])
-		holder.visible = i == 0 or room_data.reuses(RACK_SLOTS[i])
+		var slot := _rack_slots[i] if i < _rack_slots.size() else &""
+		holder.position = room_data.get_ysort_position(slot)
+		holder.visible = i == 0 or room_data.reuses(slot)
 
 
 func _apply_color(layer: StringName, option_id: StringName) -> void:
@@ -136,15 +169,16 @@ func _holder_position(sprite: Sprite2D) -> Vector2:
 	return Vector2.ZERO if parent == _layers else parent.position
 
 
-## Cada rack muestra si su servidor web está saturado.
+## Cada rack muestra si su servidor web está saturado (rack_id → servidor en el JSON del cuarto).
 func _refresh_racks(force: bool = false) -> void:
 	for i in _racks.size():
-		var saturated := Simulation.is_server_saturated(i)
+		var slot := _rack_slots[i] if i < _rack_slots.size() else &""
+		var saturated := Simulation.is_server_saturated(room_data.get_rack_server(slot))
 		if not force and saturated == _rack_saturated[i]:
 			continue
 		_rack_saturated[i] = saturated
 		var texture := rack_saturated_texture if saturated else rack_ok_texture
-		Customization.apply_layer(_racks[i], texture, room_data.get_reuse_offset(RACK_SLOTS[i]) - _holder_position(_racks[i]))
+		Customization.apply_layer(_racks[i], texture, room_data.get_reuse_offset(slot) - _holder_position(_racks[i]))
 
 
 func _on_simulation_tick(_snapshot: SimSnapshot) -> void:

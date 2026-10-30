@@ -11,7 +11,7 @@ const CAUSE_EXPLANATIONS := {
 	&"net": "El ancho de banda se saturó: los paquetes hicieron fila.",
 	&"cpu": "El procesador no alcanzó: cada petición tardó más (latencia).",
 	&"db": "La base de datos fue el cuello de botella. La caché acelera las lecturas frecuentes.",
-	&"ddos": "Tráfico malicioso consumió tus recursos. El firewall lo bloquea, pero agrega algo de latencia.",
+	&"ddos": "Un ataque DDoS (denegación de servicio distribuida): muchos equipos mandan peticiones basura a la vez para saturar tus servidores y que los usuarios reales no puedan entrar. El firewall revisa cada paquete y descarta el tráfico malicioso antes de que llegue a los servidores, a cambio de un poco de latencia.",
 }
 const CAUSE_TITLES := {
 	&"ram": "RAM",

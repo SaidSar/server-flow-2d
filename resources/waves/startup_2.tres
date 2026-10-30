@@ -7,5 +7,4 @@ script = ExtResource("1_wave")
 duration_s = 70.0
 ramp = Vector2(1.4, 1.9)
 spikes = Array[Vector3]([Vector3(35, 12, 0.6)])
-ddos = Array[Vector3]([])
 tutorial_text = "Hoy lanzamos la app: viene un pico de tráfico a mitad de la oleada. Revisa qué barra se pone amarilla primero."

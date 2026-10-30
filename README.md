@@ -7,7 +7,7 @@ Contexto y decisiones del proyecto: [docs/CONTEXTO.md](docs/CONTEXTO.md) · Regl
 Simulador *tycoon* 2D en el que eres el **SysAdmin** de una startup y tu trabajo es mantener sus servidores en pie mientras la empresa crece.
 
 - **Vista principal:** un cuarto isométrico con arte pre-renderizado en Blender. Al hacer clic en la PC, la cámara hace zoom al monitor y entras al **panel de control** (dashboard), donde se juega.
-- **Etapas:** Startup (garage) → Scale-up (oficina) → Enterprise (data center), con 5 oleadas cada una. Existen el garage y la oficina; el data center todavía no.
+- **Etapas:** Startup (garage) → Scale-up (oficina) → Enterprise (data center), con 5 oleadas cada una. Los tres cuartos existen; en el data center hay ataques DDoS que se frenan con el Firewall.
   - El HUD (cuarto y dashboard) siempre muestra "{empresa} · {etapa}". Si la etapa todavía no tiene su cuarto (`StageData.room_ready = false`), se usa el último cuarto listo de una etapa anterior y el HUD lo indica ("Cuarto temporal: oficina").
 - **Tienda de decoración** (solo estética, desde Scale-up y solo entre oleadas): botón "Tienda" del cuarto o del post-mortem. Se compra, se coloca en una cuadrícula de 0.5 m (huella verde si cabe, roja si choca), se gira, se guarda en el inventario o se vende al 50 %. En PC se coloca con clic (R gira, Esc cancela); en el celular se toca para mover y se confirma con "Colocar".
 - **Plataformas:** Windows y Android, en horizontal.
@@ -76,6 +76,9 @@ godot --headless --path . -s res://tests/test_simulation.gd -- --save-path=user:
 # Pruebas de la tienda y la decoración (colocación, monedas, inventario, guardado)
 godot --headless --path . -s res://tests/test_decor.gd -- --save-path=user://test_decor.cfg
 
+# Pruebas del DDoS y del Firewall de la etapa 3 (semilla fija)
+godot --headless --path . -s res://tests/test_ddos.gd -- --save-path=user://test_ddos.cfg
+
 # Regenera resources/customization/customization_catalog.tres después de editar paleta.json
 godot --headless --path . -s res://scripts/tools/build_customization_catalog.gd
 ```
@@ -129,7 +132,7 @@ adb install -r build/android/server-flow-2d-debug.apk
 | `scripts/` | GDScript. `autoload/` contiene los singletons globales. |
 | `source_art/` | Archivos fuente de Blender y scripts. Godot la ignora (`.gdignore`). |
 | `docs/` | Documentación del proyecto. |
-| `tests/` | Pruebas automáticas (`smoke_test.gd`, `test_simulation.gd`, `test_decor.gd`). |
+| `tests/` | Pruebas automáticas (`smoke_test.gd`, `test_simulation.gd`, `test_decor.gd`, `test_ddos.gd`). |
 
 ### Autoloads
 

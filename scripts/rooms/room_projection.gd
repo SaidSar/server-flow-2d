@@ -14,7 +14,8 @@ var ex := Vector2.ZERO
 var ey := Vector2.ZERO
 var ez := Vector2.ZERO
 var cell_m := 0.5
-## Piso en metros (0..9 × 0..9 en la oficina).
+## Piso en metros, leído de "cuadricula" en el JSON de cada cuarto (0..9 × 0..9 en la oficina,
+## 0..12 × 0..12 en el data center).
 var bounds := Rect2()
 ## Zonas donde no se puede poner decoración (escritorio, puerta, racks...).
 var occupied: Array[Rect2] = []
@@ -27,8 +28,10 @@ static func from_dict(projection: Dictionary, grid: Dictionary) -> RoomProjectio
 	result.ey = parse_vector(projection.get("ey"))
 	result.ez = parse_vector(projection.get("ez"))
 	result.cell_m = float(grid.get("celda_m", 0.5))
-	var range_x := parse_vector(grid.get("x", [0, 9]))
-	var range_y := parse_vector(grid.get("y", [0, 9]))
+	if not grid.has("x") or not grid.has("y"):
+		push_error("La cuadrícula del cuarto no trae su tamaño (cuadricula.x / cuadricula.y).")
+	var range_x := parse_vector(grid.get("x"))
+	var range_y := parse_vector(grid.get("y"))
 	result.bounds = Rect2(range_x.x, range_y.x, range_x.y - range_x.x, range_y.y - range_y.x)
 	for zone: Variant in grid.get("ocupado_m", []):
 		if zone is Dictionary:

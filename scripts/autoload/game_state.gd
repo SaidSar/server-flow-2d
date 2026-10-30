@@ -140,6 +140,22 @@ func count_in_inventory(decor_id: StringName) -> int:
 	return decor_inventory.count(decor_id)
 
 
+## El inventario es del jugador, no del cuarto: lo colocado en otros cuartos (a los que ya no se
+## regresa al pasar de etapa) vuelve al inventario. Devuelve cuántos objetos movió.
+func collect_decor_from_other_rooms(current_room: StringName) -> int:
+	var moved := 0
+	for room_id: StringName in decor_placed.keys():
+		if room_id == current_room:
+			continue
+		for entry: Dictionary in decor_placed[room_id]:
+			decor_inventory.append(StringName(str(entry.get("id", ""))))
+			moved += 1
+		decor_placed.erase(room_id)
+	if moved > 0:
+		decor_changed.emit()
+	return moved
+
+
 ## Cuántos tiene el jugador entre el inventario y lo colocado en todos los cuartos.
 func count_owned(decor_id: StringName) -> int:
 	var count := count_in_inventory(decor_id)

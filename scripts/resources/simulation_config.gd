@@ -58,7 +58,7 @@ extends Resource
 @export var sla_k := 8.0
 
 @export_group("Seguridad y respaldos")
-@export_range(0.0, 1.0) var firewall_block_ratio := 0.85
+## Latencia que suma el Firewall encendido. Lo que filtra está en cada etapa (firewall_filter_pct).
 @export var firewall_latency_ms := 15.0
 @export_range(0.0, 1.0) var backup_free_ratio := 0.4
 @export var backup_cooldown_s := 20.0
