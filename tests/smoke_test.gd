@@ -2,7 +2,8 @@ extends SceneTree
 ## Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana:
 ## título → personaje (Alexa) → nombres → garage → pincel → PC → dashboard (ajustes, ficha de mejora,
 ## comprar) → post-mortem → siguiente oleada → game over → reintentar → cuarto (ajustes) → Salir
-## → continuar → meta no alcanzada → repetir etapa → victoria → diálogo de Briseida (con Alexa y con Alex).
+## → continuar → meta no alcanzada → repetir etapa → victoria → diálogo de Briseida (con Alexa y con Alex)
+## → oficina y tienda → data center (9 racks, placa de Firewall, comprar Firewall, pico de DDoS).
 ## Uso: godot --headless --path . -s res://tests/smoke_test.gd -- --save-path=user://test_smoke.cfg
 ## Exige una partida alterna (SaveSystem --save-path) y falla si se toca la partida real.
 ## Nota: con -s los autoloads se registran después de compilar este script, así que aquí
@@ -15,6 +16,10 @@ const PHASE_GAME_OVER := 4
 const PHASE_STAGE_FAILED := 5
 ## Tope de pasos para terminar una oleada en la prueba.
 const MAX_WAVE_STEPS := 5000
+## Semilla del recorrido del data center (el mismo pico con y sin Firewall).
+const DDOS_SEED := 20261030
+## Uso de CPU/RAM/red que deja el tráfico legítimo en el data center de prueba (sin ataque).
+const DDOS_LEGIT_UTILIZATION := 0.45
 const SCENES: Array[String] = [
 	Paths.TITLE_MENU,
 	Paths.LOADING_SCREEN,
@@ -67,13 +72,14 @@ func _run() -> void:
 	_check(customization.call("get_options", &"pared_der").size() == 10, "10 colores de pared derecha")
 	_check(customization.call("get_options", &"piso_garage").size() == 3, "3 pisos en el garage")
 	_check(customization.call("get_options", &"piso_oficina").size() == 3, "3 pisos en la oficina")
+	_check(customization.call("get_options", &"piso_data_center").size() == 3, "3 pisos en el data center")
 	_check(customization.call("get_options", &"puerta").size() == 6, "6 puertas")
 	_check(customization.call("get_options", &"mesa").size() == 3, "3 mesas")
 	for room_id: StringName in Paths.ROOM_IDS:
 		for layer: StringName in customization.call("get_room_layers", room_id):
 			for option: CustomizationOption in customization.call("get_options", layer):
 				var path: String = customization.call("get_layer_texture_path", room_id, layer, option.id)
-				# La puerta y la mesa de la oficina son las del garage.
+				# La puerta y la mesa de la oficina y del data center son las del garage.
 				if room_id != &"garage" and (layer == &"puerta" or layer == &"mesa"):
 					path = customization.call("get_layer_texture_path", &"garage", layer, option.id)
 				_check(ResourceLoader.exists(path), "existe %s" % path)
@@ -82,6 +88,7 @@ func _run() -> void:
 	game_state.call("start_new_game", "Prueba", "TestCorp")
 	_check(game_state.get("colors")[&"piso_garage"] == &"concreto_calido", "piso del garage por defecto")
 	_check(game_state.get("colors")[&"piso_oficina"] == &"laminado_claro", "piso de la oficina por defecto")
+	_check(game_state.get("colors")[&"piso_data_center"] == &"tecnico_gris", "piso del data center por defecto")
 	var migrated: Dictionary = customization.call("sanitize_colors", {&"piso": &"concreto_oscuro"})
 	_check(migrated[&"piso_garage"] == &"concreto_oscuro", "el piso de una partida vieja pasa al garage")
 	_check(game_state.get("colors")[&"puerta"] == &"madera_natural", "puerta por defecto")
@@ -351,14 +358,15 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	game_state.call("_set_avatar", &"alex")
 	await _test_victory_and_investment(simulation, "el mejor SysAdmin")
 	await _test_office_and_shop(game_state, simulation)
+	await _test_data_center(game_state, simulation)
 	await _test_stage_name_in_huds(simulation)
 
 
-## El HUD del cuarto y el del dashboard muestran la etapa actual. Startup y Scale-up tienen su cuarto;
-## la etapa 3 (sin cuarto propio) usa la oficina y avisa que es un cuarto temporal.
+## El HUD del cuarto y el del dashboard muestran la etapa actual. Cada etapa tiene su propio cuarto
+## (garage, oficina y data center), así que ninguna avisa que es un cuarto temporal.
 func _test_stage_name_in_huds(simulation: Node) -> void:
 	var scene_router: Node = root.get_node("SceneRouter")
-	var rooms := {"startup": &"Garage", "scale_up": &"Oficina", "enterprise": &"Oficina"}
+	var rooms := {"startup": &"Garage", "scale_up": &"Oficina", "enterprise": &"DataCenter"}
 	for stage_id: String in rooms:
 		simulation.call("load_checkpoint", {"stage": stage_id, "wave": 1, "coins": 100})
 		var stage_name: String = simulation.get("stage").get("display_name")
@@ -367,10 +375,7 @@ func _test_stage_name_in_huds(simulation: Node) -> void:
 		var hud: Node = current_scene.get_node("%Hud")
 		var room_title := (hud.get_node("%TitleLabel") as Label).text
 		var temporary := hud.get_node("%TemporaryRoomLabel") as Label
-		if stage_id != "enterprise":
-			_check(not temporary.visible, "%s: es su propio cuarto, sin aviso de cuarto temporal" % stage_name)
-		else:
-			_check(temporary.visible and temporary.text == "Cuarto temporal: oficina", "%s: aviso de cuarto temporal (%s)" % [stage_name, temporary.text])
+		_check(not temporary.visible, "%s: es su propio cuarto, sin aviso de cuarto temporal" % stage_name)
 
 		change_scene_to_file(Paths.DASHBOARD)
 		_check(await _wait_for_scene(&"Dashboard"), "%s: abre el dashboard" % stage_name)
@@ -628,6 +633,118 @@ func _test_office_and_shop(game_state: Node, simulation: Node) -> void:
 	(toolbar.get_node("%SellButton") as Button).pressed.emit()
 	_check(placed.is_empty() and simulation.get("coins") == 1700, "Vender devuelve el 50 %% (%d)" % simulation.get("coins"))
 	_check(not toolbar.visible and placer.call("get_mode") == 0, "después de vender no queda nada seleccionado")
+
+
+## Etapa 3: el data center con los 9 racks y la placa de Firewall en la posición del JSON, cada rack
+## mostrando su servidor; la mejora Firewall en la consola (comprarla enciende la placa) y un pico de
+## DDoS: el SLA cae menos con el Firewall que sin él, y el monitor pinta los paquetes maliciosos.
+func _test_data_center(game_state: Node, simulation: Node) -> void:
+	simulation.call("set_seed", DDOS_SEED)
+	simulation.call("load_checkpoint", {"stage": "enterprise", "wave": 1, "coins": 5000})
+	change_scene_to_file(root.get_node("SceneRouter").call("get_current_room_path"))
+	_check(await _wait_for_scene(&"DataCenter"), "Enterprise abre el data center")
+	var room := current_scene
+	await process_frame
+
+	var offsets: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.LAYER_OFFSETS_JSON))["capas"]
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.ROOM_DATA % "data_center"))
+	var reuse: Dictionary = data["reutilizados_del_garage"]
+	var layers: Dictionary = data["capas_offsets"]
+	var projection := RoomData.load_room(&"data_center").projection
+	_check(_canvas_position(room.get_node("%Floor")) == _offset(layers["data_center/piso/tecnico_gris"]), "data center: piso propio en su offset")
+	_check(_canvas_position(room.get_node("%WallRight")) == _offset(layers["data_center/pared_der/blanco_hueso"]), "data center: pared derecha en su offset")
+	_check(_canvas_position(room.get_node("%Glass")) == _offset(layers["data_center/vidrio/vidrio"]), "data center: vidrio en su offset")
+	var avatar_id := String(game_state.get("avatar_id"))
+	_check_layer_offset(room.get_node("%Avatar").get_node("%Sprite"), offsets, "data center: avatar", _vec(reuse[avatar_id + "/*"]))
+	_check_layer_offset(room.get_node("%Desk"), offsets, "data center: mesa", _vec(reuse["mesa/*"]))
+	_check_layer_offset(room.get_node("%Door"), offsets, "data center: puerta", _vec(reuse["puerta/*"]))
+
+	# Bay de 9 racks: cada uno en su (dx, dy) del JSON, en el bay y ordenado por el centro de su huella.
+	var racks: Array = room.call("get_rack_sprites")
+	var slots: Array = room.call("get_rack_slots")
+	_check(racks.size() == 9 and slots.size() == 9, "data center: 9 racks (%d)" % racks.size())
+	for i in racks.size():
+		var sprite: Sprite2D = racks[i]
+		var slot := "rack_%d" % (i + 1)
+		var holder := sprite.get_parent() as Node2D
+		_check(slots[i] == StringName(slot), "data center: el rack %d es %s (%s)" % [i + 1, slot, slots[i]])
+		_check(holder.visible and holder.get_parent() == room.get_node("%RackBay"), "data center: %s visible en el bay" % slot)
+		_check_layer_offset(sprite, offsets, "data center: " + slot, _vec(reuse["%s (fijos/rack_ok|rack_saturado)" % slot]))
+		var center: Array = data["ysort_m"][slot]
+		_check(holder.position.is_equal_approx(projection.world_to_canvas(float(center[0]), float(center[1]))), "data center: %s ordenado por su huella" % slot)
+
+	var plate: Sprite2D = room.get_node("%FirewallPlate")
+	_check(plate.texture.resource_path.ends_with("firewall/apagado.png"), "data center: placa de Firewall apagada sin comprarla")
+	_check(_canvas_position(plate) == _offset(layers["data_center/firewall/apagado"]), "data center: placa de Firewall en su offset")
+
+	# Con un solo servidor saturado solo se pone rojo su rack (rack_1 → servidor 1).
+	simulation.call("start_wave")
+	for i in 5:
+		simulation.call("step")
+	_check((racks[0] as Sprite2D).texture.resource_path.ends_with("rack_saturado.png"), "data center: rack 1 rojo con su servidor saturado")
+	var others_ok := true
+	for i in range(1, racks.size()):
+		others_ok = others_ok and (racks[i] as Sprite2D).texture.resource_path.ends_with("rack_ok.png")
+	_check(others_ok, "data center: los racks sin servidor siguen normales")
+
+	# Consola: comprar el Firewall en el dashboard y medir un pico con él encendido.
+	simulation.call("set_seed", DDOS_SEED)
+	simulation.call("load_checkpoint", {"stage": "enterprise", "wave": 1, "coins": 5000})
+	change_scene_to_file(Paths.DASHBOARD)
+	_check(await _wait_for_scene(&"Dashboard"), "data center: abre el dashboard")
+	var dashboard := current_scene
+	var firewall_button: Button = dashboard.call("get_upgrade_button", &"firewall")
+	_check(firewall_button != null and not firewall_button.disabled, "la mejora Firewall se puede comprar en la etapa 3")
+	if firewall_button != null:
+		firewall_button.pressed.emit()
+	_check(simulation.call("is_firewall_active") and simulation.get("coins") < 5000, "comprar el Firewall en la consola lo deja encendido")
+	_check((dashboard.get_node("%FirewallCheck") as CheckButton).visible, "aparece el interruptor del Firewall")
+	var with_firewall: float = await _measure_spike(simulation, dashboard.get_node("%TrafficMonitor"))
+
+	change_scene_to_file(root.get_node("SceneRouter").call("get_current_room_path"))
+	_check(await _wait_for_scene(&"DataCenter"), "data center: regresa al cuarto")
+	plate = current_scene.get_node("%FirewallPlate")
+	_check(plate.texture.resource_path.ends_with("firewall/activo.png"), "data center: la placa se enciende con el Firewall")
+	_check(_canvas_position(plate) == _offset(layers["data_center/firewall/activo"]), "data center: placa encendida en su offset")
+
+	# El mismo pico sin Firewall.
+	simulation.call("set_seed", DDOS_SEED)
+	simulation.call("load_checkpoint", {"stage": "enterprise", "wave": 1, "coins": 5000})
+	simulation.call("start_wave")
+	var without_firewall: float = await _measure_spike(simulation)
+	_check(with_firewall < without_firewall, "el SLA cae menos con Firewall (%.1f puntos) que sin él (%.1f)" % [with_firewall, without_firewall])
+	simulation.call("load_checkpoint", {"stage": "enterprise", "wave": 1, "coins": 5000})
+
+
+## Corre la oleada en curso a través de su primer pico de DDoS con servidores dimensionados para el
+## tráfico legítimo. Devuelve cuántos puntos bajó el SLA durante el pico. Con `monitor`, en la cima del
+## pico deja correr el dashboard un momento y revisa que haya paquetes morados.
+func _measure_spike(simulation: Node, monitor: Node = null) -> float:
+	var spike: Vector3 = (simulation.get("ddos_spikes") as Array)[0]
+	var stage: StageData = simulation.get("stage")
+	var wave: WaveData = simulation.get("wave")
+	var config: SimulationConfig = simulation.get("config")
+	var legit_rps := stage.base_rps * wave.traffic_multiplier(spike.x + spike.y)
+	for server: ServerState in simulation.get("servers"):
+		server.cpu_cap = legit_rps / DDOS_LEGIT_UTILIZATION
+		server.net_cap = legit_rps / DDOS_LEGIT_UTILIZATION
+		server.ram_slots = legit_rps * config.service_time_s / DDOS_LEGIT_UTILIZATION
+	(simulation.get("db") as DbState).iops = 1e6
+	while simulation.get("phase") == PHASE_RUNNING and float(simulation.get("wave_time")) < spike.x - 0.5:
+		simulation.call("step")
+	var sla_before: float = simulation.get("sla")
+	if monitor != null:
+		while simulation.get("phase") == PHASE_RUNNING and float(simulation.get("wave_time")) < spike.x + spike.y * 0.4:
+			simulation.call("step")
+		await create_timer(0.5).timeout
+		_check(monitor.call("get_packet_count_by_color", DashboardColors.MALICIOUS) > 0, "el monitor pinta paquetes morados (DDoS)")
+	while simulation.get("phase") == PHASE_RUNNING and float(simulation.get("wave_time")) < spike.x + spike.y:
+		simulation.call("step")
+	return sla_before - float(simulation.get("sla"))
+
+
+func _offset(entry: Dictionary) -> Vector2:
+	return Vector2(float(entry["x"]), float(entry["y"]))
 
 
 ## El panel de la Tienda mide como máximo 560 px (o el 30 % de la pantalla, lo que sea menor):

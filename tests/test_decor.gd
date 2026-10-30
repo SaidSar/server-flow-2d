@@ -1,5 +1,5 @@
 extends SceneTree
-## Pruebas de la tienda y la decoración de la oficina: reglas de colocación (DecorLayout), monedas,
+## Pruebas de la tienda y la decoración de la oficina y del data center: reglas de colocación (DecorLayout), monedas,
 ## inventario, guardado y cuándo abre la tienda.
 ## Uso: godot --headless --path . -s res://tests/test_decor.gd -- --save-path=user://test_decor.cfg
 ## Nota: con -s los autoloads se registran después de compilar este script; DecorShop depende de
@@ -29,6 +29,7 @@ func _run() -> void:
 
 	_test_projection()
 	_test_layout()
+	_test_room_sizes()
 	_test_shop_availability(game_state, simulation)
 	await _test_buy_place_cancel(game_state, simulation)
 	_test_save_load(game_state, save_system, simulation)
@@ -40,6 +41,39 @@ func _run() -> void:
 	else:
 		printerr("TEST DECOR FALLÓ:\n- " + "\n- ".join(_failures))
 		quit(1)
+
+
+## Cada cuarto lee el tamaño de su cuadrícula de su JSON: la oficina mide 9×9 m y el data center
+## 12×12 m, con todo el lado de los servidores (detrás del vidrio) y sus muros sin decoración.
+func _test_room_sizes() -> void:
+	var office := RoomData.load_room(&"oficina")
+	var data_center := RoomData.load_room(&"data_center")
+	_check(office.projection.bounds == Rect2(0, 0, 9, 9), "la oficina mide 9×9 m (%s)" % office.projection.bounds)
+	_check(data_center.has_decor() and data_center.projection.bounds == Rect2(0, 0, 12, 12), "el data center mide 12×12 m (%s)" % data_center.projection.bounds)
+	_check(is_equal_approx(data_center.projection.cell_m, 0.5), "el data center usa la cuadrícula de 0.5 m")
+
+	var sofa := DecorData.find(&"sillon")
+	var picture := DecorData.find(&"cuadro")
+	var in_office := DecorLayout.new(office)
+	var in_data_center := DecorLayout.new(data_center)
+	_check(not in_office.can_place(sofa, &"a", Vector2(3.0, 10.0)), "y = 10 m queda fuera de la oficina")
+	_check(in_data_center.can_place(sofa, &"a", Vector2(3.0, 10.0)), "y = 10 m sí cabe en el data center")
+	_check(not in_data_center.can_place(sofa, &"a", Vector2(7.0, 2.0)), "data center: no se decora detrás del vidrio")
+	_check(not in_data_center.can_place(sofa, &"a", Vector2(4.0, 1.0)), "data center: no se encima con el vidrio")
+	_check(not in_data_center.can_place(sofa, &"a", Vector2(7.5, 8.0)), "data center: no sobre el bay de racks")
+	_check(not in_data_center.can_place(sofa, &"a", Vector2(0.5, 1.5)), "data center: no sobre el escritorio")
+	var on_right := in_data_center.snap_position(picture, &"der", Vector2(3.2, 0.0))
+	_check(on_right.is_equal_approx(Vector2(3.0, 11.95)), "data center: el cuadro se pega al muro derecho en y = 12 (%s)" % on_right)
+	_check(in_data_center.can_place(picture, &"der", on_right), "data center: cuadro en el muro derecho del lado del escritorio")
+	_check(not in_data_center.can_place(picture, &"der", Vector2(7.0, 11.95)), "data center: no se cuelga nada en el muro del bay (placa de Firewall)")
+	_check(not in_data_center.can_place(picture, &"izq", Vector2(0.0, 4.5)), "data center: no sobre la puerta")
+	_check(in_data_center.can_place(picture, &"izq", Vector2(0.0, 9.0)), "data center: el muro izquierdo es más largo que en la oficina")
+
+	# Zonas reservadas para el catálogo de referencias personales (todavía sin objetos).
+	var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Paths.ROOM_DATA % "data_center"))
+	var zones: Array = raw["cuadricula"]["zonas_catalogo_extra"]
+	var kinds := zones.map(func(zone: Dictionary) -> String: return str(zone["tipo"]))
+	_check(zones.size() == 3 and kinds.count("pared") == 2 and kinds.count("piso") == 1, "3 zonas reservadas del catálogo extra (2 de pared y 1 de piso)")
 
 
 func _test_projection() -> void:
