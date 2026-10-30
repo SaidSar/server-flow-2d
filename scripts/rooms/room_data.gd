@@ -22,6 +22,8 @@ var ysort_points: Dictionary[StringName, Vector2] = {}
 ## Muro ("der"/"izq") → zonas prohibidas en el plano del muro: Rect2 con x = a lo largo del muro
 ## y y = altura z (metros). Un objeto de pared choca solo si se encima en las dos.
 var wall_forbidden: Dictionary[StringName, Array] = {}
+## x (metros) de la partición de vidrio; lo que está en x mayor se dibuja delante de ella. < 0 = no hay.
+var partition_x := -1.0
 ## Racks del cuarto en orden ("rack_1", "rack_2"...), sacados de reutilizados_del_garage.
 var rack_slots: Array[StringName] = []
 ## rack_id → índice del servidor web (0 = el primero) que muestra ese rack. Viene de fijos.racks;
@@ -100,6 +102,8 @@ func _parse(data: Dictionary) -> void:
 	rack_slots.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a).naturalnocasecmp_to(String(b)) < 0)
 
 	var fixed: Dictionary = data.get("fijos", {})
+	if fixed.get("vidrio") is Dictionary:
+		partition_x = RoomProjection.parse_vector((fixed["vidrio"] as Dictionary).get("pos_m")).x
 	var racks: Dictionary = fixed.get("racks", {}) if fixed.get("racks") is Dictionary else {}
 	for rack: Variant in racks.get("lista", []):
 		if rack is Dictionary and (rack as Dictionary).has("rack_id"):

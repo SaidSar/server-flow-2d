@@ -193,8 +193,7 @@ meta = {
   "cuadricula": {"celda_m": 0.5, "x": [0, N], "y": [0, N],
                  "ocupado_m": [{"id": "escritorio_y_silla", "x": [0.0, 2.0], "y": [1.0, 3.6]},
                                {"id": "puerta", "x": [0.0, 1.2], "y": [4.3, 5.5]},
-                               {"id": "vidrio", "x": [5.3, 5.5], "y": [0.0, N]},
-                               {"id": "bay_racks", "x": [6.8, 10.0], "y": [6.8, 12.0]}],
+                               {"id": "vidrio", "x": [5.3, 5.5], "y": [0.0, N]}],
                  "zonas_catalogo_extra": [
                      {"id": "piso_1", "tipo": "piso", "x": [2.3, 3.9], "y": [4.3, 5.9], "nota": "piso/tapete frente al escritorio"}
                  ],
@@ -213,12 +212,19 @@ def completar_meta(meta, rack_xs, rack_ys, n):
     """Lo que el juego necesita además de la geometría (antes se completaba a mano en el JSON).
     No usa bpy: tests/ no lo corre, pero se puede revisar aparte con los deltas del JSON."""
     grid = meta["cuadricula"]
-    # Todo el lado de los servidores (detrás del vidrio) no es decorable.
-    grid["ocupado_m"].append({"id": "lado_servidores", "x": [5.3, float(n)], "y": [0.0, float(n)]})
+    # El bay bloquea solo la huella de los racks (0.7 x 0.7 m desde su ancla, ver build_rack): el pasillo
+    # entre el vidrio y los racks sí se decora.
+    rack_size = 0.7
+    grid["ocupado_m"] = [zone for zone in grid["ocupado_m"] if zone["id"] != "bay_racks"]
+    grid["ocupado_m"].append({
+        "id": "bay_racks",
+        "x": [min(rack_xs), round(max(rack_xs) + rack_size, 3)],
+        "y": [min(rack_ys), round(max(rack_ys) + rack_size, 3)],
+    })
     grid["nota"] = (
-        "zonas ocupadas en metros (no se puede colocar decoración ahí). lado_servidores cubre todo el sector "
-        "del bay detrás del vidrio (x >= 5.3): la planta decorable es 5.3 x 12 m. zonas_catalogo_extra reservadas "
-        "para las referencias personales del equipo; sin objetos todavía."
+        "zonas ocupadas en metros (no se puede colocar decoración ahí). bay_racks es el rectángulo justo de los "
+        "9 racks; el pasillo entre el vidrio y los racks sí se decora. zonas_catalogo_extra reservadas para las "
+        "referencias personales del equipo; sin objetos todavía."
     )
 
     # Zonas de pared del catálogo extra: a los lados del escritorio (boceto aprobado), en los huecos
@@ -236,14 +242,14 @@ def completar_meta(meta, rack_xs, rack_ys, n):
         if key.startswith("rack_") and any(v % 8.0 != 0.0 for v in value):
             raise ValueError("%s no cae en múltiplos de 8: %s" % (key, value))
 
-    # Centro de la huella para el y-sort (ancla del rack + (0.3, 0.45), igual que en la oficina).
+    # Centro de la huella para el y-sort con la decoración del pasillo.
     ysort = {"nota": "Centro de la huella (metros) de la mesa con el avatar y de cada rack.", "mesa": [1.0, 2.3]}
     racks = []
     index = 1
     for ry in rack_ys:
         for rx in rack_xs:
             rack_id = "rack_%d" % index
-            ysort[rack_id] = [round(rx + 0.3, 3), round(ry + 0.45, 3)]
+            ysort[rack_id] = [round(rx + rack_size / 2, 3), round(ry + rack_size / 2, 3)]
             racks.append({"rack_id": rack_id, "servidor": index})
             index += 1
     meta["ysort_m"] = ysort
@@ -257,7 +263,7 @@ def completar_meta(meta, rack_xs, rack_ys, n):
     meta["tramos_prohibidos_pared"] = {
         "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura "
         "(metros). der = pared y=12 (eje x), izq = pared x=0 (eje y). Los muros miden 3.2 m.",
-        "der": [{"id": "lado_servidores", "tramo": [5.3, float(n)], "z": [0.0, 3.2]}],
+        "der": [{"id": "bay", "tramo": [5.3, float(n)], "z": [0.0, 3.2]}],
         "izq": [
             {"id": "monitor", "tramo": [1.1, 3.5], "z": [0.75, 1.6]},
             {"id": "puerta", "tramo": [4.3, 5.5], "z": [0.0, 2.15]},

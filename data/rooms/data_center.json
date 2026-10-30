@@ -71,23 +71,12 @@
    {
     "id": "bay_racks",
     "x": [
-     6.8,
-     10.0
+     7.025,
+     9.975
     ],
     "y": [
-     6.8,
-     12.0
-    ]
-   },
-   {
-    "id": "lado_servidores",
-    "x": [
-     5.3,
-     12.0
-    ],
-    "y": [
-     0.0,
-     12.0
+     7.025,
+     11.725
     ]
    }
   ],
@@ -132,7 +121,7 @@
     "nota": "piso/tapete frente al escritorio"
    }
   ],
-  "nota": "zonas ocupadas en metros (no se puede colocar decoración ahí). lado_servidores cubre todo el sector del bay detrás del vidrio (x >= 5.3): la planta decorable es 5.3 x 12 m. zonas_catalogo_extra reservadas para las referencias personales del equipo; sin objetos todavía."
+  "nota": "zonas ocupadas en metros (no se puede colocar decoración ahí). bay_racks es el rectángulo justo de los 9 racks; el pasillo entre el vidrio y los racks sí se decora. zonas_catalogo_extra reservadas para las referencias personales del equipo; sin objetos todavía."
  },
  "reutilizados_del_garage": {
   "nota": "Usar el MISMO sprite del garage y sumar (dx, dy) a su offset del garage (lienzo 2x).",
@@ -447,47 +436,47 @@
    2.3
   ],
   "rack_1": [
-   7.325,
-   7.475
+   7.375,
+   7.375
   ],
   "rack_2": [
-   8.45,
-   7.475
+   8.5,
+   7.375
   ],
   "rack_3": [
-   9.575,
-   7.475
+   9.625,
+   7.375
   ],
   "rack_4": [
-   7.325,
-   9.475
+   7.375,
+   9.375
   ],
   "rack_5": [
-   8.45,
-   9.475
+   8.5,
+   9.375
   ],
   "rack_6": [
-   9.575,
-   9.475
+   9.625,
+   9.375
   ],
   "rack_7": [
-   7.325,
-   11.475
+   7.375,
+   11.375
   ],
   "rack_8": [
-   8.45,
-   11.475
+   8.5,
+   11.375
   ],
   "rack_9": [
-   9.575,
-   11.475
+   9.625,
+   11.375
   ]
  },
  "tramos_prohibidos_pared": {
   "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura (metros). der = pared y=12 (eje x), izq = pared x=0 (eje y). Los muros miden 3.2 m.",
   "der": [
    {
-    "id": "lado_servidores",
+    "id": "bay",
     "tramo": [
      5.3,
      12.0

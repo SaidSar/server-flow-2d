@@ -32,6 +32,7 @@ func _run() -> void:
 	_test_room_sizes()
 	_test_shop_availability(game_state, simulation)
 	await _test_buy_place_cancel(game_state, simulation)
+	await _test_data_center_layers(game_state, simulation)
 	_test_save_load(game_state, save_system, simulation)
 
 	save_system.call("delete_save")
@@ -44,7 +45,7 @@ func _run() -> void:
 
 
 ## Cada cuarto lee el tamaño de su cuadrícula de su JSON: la oficina mide 9×9 m y el data center
-## 12×12 m, con todo el lado de los servidores (detrás del vidrio) y sus muros sin decoración.
+## 12×12 m. En el data center el vidrio y la huella de los racks están ocupados, pero el pasillo no.
 func _test_room_sizes() -> void:
 	var office := RoomData.load_room(&"oficina")
 	var data_center := RoomData.load_room(&"data_center")
@@ -58,7 +59,13 @@ func _test_room_sizes() -> void:
 	var in_data_center := DecorLayout.new(data_center)
 	_check(not in_office.can_place(sofa, &"a", Vector2(3.0, 10.0)), "y = 10 m queda fuera de la oficina")
 	_check(in_data_center.can_place(sofa, &"a", Vector2(3.0, 10.0)), "y = 10 m sí cabe en el data center")
-	_check(not in_data_center.can_place(sofa, &"a", Vector2(7.0, 2.0)), "data center: no se decora detrás del vidrio")
+	_check(in_data_center.can_place(sofa, &"a", Vector2(7.0, 2.0)), "data center: el pasillo del bay se decora (lejos de los racks)")
+	_check(in_data_center.can_place(sofa, &"a", Vector2(5.5, 8.0)), "data center: el pasillo entre el vidrio y los racks se decora")
+	_check(in_data_center.can_place(sofa, &"a", Vector2(10.0, 8.0)), "data center: se decora del otro lado de los racks")
+	_check(not in_data_center.can_place(sofa, &"a", Vector2(6.0, 8.0)), "data center: no se encima con el primer rack")
+	for x: float in [7.025, 8.15, 9.275]:
+		for y: float in [7.025, 9.025, 11.025]:
+			_check(not in_data_center.can_place(DecorData.find(&"planta"), &"a", Vector2(x, y)), "data center: no sobre el rack en (%.3f, %.3f)" % [x, y])
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(4.0, 1.0)), "data center: no se encima con el vidrio")
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(7.5, 8.0)), "data center: no sobre el bay de racks")
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(0.5, 1.5)), "data center: no sobre el escritorio")
@@ -87,6 +94,30 @@ func _test_room_sizes() -> void:
 		for forbidden: Rect2 in data_center.wall_forbidden[RoomProjection.WALL_LEFT]:
 			_check(end <= forbidden.position.x or start >= forbidden.end.x, "zona %s sin encimarse con un tramo prohibido del muro izquierdo" % zone["id"])
 	_check(side_of_desk["antes"] and side_of_desk["despues"], "hay una zona de pared a cada lado del escritorio")
+
+
+## Lo de piso delante del vidrio se dibuja en RackBay (encima del vidrio, ordenado con los racks);
+## lo de atrás, en YSort. Al mover el fantasma cambia de capa.
+func _test_data_center_layers(game_state: Node, simulation: Node) -> void:
+	simulation.call("load_checkpoint", {"stage": "enterprise", "wave": 1, "coins": 5000})
+	var room := (load("res://scenes/rooms/data_center.tscn") as PackedScene).instantiate()
+	root.add_child(room)
+	await process_frame
+	var placer: Node = room.get_node("%DecorPlacer")
+	game_state.call("place_decor", &"data_center", {"id": "sillon", "ori": "a", "x": 3.0, "y": 8.0})
+	game_state.call("place_decor", &"data_center", {"id": "sillon", "ori": "a", "x": 5.5, "y": 8.0})
+	_check((placer.call("get_item_node", 0) as Node2D).get_parent() == room.get_node("%YSort"), "detrás del vidrio se dibuja en YSort")
+	_check((placer.call("get_item_node", 1) as Node2D).get_parent() == room.get_node("%RackBay"), "en el pasillo se dibuja en RackBay")
+	placer.call("start_placement", DecorData.find(&"planta"), 1)
+	placer.call("move_ghost_to", Vector2(3.0, 6.0))
+	_check((placer.call("get_ghost") as Node2D).get_parent() == room.get_node("%YSort"), "el fantasma detrás del vidrio va en YSort")
+	placer.call("move_ghost_to", Vector2(6.5, 3.0))
+	_check((placer.call("get_ghost") as Node2D).get_parent() == room.get_node("%RackBay"), "el fantasma pasa a RackBay al cruzar el vidrio")
+	placer.call("cancel_placement")
+	game_state.call("remove_placed_decor", &"data_center", 1)
+	game_state.call("remove_placed_decor", &"data_center", 0)
+	room.free()
+	await process_frame
 
 
 func _test_projection() -> void:
