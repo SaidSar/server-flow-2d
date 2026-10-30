@@ -92,24 +92,24 @@ func _test_background_traffic() -> void:
 	_check(samples > 0, "hay tiempo antes del primer pico (%.1f s)" % first.x)
 
 
-## Entre 1 y ddos_spike_count picos por oleada, dentro de la oleada y sin encimarse.
+## Los picos crecen con la oleada (1, 1, 2, 3, 3), caen dentro de la oleada y no se enciman.
 func _test_spike_schedule() -> void:
 	var stage: StageData = _sim.call("load_stage", &"enterprise")
-	var counts := {}
+	var expected_counts: Array[int] = [1, 1, 2, 3, 3]
+	_check(stage.ddos_spike_count == expected_counts, "picos por oleada de enterprise.tres (%s)" % [stage.ddos_spike_count])
 	for i in SCHEDULE_SEEDS:
 		_sim.call("set_seed", SEED + i)
 		_sim.call("load_checkpoint", {"stage": "enterprise", "wave": 1 + i % stage.get_wave_count()})
 		_sim.call("start_wave")
 		var wave: WaveData = _sim.get("wave")
 		var spikes: Array = _sim.get("ddos_spikes")
-		counts[spikes.size()] = true
-		_check(spikes.size() >= 1 and spikes.size() <= stage.ddos_spike_count, "entre 1 y %d picos (salieron %d)" % [stage.ddos_spike_count, spikes.size()])
+		var wave_number: int = _sim.get("wave_number")
+		_check(spikes.size() == expected_counts[wave_number - 1], "oleada %d: %d picos (salieron %d)" % [wave_number, expected_counts[wave_number - 1], spikes.size()])
 		var previous_end := 0.0
 		for spike: Vector3 in spikes:
 			_check(spike.x >= previous_end and spike.x + spike.y <= wave.duration_s, "pico dentro de la oleada y sin encimarse (%s)" % spike)
 			_check(is_equal_approx(spike.y, stage.ddos_spike_duration_s) and is_equal_approx(spike.z, stage.ddos_spike_intensity), "el pico usa la duración y la intensidad de la etapa")
 			previous_end = spike.x + spike.y
-	_check(counts.size() > 1 or stage.ddos_spike_count == 1, "el número de picos cambia entre oleadas (%s)" % [counts.keys()])
 
 
 ## El Firewall se compra en la consola solo en la etapa 3, con el costo de su etapa, y queda encendido.

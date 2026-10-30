@@ -4,7 +4,7 @@ extends Node
 ## Avanza en pasos fijos (config.step_seconds) aunque el jugador esté en el garage.
 ## En depuración: F9 fuerza una sobrecarga y F10 acelera ×8.
 ## DDoS (solo en las etapas que lo definen, hoy Enterprise): tráfico malicioso de fondo constante más
-## 1 a ddos_spike_count picos por oleada. El Firewall encendido descarta firewall_filter_pct de todo
+## los picos de cada oleada (ddos_spike_count). El Firewall encendido descarta firewall_filter_pct de todo
 ## ese tráfico; lo que pasa se suma a la carga de CPU, RAM y red de los servidores.
 
 ## Un paso de simulación terminó.
@@ -358,13 +358,13 @@ func ddos_multiplier(t: float) -> float:
 	return multiplier
 
 
-## Sortea los picos de la oleada: entre 1 y ddos_spike_count, uno en cada tramo igual de la oleada,
-## con el inicio al azar dentro de su tramo (lejos de los bordes).
+## Sortea cuándo caen los picos de la oleada: uno en cada tramo igual de la oleada, con el inicio
+## al azar dentro de su tramo (lejos de los bordes).
 func _schedule_ddos_spikes() -> void:
 	ddos_spikes.clear()
-	if not stage.has_ddos() or stage.ddos_spike_count <= 0 or stage.ddos_spike_intensity <= 0.0:
+	var count := stage.get_ddos_spike_count(wave_number)
+	if not stage.has_ddos() or count <= 0 or stage.ddos_spike_intensity <= 0.0:
 		return
-	var count := _rng.randi_range(1, stage.ddos_spike_count)
 	var section := wave.duration_s / count
 	var duration := minf(stage.ddos_spike_duration_s, section)
 	for i in count:
