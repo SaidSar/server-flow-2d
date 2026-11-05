@@ -14,6 +14,24 @@ extends Control
 @onready var _cancel_quit_button: Button = %CancelQuitButton
 
 
+@export var icono_escena: PackedScene  # IconoParticula.tscn
+var tiempo_entre_iconos: float = .75
+var tiempo_acumulado: float = 0.0
+
+func _process(delta: float) -> void:
+	tiempo_acumulado += delta
+	if tiempo_acumulado >= tiempo_entre_iconos:
+		tiempo_acumulado = 0.0
+		generar_icono()
+
+func generar_icono() -> void:
+	if icono_escena == null:
+		return
+	var nuevo_icono = icono_escena.instantiate()
+	var ancho_pantalla = get_viewport_rect().size.x
+	nuevo_icono.position = Vector2(randf_range(0, ancho_pantalla), -50)
+	add_child(nuevo_icono)
+
 func _ready() -> void:
 	GameState.end_session()
 	_continue_button.disabled = not SaveSystem.has_save()

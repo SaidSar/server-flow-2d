@@ -1,6 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bs82fvfaui1tk"]
 
-[ext_resource type="Script" path="res://scripts/ui/title_menu.gd" id="1_title"]
+[ext_resource type="Script" uid="uid://ctj6lq46p5ly" path="res://scripts/ui/title_menu.gd" id="1_title"]
+[ext_resource type="PackedScene" uid="uid://ca6h2r6ph26e5" path="res://scenes/ui/IconoParticula.tscn" id="2_4uchd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_options"]
 content_margin_left = 40.0
@@ -18,7 +19,7 @@ corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 
-[node name="TitleMenu" type="Control"]
+[node name="TitleMenu" type="Control" unique_id=2009102177]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -26,17 +27,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_title")
+icono_escena = ExtResource("2_4uchd")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=523283572]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0784314, 0.0941176, 0.141176, 1)
+color = Color(0.15356869, 0.20862919, 0.45967478, 1)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="." unique_id=815484892]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -44,55 +46,55 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Menu" type="VBoxContainer" parent="Center"]
+[node name="Menu" type="VBoxContainer" parent="Center" unique_id=1822476839]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="TitleLabel" type="Label" parent="Center/Menu"]
+[node name="TitleLabel" type="Label" parent="Center/Menu" unique_id=1386242051]
 layout_mode = 2
 theme_override_font_sizes/font_size = 96
 text = "Server Flow 2D"
 horizontal_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="Center/Menu"]
+[node name="SubtitleLabel" type="Label" parent="Center/Menu" unique_id=45891479]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
 text = "Mantén los servidores en pie"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="Center/Menu"]
+[node name="Spacer" type="Control" parent="Center/Menu" unique_id=226806011]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 
-[node name="NewGameButton" type="Button" parent="Center/Menu"]
+[node name="NewGameButton" type="Button" parent="Center/Menu" unique_id=542225093]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(440, 76)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Nueva partida"
 
-[node name="ContinueButton" type="Button" parent="Center/Menu"]
+[node name="ContinueButton" type="Button" parent="Center/Menu" unique_id=468924784]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(440, 76)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Continuar"
 
-[node name="OptionsButton" type="Button" parent="Center/Menu"]
+[node name="OptionsButton" type="Button" parent="Center/Menu" unique_id=786053520]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(440, 76)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Opciones"
 
-[node name="QuitButton" type="Button" parent="Center/Menu"]
+[node name="QuitButton" type="Button" parent="Center/Menu" unique_id=737083686]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(440, 76)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Salir"
 
-[node name="CreditsLabel" type="Label" parent="."]
+[node name="CreditsLabel" type="Label" parent="." unique_id=1567807408]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -110,7 +112,7 @@ theme_override_font_sizes/font_size = 22
 text = "NEXUS CODE · UAdeO"
 horizontal_alignment = 2
 
-[node name="OptionsPanel" type="Control" parent="."]
+[node name="OptionsPanel" type="Control" parent="." unique_id=388733354]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -120,7 +122,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Dimmer" type="ColorRect" parent="OptionsPanel"]
+[node name="Dimmer" type="ColorRect" parent="OptionsPanel" unique_id=276255570]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -129,7 +131,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.6)
 
-[node name="Center" type="CenterContainer" parent="OptionsPanel"]
+[node name="Center" type="CenterContainer" parent="OptionsPanel" unique_id=211371800]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -137,34 +139,34 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Window" type="PanelContainer" parent="OptionsPanel/Center"]
+[node name="Window" type="PanelContainer" parent="OptionsPanel/Center" unique_id=1071104899]
 custom_minimum_size = Vector2(600, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_options")
 
-[node name="Content" type="VBoxContainer" parent="OptionsPanel/Center/Window"]
+[node name="Content" type="VBoxContainer" parent="OptionsPanel/Center/Window" unique_id=682106747]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="TitleLabel" type="Label" parent="OptionsPanel/Center/Window/Content"]
+[node name="TitleLabel" type="Label" parent="OptionsPanel/Center/Window/Content" unique_id=1424771949]
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
 text = "Opciones"
 horizontal_alignment = 1
 
-[node name="FullscreenCheck" type="CheckButton" parent="OptionsPanel/Center/Window/Content"]
+[node name="FullscreenCheck" type="CheckButton" parent="OptionsPanel/Center/Window/Content" unique_id=1346635440]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "Pantalla completa"
 
-[node name="CloseOptionsButton" type="Button" parent="OptionsPanel/Center/Window/Content"]
+[node name="CloseOptionsButton" type="Button" parent="OptionsPanel/Center/Window/Content" unique_id=2070314350]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 text = "Cerrar"
 
-[node name="QuitConfirmPanel" type="Control" parent="."]
+[node name="QuitConfirmPanel" type="Control" parent="." unique_id=522083978]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -174,7 +176,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Dimmer" type="ColorRect" parent="QuitConfirmPanel"]
+[node name="Dimmer" type="ColorRect" parent="QuitConfirmPanel" unique_id=252980449]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -183,7 +185,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.6)
 
-[node name="Center" type="CenterContainer" parent="QuitConfirmPanel"]
+[node name="Center" type="CenterContainer" parent="QuitConfirmPanel" unique_id=1656327909]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -191,34 +193,34 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Window" type="PanelContainer" parent="QuitConfirmPanel/Center"]
+[node name="Window" type="PanelContainer" parent="QuitConfirmPanel/Center" unique_id=566571911]
 custom_minimum_size = Vector2(640, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_options")
 
-[node name="Content" type="VBoxContainer" parent="QuitConfirmPanel/Center/Window"]
+[node name="Content" type="VBoxContainer" parent="QuitConfirmPanel/Center/Window" unique_id=583033383]
 layout_mode = 2
 theme_override_constants/separation = 28
 
-[node name="QuestionLabel" type="Label" parent="QuitConfirmPanel/Center/Window/Content"]
+[node name="QuestionLabel" type="Label" parent="QuitConfirmPanel/Center/Window/Content" unique_id=1322035407]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "¿Quieres salir del juego?"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Buttons" type="HBoxContainer" parent="QuitConfirmPanel/Center/Window/Content"]
+[node name="Buttons" type="HBoxContainer" parent="QuitConfirmPanel/Center/Window/Content" unique_id=674733733]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="CancelQuitButton" type="Button" parent="QuitConfirmPanel/Center/Window/Content/Buttons"]
+[node name="CancelQuitButton" type="Button" parent="QuitConfirmPanel/Center/Window/Content/Buttons" unique_id=772354108]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Cancelar"
 
-[node name="ConfirmQuitButton" type="Button" parent="QuitConfirmPanel/Center/Window/Content/Buttons"]
+[node name="ConfirmQuitButton" type="Button" parent="QuitConfirmPanel/Center/Window/Content/Buttons" unique_id=1331885207]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
