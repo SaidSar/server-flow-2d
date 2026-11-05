@@ -212,6 +212,14 @@ button_group = SubResource("ButtonGroup_theme")
 text = "Claro"
 metadata/ui_tokens = {"font_pressed_color": "text_on_accent", "font_hover_pressed_color": "text_on_accent"}
 
+[node name="FullscreenCheck" type="CheckButton" parent="Center/Window/Content/MainBox"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Pantalla completa"
+
 [node name="Spacer" type="Control" parent="Center/Window/Content/MainBox"]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2

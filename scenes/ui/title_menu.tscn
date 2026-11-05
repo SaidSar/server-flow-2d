@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/title_menu.gd" id="1_title"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="2_settings"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_options"]
 content_margin_left = 40.0
@@ -114,60 +115,9 @@ text = "NEXUS CODE · UAdeO"
 horizontal_alignment = 2
 metadata/ui_tokens = {"font_color": "text_footer"}
 
-[node name="OptionsPanel" type="Control" parent="."]
+[node name="OptionsPanel" parent="." instance=ExtResource("2_settings")]
 unique_name_in_owner = true
-visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Dimmer" type="ColorRect" parent="OptionsPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
-metadata/ui_tokens = {"color": "scrim_deep"}
-
-[node name="Center" type="CenterContainer" parent="OptionsPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Window" type="PanelContainer" parent="OptionsPanel/Center"]
-custom_minimum_size = Vector2(600, 0)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_options")
-
-[node name="Content" type="VBoxContainer" parent="OptionsPanel/Center/Window"]
-layout_mode = 2
-theme_override_constants/separation = 24
-
-[node name="TitleLabel" type="Label" parent="OptionsPanel/Center/Window/Content"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 44
-text = "Opciones"
-horizontal_alignment = 1
-
-[node name="FullscreenCheck" type="CheckButton" parent="OptionsPanel/Center/Window/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-text = "Pantalla completa"
-
-[node name="CloseOptionsButton" type="Button" parent="OptionsPanel/Center/Window/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
-layout_mode = 2
-text = "Cerrar"
 
 [node name="QuitConfirmPanel" type="Control" parent="."]
 unique_name_in_owner = true

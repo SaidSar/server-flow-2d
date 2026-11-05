@@ -2,12 +2,16 @@ class_name SettingsMenu
 extends Control
 ## Panel modal "Ajustes": volumen de música y efectos, Regresar y Salir (con confirmación).
 ## La fila "Tema" (Oscuro/Claro) solo aparece cuando lo abre el dashboard: ver SettingsButton.show_theme_option.
+## El menú de título lo abre fuera de una partida: con Tema, sin "Salir", "Regresar" dice "Cerrar" y en PC
+## agrega "Pantalla completa".
 ## Funciona con el árbol en pausa (process_mode = ALWAYS); quien lo abre pausa y reanuda el juego.
 
 signal closed
 
 const MUTE_TEXT := "Silenciar"
 const UNMUTE_TEXT := "Activar"
+const RETURN_TEXT := "Regresar"
+const CLOSE_TEXT := "Cerrar"
 
 @onready var _window: PanelContainer = %Window
 @onready var _main_box: Control = %MainBox
@@ -21,6 +25,7 @@ const UNMUTE_TEXT := "Activar"
 @onready var _theme_row: Control = %ThemeRow
 @onready var _theme_dark_button: Button = %ThemeDarkButton
 @onready var _theme_light_button: Button = %ThemeLightButton
+@onready var _fullscreen_check: CheckButton = %FullscreenCheck
 @onready var _return_button: Button = %ReturnButton
 @onready var _quit_button: Button = %QuitButton
 @onready var _confirm_quit_button: Button = %ConfirmQuitButton
@@ -37,6 +42,7 @@ func _ready() -> void:
 	_sfx_mute.toggled.connect(_on_sfx_mute_toggled)
 	_theme_dark_button.pressed.connect(Settings.set_ui_theme.bind(UiTheme.DARK))
 	_theme_light_button.pressed.connect(Settings.set_ui_theme.bind(UiTheme.LIGHT))
+	_fullscreen_check.toggled.connect(_on_fullscreen_toggled)
 	_return_button.pressed.connect(close)
 	_quit_button.pressed.connect(_show_confirm.bind(true))
 	_cancel_quit_button.pressed.connect(_show_confirm.bind(false))
@@ -50,9 +56,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## `show_theme` = mostrar la fila "Tema" (solo desde el dashboard).
-func open(show_theme: bool = false) -> void:
+## `show_theme` = mostrar la fila "Tema". `in_game` = false desde el menú de título (no hay partida que
+## regresar ni de la cual salir).
+func open(show_theme: bool = false, in_game: bool = true) -> void:
 	_theme_row.visible = show_theme
+	_quit_button.visible = in_game
+	_return_button.text = RETURN_TEXT if in_game else CLOSE_TEXT
+	# En Android el juego siempre es pantalla completa.
+	_fullscreen_check.visible = not in_game and OS.get_name() != "Android"
+	_fullscreen_check.set_pressed_no_signal(_is_fullscreen())
 	_sync_from_settings()
 	_show_confirm(false)
 	show()
@@ -161,3 +173,13 @@ func _save_and_quit() -> void:
 
 func _apply_theme() -> void:
 	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.ACCENT, 2, 18, 32.0))
+
+
+func _on_fullscreen_toggled(enabled: bool) -> void:
+	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED
+	DisplayServer.window_set_mode(mode)
+
+
+static func _is_fullscreen() -> bool:
+	var mode := DisplayServer.window_get_mode()
+	return mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
