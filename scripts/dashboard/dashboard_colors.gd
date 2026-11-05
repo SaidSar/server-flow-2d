@@ -5,6 +5,9 @@ extends RefCounted
 const BACKGROUND := Color("#0b111c")
 const PANEL := Color("#121b2b")
 const PANEL_BORDER := Color("#22314a")
+## Bloques dentro de un panel (los dos grupos de la barra superior).
+const INSET := Color("#0f1726")
+const INSET_BORDER := Color("#1e2944")
 const ACCENT := Color("#5aa9ff")
 const OK := Color("#3ddc84")
 const WARNING := Color("#f5c542")

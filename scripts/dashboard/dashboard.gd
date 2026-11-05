@@ -34,6 +34,9 @@ const SLA_WARNING := 50.0
 static var _warned_resources: Dictionary[StringName, bool] = {}
 
 @onready var _title_label: Label = %TitleLabel
+## Barra superior en dos bloques: progreso de la oleada (oleada, monedas, usuarios) y salud del sistema (SLA).
+@onready var _wave_block: PanelContainer = %WaveBlock
+@onready var _health_block: PanelContainer = %HealthBlock
 @onready var _wave_label: Label = %WaveLabel
 @onready var _coins_label: Label = %CoinsLabel
 @onready var _users_label: Label = %UsersLabel
@@ -69,6 +72,8 @@ func _ready() -> void:
 		Simulation.new_game()
 
 	_top_bar.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 14.0))
+	for block: PanelContainer in [_wave_block, _health_block]:
+		block.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.INSET, DashboardColors.INSET_BORDER, 2, 10, 10.0))
 	_monitor_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 6.0))
 	_console_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 16.0))
 	_sla_bar.add_theme_stylebox_override(&"fill", _sla_fill)
