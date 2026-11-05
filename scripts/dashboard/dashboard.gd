@@ -13,6 +13,10 @@ const INVESTMENT_TEXT := "¡%s, lo logramos! Eres {el mejor|la mejor} SysAdmin q
 const INVESTMENT_BUTTON := "¡Vamos!"
 const SPEEDS: Array[float] = [1.0, 2.0]
 const BACK_FADE_SECONDS := 0.15
+## Parpadeo del aviso (opacidad media ± amplitud). En el tema claro baja menos: sobre fondo blanco,
+## un rojo al 20 % casi no se ve y el aviso debe leerse siempre.
+const ALERT_PULSE_DARK := Vector2(0.6, 0.4)
+const ALERT_PULSE_LIGHT := Vector2(0.875, 0.125)
 const RESOURCE_NAMES := {
 	&"cpu": "CPU",
 	&"ram": "RAM",
@@ -108,7 +112,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _bottleneck_label.visible:
-		_bottleneck_label.modulate.a = 0.6 + 0.4 * sin(Time.get_ticks_msec() * 0.006)
+		var pulse := ALERT_PULSE_LIGHT if UiTheme.is_light() else ALERT_PULSE_DARK
+		_bottleneck_label.modulate.a = pulse.x + pulse.y * sin(Time.get_ticks_msec() * 0.006)
 
 
 func _unhandled_input(event: InputEvent) -> void:

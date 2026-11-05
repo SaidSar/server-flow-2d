@@ -81,6 +81,8 @@ const PALETTES := {
 		&"ok": Color("#3ddc84"),
 		&"warning": Color("#f5c542"),
 		&"danger": Color("#ff4d5e"),
+		## Aviso urgente del dashboard (cuello de botella, ataque DDoS).
+		&"alert": Color("#ff4d5e"),
 		&"malicious": Color("#b06cff"),
 		&"blocked": Color("#f59973"),
 		&"ceo": Color("#e0569b"),
@@ -136,6 +138,7 @@ const PALETTES := {
 		&"ok": Color("#17733c"),
 		&"warning": Color("#946100"),
 		&"danger": Color("#c22339"),
+		&"alert": Color("#b3001b"),
 		&"malicious": Color("#7a3ed4"),
 		&"blocked": Color("#a8481c"),
 		&"ceo": Color("#b52a66"),
@@ -240,15 +243,18 @@ func _apply_project_theme() -> void:
 		&"Label": [&"font_color"],
 		&"Button": [&"font_color", &"font_hover_color", &"font_pressed_color", &"font_focus_color", &"font_hover_pressed_color", &"font_disabled_color"],
 		&"CheckButton": [&"font_color", &"font_hover_color", &"font_pressed_color", &"font_focus_color", &"font_hover_pressed_color", &"font_disabled_color"],
-		&"LineEdit": [&"font_color", &"font_placeholder_color", &"caret_color"],
+		&"LineEdit": [&"font_color", &"font_placeholder_color", &"caret_color", &"clear_button_color", &"clear_button_color_pressed"],
+		&"ProgressBar": [&"font_color"],
 	}
 	for type: StringName in colors:
 		for item: StringName in colors[type]:
 			if not light:
 				if theme.has_color(item, type):
 					theme.clear_color(item, type)
-			elif item == &"font_disabled_color" or item == &"font_placeholder_color":
+			elif item == &"font_disabled_color" or item == &"font_placeholder_color" or item == &"clear_button_color":
 				theme.set_color(item, type, color(&"text_muted"))
+			elif item == &"clear_button_color_pressed":
+				theme.set_color(item, type, color(&"accent"))
 			else:
 				theme.set_color(item, type, color(&"text"))
 	var styles := {
