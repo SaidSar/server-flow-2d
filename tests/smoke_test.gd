@@ -344,6 +344,7 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	_test_settings_in_room(current_scene)
 	_check(await _wait_for_scene(&"TitleMenu"), "Salir lleva al menú de título")
 	_test_title_quit_confirmation(current_scene)
+	_test_title_options(current_scene)
 	var continue_button := current_scene.get_node("%ContinueButton") as Button
 	_check(not continue_button.disabled, "Continuar habilitado con partida")
 	continue_button.pressed.emit()
@@ -954,6 +955,36 @@ func _test_mobile_lifecycle(room: Node, save_system: Node) -> void:
 	_check(overlay.call("is_shown"), "F3 muestra el contador de FPS (build de depuración)")
 	overlay.call("_input", f3)
 	_check(not overlay.call("is_shown"), "F3 otra vez lo oculta")
+
+
+## Título: Opciones abre el mismo panel de ajustes del engranaje, con Tema y sin Salir. Sin settings.cfg,
+## el panel carga los valores de siempre (Oscuro, volumen 80 %, sin silenciar).
+func _test_title_options(title: Node) -> void:
+	var settings: Node = root.get_node("Settings")
+	var no_settings := "user://smoke_sin_ajustes.cfg"
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(no_settings))
+	settings.set("settings_path", no_settings)
+	settings.call("load_settings")
+	var options_button := title.get_node("%OptionsButton") as Button
+	_check(options_button.visible and not options_button.disabled, "Opciones está en el título")
+	options_button.pressed.emit()
+	var panel: Control = title.get_node("%OptionsPanel")
+	# Sin tipar SettingsMenu: depende del autoload UiTheme, que con -s se registra después de compilar.
+	var panel_script: Script = panel.get_script()
+	_check(panel.scene_file_path == "res://scenes/ui/settings_menu.tscn" and panel_script.resource_path == "res://scripts/ui/settings_menu.gd", "Opciones usa el mismo panel de ajustes (SettingsMenu)")
+	_check(panel.visible and panel.call("is_theme_row_visible"), "Opciones muestra la fila Tema")
+	_check(not (panel.get_node("%QuitButton") as Control).visible and (panel.get_node("%ReturnButton") as Button).text == "Cerrar", "en el título no hay Salir y Regresar dice Cerrar")
+	_check(not paused, "Opciones del título no pausa nada")
+	_check((panel.get_node("%ThemeDarkButton") as Button).button_pressed and not (panel.get_node("%ThemeLightButton") as Button).button_pressed, "sin settings.cfg el tema es Oscuro")
+	var music := panel.get_node("%MusicSlider") as HSlider
+	var sfx := panel.get_node("%SfxSlider") as HSlider
+	_check(is_equal_approx(music.value, 80.0) and is_equal_approx(sfx.value, 80.0), "sin settings.cfg los volúmenes son 80 %% (música %d, sonido %d)" % [music.value, sfx.value])
+	_check(not (panel.get_node("%MusicMute") as Button).button_pressed and not (panel.get_node("%SfxMute") as Button).button_pressed, "sin settings.cfg nada está silenciado")
+	(panel.get_node("%ReturnButton") as Button).pressed.emit()
+	_check(not panel.visible, "Cerrar oculta Opciones")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(no_settings))
+	settings.set("settings_path", TEST_SETTINGS_PATH)
+	settings.call("load_settings")
 
 
 ## Título: Salir y el botón "atrás" piden confirmación (aquí nunca se confirma, cerraría el juego).
