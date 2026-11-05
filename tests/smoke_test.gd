@@ -2,7 +2,7 @@ extends SceneTree
 ## Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana:
 ## título → personaje (Alexa) → nombres → garage → pincel → PC → dashboard (ajustes, ficha de mejora,
 ## comprar) → post-mortem → siguiente oleada → game over → reintentar → cuarto (ajustes) → Salir
-## → continuar → meta no alcanzada → repetir etapa → victoria → diálogo de Briseida (con Alexa y con Alex)
+## → continuar → meta no alcanzada → repetir etapa → victoria → diálogo de Briseida con su retrato (con Alexa y con Alex)
 ## → oficina y tienda → data center (9 racks, placa de Firewall, comprar Firewall, pico de DDoS).
 ## Uso: godot --headless --path . -s res://tests/smoke_test.gd -- --save-path=user://test_smoke.cfg
 ## Exige una partida alterna (SaveSystem --save-path) y falla si se toca la partida real.
@@ -883,7 +883,9 @@ func _test_victory_and_investment(simulation: Node, gendered_text: String) -> vo
 	var dialog: Control = dashboard.get_node("%DialogBox")
 	var text: String = dialog.call("get_text")
 	_check(dialog.visible and text.contains("Said") and text.contains("Nexus Test") and text.contains("1,500"), "Briseida anuncia la ronda de inversión (%s)" % text)
-	_check((dialog.get_node("%SpeakerLabel") as Label).text == "Briseida" and (dialog.get_node("%InitialsLabel") as Label).text == "B", "habla Briseida, con B en el retrato")
+	var portrait := dialog.get_node("%PortraitTexture") as TextureRect
+	_check((dialog.get_node("%SpeakerLabel") as Label).text == "Briseida", "habla Briseida")
+	_check(portrait.visible and portrait.texture == load(Paths.CEO_PORTRAIT) and not (dialog.get_node("%InitialsLabel") as Label).visible, "el retrato de Briseida sustituye a las iniciales")
 	_check(text.contains(gendered_text) and not text.contains("{"), "Briseida usa \"%s\" (%s)" % [gendered_text, text])
 	_check(simulation.get("coins") == coins_before_dialog, "las monedas llegan después del diálogo")
 	(dialog.get_node("%ContinueButton") as Button).pressed.emit()

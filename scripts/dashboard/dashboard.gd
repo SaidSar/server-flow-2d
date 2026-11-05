@@ -383,7 +383,7 @@ func _on_victory_continue() -> void:
 		var avatar := GameState.avatar_name if not GameState.avatar_name.is_empty() else "equipo"
 		_dialog.show_dialog(CEO_NAME, CEO_ROLE,
 			TextUtil.format(INVESTMENT_TEXT % [avatar, NumberFormat.thousands(Simulation.pending_investment), _company_name()]),
-			INVESTMENT_BUTTON, DashboardColors.CEO)
+			INVESTMENT_BUTTON, DashboardColors.CEO, load(Paths.CEO_PORTRAIT) as Texture2D)
 		await _dialog.closed
 	Simulation.acknowledge_stage_report()
 	_go_to_room()

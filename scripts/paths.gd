@@ -29,6 +29,8 @@ const STAGES := {
 ## Personajes elegibles: resources/avatars/<id>.tres
 const AVATARS_DIR := "res://resources/avatars"
 const AVATAR := "res://resources/avatars/%s.tres"
+## Retrato de Briseida (la CEO) para sus diálogos: PNG con fondo transparente.
+const CEO_PORTRAIT := "res://assets/art/characters/briseida/briseida_retrato.png"
 
 ## Cuartos: data/rooms/<id>.json (lienzo, offsets, proyección...).
 const ROOM_IDS: Array[StringName] = [&"garage", &"oficina", &"data_center"]
