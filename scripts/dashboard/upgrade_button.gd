@@ -23,11 +23,11 @@ const LONG_PRESS_SECONDS := 0.4
 
 var upgrade: UpgradeData
 var _is_highlighted := false
-var _normal_style := DashboardColors.panel_style(Color("#16233a"), DashboardColors.PANEL_BORDER, 2, 12, 10.0)
-var _hover_style := DashboardColors.panel_style(Color("#1c2d4a"), DashboardColors.ACCENT, 2, 12, 10.0)
-var _pressed_style := DashboardColors.panel_style(Color("#24395c"), DashboardColors.ACCENT, 3, 12, 10.0)
-var _disabled_style := DashboardColors.panel_style(Color("#0f1726"), Color("#1a2638"), 2, 12, 10.0)
-var _highlight_style := DashboardColors.panel_style(Color("#2a1620"), DashboardColors.DANGER, 4, 12, 10.0)
+var _normal_style: StyleBoxFlat
+var _hover_style: StyleBoxFlat
+var _pressed_style: StyleBoxFlat
+var _disabled_style: StyleBoxFlat
+var _highlight_style: StyleBoxFlat
 var _long_press_timer := Timer.new()
 ## La pulsación actual ya abrió la ficha: al soltar no se compra.
 var _long_pressed := false
@@ -36,7 +36,9 @@ var _long_pressed := false
 func _ready() -> void:
 	custom_minimum_size.y = HEIGHT
 	focus_mode = Control.FOCUS_ALL
+	_build_styles()
 	_apply_styles()
+	UiTheme.changed.connect(_apply_theme)
 	_long_press_timer.one_shot = true
 	_long_press_timer.wait_time = LONG_PRESS_SECONDS
 	_long_press_timer.timeout.connect(_on_long_press)
@@ -135,6 +137,21 @@ func _style_info_button() -> void:
 	_info_button.add_theme_stylebox_override(&"hover", hover)
 	_info_button.add_theme_stylebox_override(&"pressed", hover)
 	_info_button.add_theme_stylebox_override(&"focus", StyleBoxEmpty.new())
+
+
+func _build_styles() -> void:
+	_normal_style = DashboardColors.panel_style(DashboardColors.CARD, DashboardColors.PANEL_BORDER, 2, 12, 10.0)
+	_hover_style = DashboardColors.panel_style(DashboardColors.BUTTON_HOVER, DashboardColors.ACCENT, 2, 12, 10.0)
+	_pressed_style = DashboardColors.panel_style(DashboardColors.BUTTON_PRESSED, DashboardColors.ACCENT, 3, 12, 10.0)
+	_disabled_style = DashboardColors.panel_style(DashboardColors.BUTTON_DISABLED, DashboardColors.BUTTON_DISABLED_BORDER, 2, 12, 10.0)
+	_highlight_style = DashboardColors.panel_style(DashboardColors.BUTTON_ALERT, DashboardColors.DANGER, 4, 12, 10.0)
+
+
+func _apply_theme() -> void:
+	_build_styles()
+	_apply_styles()
+	_style_info_button()
+	refresh()
 
 
 func _apply_styles() -> void:

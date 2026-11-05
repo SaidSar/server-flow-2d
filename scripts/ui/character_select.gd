@@ -8,9 +8,6 @@ signal back_requested
 
 const CARD_SIZE := Vector2(380, 600)
 const CARD_RADIUS := 20
-const CARD_BG := Color("#1b2232")
-const CARD_BORDER := Color("#3a4458")
-const CARD_BORDER_HOVER := Color("#5f6b85")
 const SELECTED_BORDER_WIDTH := 5
 const GLOW_SIZE := 22
 const CHECK_SIZE := 60.0
@@ -55,8 +52,8 @@ func _add_card(avatar: AvatarData) -> void:
 	card.button_group = _group
 	card.custom_minimum_size = CARD_SIZE
 	card.tooltip_text = avatar.display_name
-	var idle := _card_style(CARD_BORDER, 2, Color.TRANSPARENT)
-	var hover := _card_style(CARD_BORDER_HOVER, 2, Color.TRANSPARENT)
+	var idle := _card_style(DashboardColors.CARD_BORDER, 2, Color.TRANSPARENT)
+	var hover := _card_style(DashboardColors.CARD_BORDER_HOVER, 2, Color.TRANSPARENT)
 	var selected := _card_style(avatar.color, SELECTED_BORDER_WIDTH, Color(avatar.color, 0.55))
 	card.add_theme_stylebox_override(&"normal", idle)
 	card.add_theme_stylebox_override(&"hover", hover)
@@ -83,8 +80,8 @@ func _add_card(avatar: AvatarData) -> void:
 	portrait.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(portrait)
-	content.add_child(_card_label(avatar.display_name, 40, Color.WHITE))
-	content.add_child(_card_label(avatar.description, 24, Color(0.6, 0.65, 0.72)))
+	content.add_child(_card_label(avatar.display_name, 40, DashboardColors.TEXT_TITLE))
+	content.add_child(_card_label(avatar.description, 24, DashboardColors.TEXT_HINT))
 
 	var check := _check_badge(avatar.color)
 	card.add_child(check)
@@ -97,7 +94,7 @@ func _add_card(avatar: AvatarData) -> void:
 
 func _card_style(border: Color, border_width: int, glow: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
-	style.bg_color = CARD_BG
+	style.bg_color = DashboardColors.CARD_ALT
 	style.border_color = border
 	style.set_border_width_all(border_width)
 	style.set_corner_radius_all(CARD_RADIUS)

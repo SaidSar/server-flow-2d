@@ -19,6 +19,7 @@ corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
+metadata/ui_tokens = {"bg_color": "side_panel", "border_color": "highlight"}
 
 [node name="DecorToolbar" type="CanvasLayer"]
 layer = 2
@@ -61,6 +62,7 @@ theme_override_colors/font_color = Color(0.7, 0.75, 0.82, 1)
 theme_override_font_sizes/font_size = 24
 text = "Clic para colocar"
 horizontal_alignment = 2
+metadata/ui_tokens = {"font_color": "text_soft"}
 
 [node name="PlacementRow" type="HBoxContainer" parent="Bar/Content"]
 unique_name_in_owner = true

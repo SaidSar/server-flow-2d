@@ -12,6 +12,21 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+metadata/ui_tokens = {"bg_color": "bar_track"}
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_choice_on"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.352941, 0.662745, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+metadata/ui_tokens = {"bg_color": "accent"}
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
 content_margin_top = 6.0
@@ -21,6 +36,7 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+metadata/ui_tokens = {"bg_color": "accent"}
 
 [node name="SettingsMenu" type="Control"]
 process_mode = 3
@@ -40,6 +56,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0431373, 0.0666667, 0.109804, 0.82)
+metadata/ui_tokens = {"color": "scrim"}
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -64,6 +81,7 @@ theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
 theme_override_font_sizes/font_size = 44
 text = "Ajustes"
 horizontal_alignment = 1
+metadata/ui_tokens = {"font_color": "text"}
 
 [node name="MainBox" type="VBoxContainer" parent="Center/Window/Content"]
 unique_name_in_owner = true
@@ -150,6 +168,58 @@ theme_override_font_sizes/font_size = 22
 toggle_mode = true
 text = "Silenciar"
 
+[node name="ThemeRow" type="HBoxContainer" parent="Center/Window/Content/MainBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ThemeLabel" type="Label" parent="Center/Window/Content/MainBox/ThemeRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Tema"
+
+[node name="ThemeDarkButton" type="Button" parent="Center/Window/Content/MainBox/ThemeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Paneles oscuros"
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/pressed = SubResource("StyleBoxFlat_choice_on")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_choice_on")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_theme")
+text = "Oscuro"
+metadata/ui_tokens = {"font_pressed_color": "text_on_accent", "font_hover_pressed_color": "text_on_accent"}
+
+[node name="ThemeLightButton" type="Button" parent="Center/Window/Content/MainBox/ThemeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Paneles claros"
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/pressed = SubResource("StyleBoxFlat_choice_on")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_choice_on")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_theme")
+text = "Claro"
+metadata/ui_tokens = {"font_pressed_color": "text_on_accent", "font_hover_pressed_color": "text_on_accent"}
+
+[node name="FullscreenCheck" type="CheckButton" parent="Center/Window/Content/MainBox"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Pantalla completa"
+
 [node name="Spacer" type="Control" parent="Center/Window/Content/MainBox"]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
@@ -188,6 +258,7 @@ theme_override_font_sizes/font_size = 21
 text = "Podrás seguir con \"Continuar\" desde el inicio de la oleada en curso."
 horizontal_alignment = 1
 autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "text_muted"}
 
 [node name="Buttons" type="HBoxContainer" parent="Center/Window/Content/ConfirmBox"]
 layout_mode = 2

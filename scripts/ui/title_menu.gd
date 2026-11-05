@@ -1,14 +1,13 @@
 extends Control
 ## Menú de título: Nueva partida, Continuar, Opciones y Salir.
 ## Salir (botón o "atrás" de Android) pide confirmación antes de cerrar el juego.
+## Opciones abre el mismo panel de ajustes del engranaje (SettingsMenu), fuera de una partida.
 
 @onready var _new_game_button: Button = %NewGameButton
 @onready var _continue_button: Button = %ContinueButton
 @onready var _options_button: Button = %OptionsButton
 @onready var _quit_button: Button = %QuitButton
-@onready var _options_panel: Control = %OptionsPanel
-@onready var _fullscreen_check: CheckButton = %FullscreenCheck
-@onready var _close_options_button: Button = %CloseOptionsButton
+@onready var _options_panel: SettingsMenu = %OptionsPanel
 @onready var _quit_confirm_panel: Control = %QuitConfirmPanel
 @onready var _confirm_quit_button: Button = %ConfirmQuitButton
 @onready var _cancel_quit_button: Button = %CancelQuitButton
@@ -17,18 +16,13 @@ extends Control
 func _ready() -> void:
 	GameState.end_session()
 	_continue_button.disabled = not SaveSystem.has_save()
-	_options_panel.hide()
 	_quit_confirm_panel.hide()
-	# En Android el juego siempre es pantalla completa.
-	_fullscreen_check.visible = OS.get_name() != "Android"
-	_fullscreen_check.button_pressed = _is_fullscreen()
 
 	_new_game_button.pressed.connect(_on_new_game_pressed)
 	_continue_button.pressed.connect(_on_continue_pressed)
-	_options_button.pressed.connect(_options_panel.show)
+	_options_button.pressed.connect(_options_panel.open.bind(true, false))
+	_options_panel.closed.connect(_options_button.grab_focus)
 	_quit_button.pressed.connect(ask_quit)
-	_fullscreen_check.toggled.connect(_on_fullscreen_toggled)
-	_close_options_button.pressed.connect(_options_panel.hide)
 	_confirm_quit_button.pressed.connect(SceneRouter.quit_game)
 	_cancel_quit_button.pressed.connect(_cancel_quit)
 	_new_game_button.grab_focus()
@@ -51,7 +45,7 @@ func go_back() -> void:
 	if _quit_confirm_panel.visible:
 		_cancel_quit()
 	elif _options_panel.visible:
-		_options_panel.hide()
+		_options_panel.close()
 	else:
 		ask_quit()
 
@@ -81,12 +75,3 @@ func _on_continue_pressed() -> void:
 	else:
 		_continue_button.disabled = true
 
-
-func _on_fullscreen_toggled(enabled: bool) -> void:
-	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED
-	DisplayServer.window_set_mode(mode)
-
-
-func _is_fullscreen() -> bool:
-	var mode := DisplayServer.window_get_mode()
-	return mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN

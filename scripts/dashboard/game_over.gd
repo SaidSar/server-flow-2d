@@ -15,7 +15,8 @@ signal menu_requested
 
 
 func _ready() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.DANGER, 3, 18, 32.0))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_retry_button.pressed.connect(retry_requested.emit)
 	_menu_button.pressed.connect(menu_requested.emit)
 	hide()
@@ -27,3 +28,7 @@ func show_report(report: WaveReport, company_name: String) -> void:
 	_summary.show_report(report)
 	show()
 	_retry_button.grab_focus()
+
+
+func _apply_theme() -> void:
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.DANGER, 3, 18, 32.0))

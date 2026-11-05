@@ -19,6 +19,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0431373, 0.0666667, 0.109804, 0.75)
+metadata/ui_tokens = {"color": "scrim"}
 
 [node name="Window" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -68,6 +69,7 @@ theme_override_font_sizes/font_size = 56
 text = "B"
 horizontal_alignment = 1
 vertical_alignment = 1
+metadata/ui_tokens = {"font_color": "text_on_accent"}
 
 [node name="PortraitTexture" type="TextureRect" parent="Window/Row/Portrait"]
 unique_name_in_owner = true
@@ -97,6 +99,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
 theme_override_font_sizes/font_size = 30
 text = "Briseida"
+metadata/ui_tokens = {"font_color": "accent"}
 
 [node name="RoleLabel" type="Label" parent="Window/Row/Text/Header"]
 unique_name_in_owner = true
@@ -105,6 +108,7 @@ size_flags_vertical = 8
 theme_override_colors/font_color = Color(0.541176, 0.607843, 0.709804, 1)
 theme_override_font_sizes/font_size = 22
 text = "CEO"
+metadata/ui_tokens = {"font_color": "text_muted"}
 
 [node name="TextLabel" type="Label" parent="Window/Row/Text"]
 unique_name_in_owner = true
@@ -115,6 +119,7 @@ theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
 theme_override_font_sizes/font_size = 28
 text = "¡Said, lo logramos!"
 autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "text"}
 
 [node name="ContinueButton" type="Button" parent="Window/Row/Text"]
 unique_name_in_owner = true

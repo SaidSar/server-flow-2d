@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/title_menu.gd" id="1_title"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="2_settings"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_options"]
 content_margin_left = 40.0
@@ -17,6 +18,7 @@ corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
+metadata/ui_tokens = {"bg_color": "menu_panel", "border_color": "highlight"}
 
 [node name="TitleMenu" type="Control"]
 layout_mode = 3
@@ -35,6 +37,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0784314, 0.0941176, 0.141176, 1)
+metadata/ui_tokens = {"color": "screen_bg"}
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -59,6 +62,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
 text = "Mantén los servidores en pie"
 horizontal_alignment = 1
+metadata/ui_tokens = {"font_color": "text_subtitle"}
 
 [node name="Spacer" type="Control" parent="Center/Menu"]
 custom_minimum_size = Vector2(0, 32)
@@ -109,60 +113,11 @@ theme_override_colors/font_color = Color(0.45, 0.5, 0.58, 1)
 theme_override_font_sizes/font_size = 22
 text = "NEXUS CODE · UAdeO"
 horizontal_alignment = 2
+metadata/ui_tokens = {"font_color": "text_footer"}
 
-[node name="OptionsPanel" type="Control" parent="."]
+[node name="OptionsPanel" parent="." instance=ExtResource("2_settings")]
 unique_name_in_owner = true
-visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Dimmer" type="ColorRect" parent="OptionsPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
-
-[node name="Center" type="CenterContainer" parent="OptionsPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Window" type="PanelContainer" parent="OptionsPanel/Center"]
-custom_minimum_size = Vector2(600, 0)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_options")
-
-[node name="Content" type="VBoxContainer" parent="OptionsPanel/Center/Window"]
-layout_mode = 2
-theme_override_constants/separation = 24
-
-[node name="TitleLabel" type="Label" parent="OptionsPanel/Center/Window/Content"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 44
-text = "Opciones"
-horizontal_alignment = 1
-
-[node name="FullscreenCheck" type="CheckButton" parent="OptionsPanel/Center/Window/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-text = "Pantalla completa"
-
-[node name="CloseOptionsButton" type="Button" parent="OptionsPanel/Center/Window/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
-layout_mode = 2
-text = "Cerrar"
 
 [node name="QuitConfirmPanel" type="Control" parent="."]
 unique_name_in_owner = true
@@ -182,6 +137,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.6)
+metadata/ui_tokens = {"color": "scrim_deep"}
 
 [node name="Center" type="CenterContainer" parent="QuitConfirmPanel"]
 layout_mode = 1

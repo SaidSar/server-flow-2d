@@ -16,9 +16,8 @@ signal room_requested
 
 
 func _ready() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.WARNING, 3, 18, 32.0))
-	_users_bar.add_theme_stylebox_override(&"fill", DashboardColors.bar_style(DashboardColors.WARNING))
-	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_repeat_button.pressed.connect(repeat_requested.emit)
 	_room_button.pressed.connect(room_requested.emit)
 	hide()
@@ -32,3 +31,9 @@ func show_report(report: WaveReport) -> void:
 	_advice_label.text = report.get_stage_advice()
 	show()
 	_repeat_button.grab_focus()
+
+
+func _apply_theme() -> void:
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.WARNING, 3, 18, 32.0))
+	_users_bar.add_theme_stylebox_override(&"fill", DashboardColors.bar_style(DashboardColors.WARNING))
+	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BAR_TRACK))

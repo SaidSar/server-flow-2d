@@ -344,6 +344,7 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	_test_settings_in_room(current_scene)
 	_check(await _wait_for_scene(&"TitleMenu"), "Salir lleva al menú de título")
 	_test_title_quit_confirmation(current_scene)
+	_test_title_options(current_scene)
 	var continue_button := current_scene.get_node("%ContinueButton") as Button
 	_check(not continue_button.disabled, "Continuar habilitado con partida")
 	continue_button.pressed.emit()
@@ -464,6 +465,7 @@ func _test_settings_in_dashboard(dashboard: Node, simulation: Node) -> void:
 	var menu: Control = settings_button.get_node("%SettingsMenu")
 	(settings_button.get_node("%GearButton") as Button).pressed.emit()
 	_check(menu.visible and paused, "el engranaje del dashboard abre Ajustes y pausa el juego")
+	_test_theme_toggle(dashboard, menu)
 	var wave_time: float = simulation.get("wave_time")
 	await create_timer(0.5).timeout
 	_check(is_equal_approx(simulation.get("wave_time"), wave_time), "con Ajustes abierto la simulación no avanza")
@@ -483,6 +485,40 @@ func _test_settings_in_dashboard(dashboard: Node, simulation: Node) -> void:
 	_check(not menu.visible and not paused, "el botón atrás de Android cierra Ajustes y reanuda")
 	await create_timer(0.3).timeout
 	_check(simulation.get("wave_time") > wave_time, "al cerrar Ajustes la simulación sigue")
+
+
+## Desde el dashboard el engranaje muestra la fila Tema: Claro cambia los paneles en vivo y se guarda
+## en settings.cfg; Oscuro los regresa. La barra superior agrupa sus datos en dos bloques.
+func _test_theme_toggle(dashboard: Node, menu: Control) -> void:
+	var settings: Node = root.get_node("Settings")
+	var ui_theme: Node = root.get_node("UiTheme")
+	_check(menu.call("is_theme_row_visible") and (menu.get_node("%ThemeRow") as Control).is_visible_in_tree(), "desde el dashboard el engranaje muestra la fila Tema")
+	_check((menu.get_node("%ThemeDarkButton") as Button).button_pressed, "el tema por defecto es Oscuro")
+	var top_bar: Control = dashboard.get_node("%TopBar")
+	var dark_panel: Color = (top_bar.get_theme_stylebox(&"panel") as StyleBoxFlat).bg_color
+	(menu.get_node("%ThemeLightButton") as Button).pressed.emit()
+	_check(settings.get("ui_theme") == &"light" and ui_theme.call("is_light"), "Claro cambia el tema")
+	var light_panel: Color = (top_bar.get_theme_stylebox(&"panel") as StyleBoxFlat).bg_color
+	_check(light_panel.is_equal_approx(ui_theme.call("color", &"panel")) and not light_panel.is_equal_approx(dark_panel), "el dashboard se repinta en vivo con el tema claro")
+	var title: Label = dashboard.get_node("%TitleLabel")
+	_check(title.get_theme_color(&"font_color").is_equal_approx(ui_theme.call("color", &"text")), "los textos con token cambian de color")
+	var alert: Label = dashboard.get_node("%BottleneckLabel")
+	_check(alert.get_theme_color(&"font_color").is_equal_approx(ui_theme.call("color", &"alert")) and alert.get_theme_color(&"font_color") != Color("#ff4d5e"), "en claro el aviso de ataque usa su rojo propio")
+	var project_theme := ThemeDB.get_project_theme()
+	_check(project_theme.get_color(&"font_color", &"ProgressBar").is_equal_approx(ui_theme.call("color", &"text")), "en claro el texto de las barras de progreso no es blanco")
+	_check(project_theme.get_color(&"clear_button_color", &"LineEdit").is_equal_approx(ui_theme.call("color", &"text_muted")), "en claro la × del campo de texto se ve")
+	settings.call("save_settings")
+	var saved := ConfigFile.new()
+	_check(saved.load(TEST_SETTINGS_PATH) == OK and str(saved.get_value("ui", "theme", "")) == "light", "settings.cfg guarda el tema")
+	(menu.get_node("%ThemeDarkButton") as Button).pressed.emit()
+	_check(settings.get("ui_theme") == &"dark" and (top_bar.get_theme_stylebox(&"panel") as StyleBoxFlat).bg_color.is_equal_approx(dark_panel), "Oscuro regresa los colores de siempre")
+	_check(alert.get_theme_color(&"font_color") == Color("#ff4d5e") and not project_theme.has_color(&"font_color", &"ProgressBar"), "en oscuro el aviso y las barras quedan como antes")
+	var wave_block: Node = dashboard.get_node("%WaveBlock")
+	var health_block: Node = dashboard.get_node("%HealthBlock")
+	var in_wave := ["%WaveLabel", "%CoinsLabel", "%UsersLabel"].all(func(path: String) -> bool: return wave_block.is_ancestor_of(dashboard.get_node(path)))
+	_check(in_wave, "oleada, monedas y usuarios van en el bloque de progreso")
+	_check(health_block.is_ancestor_of(dashboard.get_node("%SlaBar")) and not wave_block.is_ancestor_of(dashboard.get_node("%SlaBar")), "el SLA va en el bloque de salud")
+	_check(not wave_block.is_ancestor_of(title) and not health_block.is_ancestor_of(dashboard.get_node("%BackButton")), "empresa y botones quedan fuera de los bloques")
 
 
 ## Ficha de la mejora: con la "i" y manteniendo presionado (sin comprar).
@@ -523,6 +559,7 @@ func _test_settings_in_room(room: Node) -> void:
 	var menu: Control = settings_button.get_node("%SettingsMenu")
 	(settings_button.get_node("%GearButton") as Button).pressed.emit()
 	_check(menu.visible and paused, "el engranaje del garage abre Ajustes y pausa el juego")
+	_check(not menu.call("is_theme_row_visible") and not (menu.get_node("%ThemeRow") as Control).is_visible_in_tree(), "desde el cuarto el engranaje no muestra la fila Tema")
 	(menu.get_node("%MusicSlider") as HSlider).value = 35.0
 	(menu.get_node("%SfxSlider") as HSlider).value = 60.0
 	_check(not root.get_node("Settings").get("sfx_muted"), "mover el slider quita el silencio")
@@ -918,6 +955,47 @@ func _test_mobile_lifecycle(room: Node, save_system: Node) -> void:
 	_check(overlay.call("is_shown"), "F3 muestra el contador de FPS (build de depuración)")
 	overlay.call("_input", f3)
 	_check(not overlay.call("is_shown"), "F3 otra vez lo oculta")
+
+
+## Título: Opciones abre el mismo panel de ajustes del engranaje, con Tema y sin Salir. Sin settings.cfg,
+## el panel carga los valores de siempre (Oscuro, volumen 80 %, sin silenciar).
+func _test_title_options(title: Node) -> void:
+	var settings: Node = root.get_node("Settings")
+	var no_settings := "user://smoke_sin_ajustes.cfg"
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(no_settings))
+	settings.set("settings_path", no_settings)
+	settings.call("load_settings")
+	var options_button := title.get_node("%OptionsButton") as Button
+	_check(options_button.visible and not options_button.disabled, "Opciones está en el título")
+	options_button.pressed.emit()
+	var panel: Control = title.get_node("%OptionsPanel")
+	# Sin tipar SettingsMenu: depende del autoload UiTheme, que con -s se registra después de compilar.
+	var panel_script: Script = panel.get_script()
+	_check(panel.scene_file_path == "res://scenes/ui/settings_menu.tscn" and panel_script.resource_path == "res://scripts/ui/settings_menu.gd", "Opciones usa el mismo panel de ajustes (SettingsMenu)")
+	_check(panel.visible and panel.call("is_theme_row_visible"), "Opciones muestra la fila Tema")
+	_check(not (panel.get_node("%QuitButton") as Control).visible and (panel.get_node("%ReturnButton") as Button).text == "Cerrar", "en el título no hay Salir y Regresar dice Cerrar")
+	_check(not paused, "Opciones del título no pausa nada")
+	_check((panel.get_node("%ThemeDarkButton") as Button).button_pressed and not (panel.get_node("%ThemeLightButton") as Button).button_pressed, "sin settings.cfg el tema es Oscuro")
+	var music := panel.get_node("%MusicSlider") as HSlider
+	var sfx := panel.get_node("%SfxSlider") as HSlider
+	_check(is_equal_approx(music.value, 80.0) and is_equal_approx(sfx.value, 80.0), "sin settings.cfg los volúmenes son 80 %% (música %d, sonido %d)" % [music.value, sfx.value])
+	_check(not (panel.get_node("%MusicMute") as Button).button_pressed and not (panel.get_node("%SfxMute") as Button).button_pressed, "sin settings.cfg nada está silenciado")
+	var fullscreen := panel.get_node("%FullscreenCheck") as CheckButton
+	var ui_theme: Node = root.get_node("UiTheme")
+	for mode: StringName in [&"dark", &"light"]:
+		settings.call("set_ui_theme", mode)
+		var on_icon := fullscreen.get_theme_icon(&"checked").get_image()
+		var off_icon := fullscreen.get_theme_icon(&"unchecked").get_image()
+		var on_track := on_icon.get_pixel(4, 18)
+		var off_track := off_icon.get_pixel(60, 18)
+		_check(on_track.is_equal_approx(ui_theme.call("color", &"accent")) and off_track.is_equal_approx(ui_theme.call("color", &"card_border")), "%s: el interruptor usa los tokens del tema (encendido %s, apagado %s)" % [mode, on_track.to_html(false), off_track.to_html(false)])
+		_check(fullscreen.get_theme_color(&"font_color").is_equal_approx(ui_theme.call("color", &"text")), "%s: el texto del interruptor usa el token de texto" % mode)
+	settings.call("set_ui_theme", &"dark")
+	(panel.get_node("%ReturnButton") as Button).pressed.emit()
+	_check(not panel.visible, "Cerrar oculta Opciones")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(no_settings))
+	settings.set("settings_path", TEST_SETTINGS_PATH)
+	settings.call("load_settings")
 
 
 ## Título: Salir y el botón "atrás" piden confirmación (aquí nunca se confirma, cerraría el juego).

@@ -10,7 +10,8 @@ var _queue: PackedStringArray = []
 
 
 func _ready() -> void:
-	add_theme_stylebox_override(&"panel", DashboardColors.panel_style(Color("#16233a"), DashboardColors.ACCENT, 2, 16, 14.0))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_close_button.pressed.connect(_show_next)
 	hide()
 
@@ -45,3 +46,7 @@ func _show_next() -> void:
 func _display(text: String) -> void:
 	_text_label.text = text
 	show()
+
+
+func _apply_theme() -> void:
+	add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.CARD, DashboardColors.ACCENT, 2, 16, 14.0))

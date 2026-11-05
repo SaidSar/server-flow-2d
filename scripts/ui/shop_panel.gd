@@ -15,9 +15,6 @@ enum Tab { SHOP, INVENTORY }
 const THUMB_SIZE := Vector2(104, 104)
 ## Ancho máximo del panel: 560 px o el 30 % del ancho de la pantalla, lo que sea menor.
 const MAX_WIDTH_RATIO := 0.3
-const ROW_BG := Color("#1b2232")
-const INFO_COLOR := Color(0.7, 0.75, 0.82)
-const BLOCKED_COLOR := Color(0.96, 0.6, 0.45)
 
 @onready var _panel: PanelContainer = %Panel
 @onready var _coins_label: Label = %CoinsLabel
@@ -118,7 +115,7 @@ func _refresh() -> void:
 			shown.append(decor_id)
 			_rows_box.add_child(_inventory_row(DecorData.find(decor_id)))
 		if shown.is_empty():
-			_rows_box.add_child(_label("Tu inventario está vacío. Lo que guardes de un cuarto aparece aquí.", 24, INFO_COLOR))
+			_rows_box.add_child(_label("Tu inventario está vacío. Lo que guardes de un cuarto aparece aquí.", 24, DashboardColors.TEXT_SOFT))
 
 
 func _shop_row(decor: DecorData) -> Control:
@@ -144,7 +141,7 @@ func _inventory_row(decor: DecorData) -> Control:
 func _row(decor: DecorData, info: String, blocked: String, button: Button) -> Control:
 	var row := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = ROW_BG
+	style.bg_color = DashboardColors.CARD_ALT
 	style.set_corner_radius_all(12)
 	style.set_content_margin_all(12)
 	row.add_theme_stylebox_override(&"panel", style)
@@ -162,10 +159,10 @@ func _row(decor: DecorData, info: String, blocked: String, button: Button) -> Co
 	var texts := VBoxContainer.new()
 	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	texts.alignment = BoxContainer.ALIGNMENT_CENTER
-	texts.add_child(_label(decor.display_name, 28, Color.WHITE))
-	texts.add_child(_label(info, 22, INFO_COLOR))
+	texts.add_child(_label(decor.display_name, 28, DashboardColors.TEXT_TITLE))
+	texts.add_child(_label(info, 22, DashboardColors.TEXT_SOFT))
 	if not blocked.is_empty():
-		texts.add_child(_label(blocked, 22, BLOCKED_COLOR))
+		texts.add_child(_label(blocked, 22, DashboardColors.BLOCKED))
 	box.add_child(texts)
 	box.add_child(button)
 	return row

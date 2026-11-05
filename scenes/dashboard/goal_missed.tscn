@@ -12,6 +12,7 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
+metadata/ui_tokens = {"bg_color": "well"}
 
 [node name="GoalMissed" type="Control"]
 layout_mode = 3
@@ -30,6 +31,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0431373, 0.0666667, 0.109804, 0.9)
+metadata/ui_tokens = {"color": "scrim"}
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -54,6 +56,7 @@ theme_override_colors/font_color = Color(0.960784, 0.772549, 0.258824, 1)
 theme_override_font_sizes/font_size = 46
 text = "Meta no alcanzada"
 horizontal_alignment = 1
+metadata/ui_tokens = {"font_color": "warning"}
 
 [node name="SubtitleLabel" type="Label" parent="Center/Window/Content"]
 custom_minimum_size = Vector2(680, 0)
@@ -63,6 +66,7 @@ theme_override_font_sizes/font_size = 21
 text = "Tu empresa sigue en pie, pero terminaron las oleadas sin llegar a la meta de usuarios."
 horizontal_alignment = 1
 autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "text_muted"}
 
 [node name="UsersLabel" type="Label" parent="Center/Window/Content"]
 unique_name_in_owner = true
@@ -99,6 +103,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
 theme_override_font_sizes/font_size = 22
 text = "Consejo"
+metadata/ui_tokens = {"font_color": "accent"}
 
 [node name="AdviceLabel" type="Label" parent="Center/Window/Content/AdviceBox/Content"]
 unique_name_in_owner = true

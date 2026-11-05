@@ -8,6 +8,7 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
+metadata/ui_tokens = {"bg_color": "track"}
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
 bg_color = Color(0.309804, 0.764706, 0.968627, 1)
@@ -15,6 +16,7 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
+metadata/ui_tokens = {"bg_color": "highlight"}
 
 [node name="LoadingScreen" type="Control"]
 layout_mode = 3
@@ -33,6 +35,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0784314, 0.0941176, 0.141176, 1)
+metadata/ui_tokens = {"color": "screen_bg"}
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -65,3 +68,4 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
 text = "Conectando cables…"
 horizontal_alignment = 1
+metadata/ui_tokens = {"font_color": "text_subtitle"}

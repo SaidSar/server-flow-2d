@@ -49,11 +49,11 @@
 ## 4. Flujo del juego
 Menú de título (Continuar deshabilitado si no hay partida) → Nueva partida → carga → elegir personaje → nombre del avatar → nombre de la empresa → cuarto de la etapa.
 - En el cuarto: clic en la PC → zoom de cámara → **dashboard** (donde se juega). "← Cuarto" regresa sin pausar la simulación; el cuarto refleja el estado (rack rojo, avatar estresado).
-- **Pincel** (HUD del cuarto): personalizar colores en vivo. **Engranaje** (abajo a la derecha): música, sonido, regresar, salir (pausa el juego).
+- **Pincel** (HUD del cuarto): personalizar colores en vivo. **Engranaje** (abajo a la derecha): música, sonido, regresar, salir (pausa el juego). Abierto desde el dashboard agrega la fila **Tema** (Oscuro/Claro); desde el cuarto no.
 - Colores por defecto de una partida nueva: paredes `blanco_hueso`, piso `concreto_calido` (garage), puerta `madera_natural`, mesa `roble`.
 
 ## 5. Dashboard
-HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfico (Clientes → [Firewall] → [Load Balancer] → Servidores → BD, paquetes verde/amarillo/rojo/morado) · consola de mejoras (botón del cuello de botella resaltado; pulsación larga o "i" abre la ficha con el concepto que enseña). Tráfico mostrado ×100 (`display_scale`). Simulación con paso fijo de 0.1 s y semilla configurable; modelo descrito en `scripts/autoload/simulation.gd` y `docs/balance.md`.
+HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usuarios/meta; bloque de **salud del sistema**: SLA; velocidad y "← Cuarto") · monitor de tráfico (Clientes → [Firewall] → [Load Balancer] → Servidores → BD, paquetes verde/amarillo/rojo/morado) · consola de mejoras (botón del cuello de botella resaltado; pulsación larga o "i" abre la ficha con el concepto que enseña). Tráfico mostrado ×100 (`display_scale`). Simulación con paso fijo de 0.1 s y semilla configurable; modelo descrito en `scripts/autoload/simulation.gd` y `docs/balance.md`.
 
 ## 6. Sistema de arte (importante)
 - Todo el arte de cuartos, objetos y personajes es **3D low-poly hecho en Blender por script y renderizado a 2D** con cámara ortográfica isométrica 2:1 (elevación 30°, giro 45°). Fuente en `source_art/blender/` (los `.blend` van por Git LFS).
@@ -62,7 +62,7 @@ HUD (empresa · etapa, oleada, monedas, usuarios/meta, SLA) · monitor de tráfi
 - **Proyección mundo→píxel** en el JSON de cada cuarto: `pixel = origen + x·ex + y·ey + z·ez` (lienzo 2x). La cámara mira desde +x/−y, así que el `y_sort` de Godot ordena bien usando el centro de la huella en el piso.
 - **Personalización:** paredes (10 colores, cada pared por separado), puerta (6), mesa (3); el **piso es propio de cada cuarto** (garage: 3 concretos; oficina: laminado claro, laminado nogal, alfombra gris). Paleta en `data/customization/`.
 - **Oficina y data center:** reutilizan los sprites del garage para puerta, mesa, racks y avatar sumando un desplazamiento `(dx, dy)` definido en su JSON. Cada hueco `rack_N` de `reutilizados_del_garage` es un rack (2 en la oficina, 9 en el data center). El data center agrega capas fijas propias (vidrio y placa de Firewall) con su offset en `capas_offsets`.
-- Estilo: colores planos, sombreado suave, sin contorno (el contorno está "en veremos"). Paleta de interfaz oscura tipo panel de monitoreo (#0b111c, acento #5aa9ff, verde #3ddc84, amarillo #f5c542, rojo #ff4d5e).
+- Estilo: colores planos, sombreado suave, sin contorno (el contorno está "en veremos"). Paleta de interfaz oscura tipo panel de monitoreo (#0b111c, acento #5aa9ff, verde #3ddc84, amarillo #f5c542, rojo #ff4d5e), con una variante **clara**. Los colores de los paneles son **tokens** con un valor por tema (`scripts/autoload/ui_theme.gd`): las escenas los declaran en `metadata/ui_tokens` y los scripts los leen de `DashboardColors`, así que cambiar de tema es un solo cambio. El tema se guarda en `settings.cfg`. El arte del cuarto y el texto que flota sobre él no cambian con el tema.
 
 ## 7. Tienda y decoración (desde la etapa 2)
 - **Solo estética** (no afecta la simulación). Se abre **solo entre oleadas** (HUD del cuarto o post-mortem). En la etapa 1 se ve bloqueada.
