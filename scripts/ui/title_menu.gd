@@ -18,6 +18,7 @@ extends Control
 var tiempo_entre_iconos: float = .75
 var tiempo_acumulado: float = 0.0
 
+
 func _process(delta: float) -> void:
 	tiempo_acumulado += delta
 	if tiempo_acumulado >= tiempo_entre_iconos:

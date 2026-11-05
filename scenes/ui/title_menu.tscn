@@ -39,6 +39,7 @@ grow_vertical = 2
 color = Color(0.08953328, 0.11056893, 0.31759542, 1)
 
 [node name="Center" type="CenterContainer" parent="." unique_id=815484892]
+z_index = 10
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -95,6 +96,7 @@ size_flags_horizontal = 4
 text = "Salir"
 
 [node name="CreditsLabel" type="Label" parent="." unique_id=1567807408]
+z_index = 10
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -115,6 +117,7 @@ horizontal_alignment = 2
 [node name="OptionsPanel" type="Control" parent="." unique_id=388733354]
 unique_name_in_owner = true
 visible = false
+z_index = 10
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -169,6 +172,7 @@ text = "Cerrar"
 [node name="QuitConfirmPanel" type="Control" parent="." unique_id=522083978]
 unique_name_in_owner = true
 visible = false
+z_index = 10
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
