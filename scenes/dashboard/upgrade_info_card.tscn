@@ -18,6 +18,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
 theme_override_font_sizes/font_size = 32
 text = "RAM"
+metadata/ui_tokens = {"font_color": "text"}
 
 [node name="EffectLabel" type="Label" parent="Content"]
 unique_name_in_owner = true
@@ -27,6 +28,7 @@ theme_override_colors/font_color = Color(0.239216, 0.862745, 0.517647, 1)
 theme_override_font_sizes/font_size = 21
 text = "Efecto: +50 % concurrencia por nivel"
 autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "ok"}
 
 [node name="LevelLabel" type="Label" parent="Content"]
 unique_name_in_owner = true
@@ -36,6 +38,7 @@ theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
 theme_override_font_sizes/font_size = 21
 text = "Nivel actual: 0 de 10"
 autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "accent"}
 
 [node name="CostLabel" type="Label" parent="Content"]
 unique_name_in_owner = true
@@ -43,6 +46,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.960784, 0.772549, 0.258824, 1)
 theme_override_font_sizes/font_size = 21
 text = "Costo: 30 monedas"
+metadata/ui_tokens = {"font_color": "warning"}
 
 [node name="Separator" type="HSeparator" parent="Content"]
 layout_mode = 2
@@ -53,6 +57,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
 theme_override_font_sizes/font_size = 22
 text = "Qué enseña"
+metadata/ui_tokens = {"font_color": "accent"}
 
 [node name="ConceptLabel" type="Label" parent="Content"]
 unique_name_in_owner = true
@@ -62,6 +67,7 @@ theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
 theme_override_font_sizes/font_size = 22
 text = "Concurrencia: la RAM limita cuántas peticiones se atienden al mismo tiempo."
 autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "text"}
 
 [node name="DescriptionLabel" type="Label" parent="Content"]
 unique_name_in_owner = true
@@ -71,3 +77,4 @@ theme_override_colors/font_color = Color(0.541176, 0.607843, 0.709804, 1)
 theme_override_font_sizes/font_size = 19
 text = "Más memoria para atender más peticiones simultáneas."
 autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "text_muted"}

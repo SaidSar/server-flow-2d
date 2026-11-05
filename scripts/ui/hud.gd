@@ -36,7 +36,7 @@ func _ready() -> void:
 	_brush_button.visible = show_customize_button
 	_shop_button.visible = show_customize_button
 	_users_bar.add_theme_stylebox_override(&"fill", _users_fill)
-	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(Color(0.2, 0.22, 0.28)))
+	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.HUD_TRACK))
 	_brush_button.pressed.connect(_on_brush_pressed)
 	_shop_button.pressed.connect(shop_requested.emit)
 	GameState.changed.connect(_refresh)

@@ -11,6 +11,7 @@ content_margin_bottom = 28.0
 bg_color = Color(0.0784314, 0.0941176, 0.141176, 0.96)
 border_width_left = 2
 border_color = Color(0.309804, 0.764706, 0.968627, 1)
+metadata/ui_tokens = {"bg_color": "side_panel", "border_color": "highlight"}
 
 [node name="CustomizePanel" type="CanvasLayer"]
 layer = 2

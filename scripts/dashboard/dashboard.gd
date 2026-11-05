@@ -8,7 +8,6 @@ const SETTINGS_SLOT_NAME := "SettingsSlot"
 ## La CEO que anuncia la ronda de inversión.
 const CEO_NAME := "Briseida"
 const CEO_ROLE := "CEO"
-const CEO_COLOR := Color("#e0569b")
 ## Con género (TextUtil.format): "{masculino|femenino}".
 const INVESTMENT_TEXT := "¡%s, lo logramos! Eres {el mejor|la mejor} SysAdmin que podíamos pedir. Conseguimos una ronda de inversión: +%s monedas para escalar %s."
 const INVESTMENT_BUTTON := "¡Vamos!"
@@ -22,10 +21,10 @@ const RESOURCE_NAMES := {
 	&"disk": "Disco",
 }
 const LEGEND := [
-	[DashboardColors.OK, "200 OK"],
-	[DashboardColors.WARNING, "Latencia alta"],
-	[DashboardColors.DANGER, "Timeout / Error 500"],
-	[DashboardColors.MALICIOUS, "Tráfico malicioso (DDoS)"],
+	[&"ok", "200 OK"],
+	[&"warning", "Latencia alta"],
+	[&"danger", "Timeout / Error 500"],
+	[&"malicious", "Tráfico malicioso (DDoS)"],
 ]
 const SLA_GOOD := 80.0
 const SLA_WARNING := 50.0
@@ -71,15 +70,10 @@ func _ready() -> void:
 	if not Simulation.has_session():
 		Simulation.new_game()
 
-	_top_bar.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 14.0))
-	for block: PanelContainer in [_wave_block, _health_block]:
-		block.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.INSET, DashboardColors.INSET_BORDER, 2, 10, 10.0))
-	_monitor_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 6.0))
-	_console_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 16.0))
+	_apply_panel_styles()
 	_sla_bar.add_theme_stylebox_override(&"fill", _sla_fill)
-	_sla_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
 	_users_bar.add_theme_stylebox_override(&"fill", _users_fill)
-	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
+	UiTheme.changed.connect(_apply_theme)
 	# Respeta la cámara frontal y la barra de gestos del celular.
 	_fit_safe_area()
 	SceneRouter.safe_area_changed.connect(_fit_safe_area)
@@ -197,13 +191,33 @@ func _on_speed_pressed() -> void:
 
 #region Monitor y BYTE
 
+## Paneles, bloques de la barra superior y fondos de las barras con los colores del tema actual.
+func _apply_panel_styles() -> void:
+	_top_bar.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 14.0))
+	for block: PanelContainer in [_wave_block, _health_block]:
+		block.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.INSET, DashboardColors.INSET_BORDER, 2, 10, 10.0))
+	_monitor_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 6.0))
+	_console_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 16.0))
+	for bar: ProgressBar in [_sla_bar, _users_bar]:
+		bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BAR_TRACK))
+
+
+func _apply_theme() -> void:
+	_apply_panel_styles()
+	for child: Node in _legend_box.get_children():
+		_legend_box.remove_child(child)
+		child.queue_free()
+	_build_legend()
+	_refresh()
+
+
 func _build_legend() -> void:
 	for entry: Array in LEGEND:
 		var dot := Panel.new()
 		dot.custom_minimum_size = Vector2(18, 18)
 		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		var style := StyleBoxFlat.new()
-		style.bg_color = entry[0]
+		style.bg_color = UiTheme.color(entry[0])
 		style.set_corner_radius_all(9)
 		dot.add_theme_stylebox_override(&"panel", style)
 		_legend_box.add_child(dot)
@@ -364,7 +378,7 @@ func _on_victory_continue() -> void:
 		var avatar := GameState.avatar_name if not GameState.avatar_name.is_empty() else "equipo"
 		_dialog.show_dialog(CEO_NAME, CEO_ROLE,
 			TextUtil.format(INVESTMENT_TEXT % [avatar, NumberFormat.thousands(Simulation.pending_investment), _company_name()]),
-			INVESTMENT_BUTTON, CEO_COLOR)
+			INVESTMENT_BUTTON, DashboardColors.CEO)
 		await _dialog.closed
 	Simulation.acknowledge_stage_report()
 	_go_to_room()

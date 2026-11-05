@@ -15,7 +15,8 @@ const MAX_STARS := 4
 
 
 func _ready() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.OK, 3, 18, 32.0))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_continue_button.pressed.connect(continue_requested.emit)
 	hide()
 
@@ -41,3 +42,7 @@ func show_report(report: WaveReport, stage_name: String, unlock_names: PackedStr
 		_continue_button.text = "Siguiente etapa"
 	show()
 	_continue_button.grab_focus()
+
+
+func _apply_theme() -> void:
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.OK, 3, 18, 32.0))

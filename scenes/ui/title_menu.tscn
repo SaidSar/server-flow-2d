@@ -17,6 +17,7 @@ corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
+metadata/ui_tokens = {"bg_color": "menu_panel", "border_color": "highlight"}
 
 [node name="TitleMenu" type="Control"]
 layout_mode = 3
@@ -35,6 +36,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0784314, 0.0941176, 0.141176, 1)
+metadata/ui_tokens = {"color": "screen_bg"}
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -59,6 +61,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
 text = "Mantén los servidores en pie"
 horizontal_alignment = 1
+metadata/ui_tokens = {"font_color": "text_subtitle"}
 
 [node name="Spacer" type="Control" parent="Center/Menu"]
 custom_minimum_size = Vector2(0, 32)
@@ -109,6 +112,7 @@ theme_override_colors/font_color = Color(0.45, 0.5, 0.58, 1)
 theme_override_font_sizes/font_size = 22
 text = "NEXUS CODE · UAdeO"
 horizontal_alignment = 2
+metadata/ui_tokens = {"font_color": "text_footer"}
 
 [node name="OptionsPanel" type="Control" parent="."]
 unique_name_in_owner = true
@@ -128,6 +132,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.6)
+metadata/ui_tokens = {"color": "scrim_deep"}
 
 [node name="Center" type="CenterContainer" parent="OptionsPanel"]
 layout_mode = 1
@@ -182,6 +187,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.6)
+metadata/ui_tokens = {"color": "scrim_deep"}
 
 [node name="Center" type="CenterContainer" parent="QuitConfirmPanel"]
 layout_mode = 1

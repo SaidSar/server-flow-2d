@@ -19,12 +19,15 @@ var _positive: Dictionary[StringName, bool] = {}
 var _fill_styles: Dictionary[Color, StyleBoxFlat] = {}
 var _normal_style := DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 12, 12.0)
 var _alert_style := DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.DANGER, 3, 12, 12.0)
+var _track_style := DashboardColors.bar_style(DashboardColors.BAR_TRACK)
+var _name_labels: Array[Label] = []
 var _is_alert := false
 var _is_compact := false
 
 
 func _ready() -> void:
 	add_theme_stylebox_override(&"panel", _normal_style)
+	UiTheme.changed.connect(_apply_theme)
 
 
 func _process(delta: float) -> void:
@@ -61,6 +64,7 @@ func add_metric(metric_id: StringName, label_text: String, positive: bool = fals
 	row.add_theme_constant_override(&"separation", 8)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var name_label := _make_label(label_text, 18, DashboardColors.TEXT_MUTED)
+	_name_labels.append(name_label)
 	name_label.custom_minimum_size.x = 82.0
 	row.add_child(name_label)
 	var bar := ProgressBar.new()
@@ -69,7 +73,7 @@ func add_metric(metric_id: StringName, label_text: String, positive: bool = fals
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(Color(DashboardColors.BACKGROUND, 0.9)))
+	bar.add_theme_stylebox_override(&"background", _track_style)
 	row.add_child(bar)
 	var value_label := _make_label("0 %", 18, DashboardColors.TEXT)
 	value_label.custom_minimum_size.x = 62.0
@@ -129,3 +133,17 @@ static func _make_label(text: String, font_size: int, color: Color) -> Label:
 	label.add_theme_color_override(&"font_color", color)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
+
+
+## Los estilos se reutilizan: al cambiar de tema se recolorean en su lugar.
+func _apply_theme() -> void:
+	for style: StyleBoxFlat in [_normal_style, _alert_style]:
+		style.bg_color = DashboardColors.PANEL
+	_normal_style.border_color = DashboardColors.PANEL_BORDER
+	_alert_style.border_color = DashboardColors.DANGER
+	_track_style.bg_color = Color(DashboardColors.BAR_TRACK, 0.9)
+	_fill_styles.clear()
+	for label: Label in _name_labels:
+		label.add_theme_color_override(&"font_color", DashboardColors.TEXT_MUTED)
+	for label: Label in _value_labels.values():
+		label.add_theme_color_override(&"font_color", DashboardColors.TEXT)

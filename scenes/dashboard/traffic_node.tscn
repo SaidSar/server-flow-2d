@@ -18,6 +18,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
 theme_override_font_sizes/font_size = 22
 text = "Servidor Web #1"
+metadata/ui_tokens = {"font_color": "text"}
 
 [node name="SubtitleLabel" type="Label" parent="Content"]
 unique_name_in_owner = true
@@ -25,6 +26,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.541176, 0.607843, 0.709804, 1)
 theme_override_font_sizes/font_size = 17
 text = "1.2 req/s"
+metadata/ui_tokens = {"font_color": "text_muted"}
 
 [node name="MetricsBox" type="VBoxContainer" parent="Content"]
 unique_name_in_owner = true

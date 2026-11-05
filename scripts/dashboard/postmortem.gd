@@ -17,7 +17,8 @@ signal shop_requested
 
 
 func _ready() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.ACCENT, 2, 18, 28.0))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_next_button.pressed.connect(next_wave_requested.emit)
 	_room_button.pressed.connect(room_requested.emit)
 	_shop_button.pressed.connect(shop_requested.emit)
@@ -31,3 +32,7 @@ func show_report(report: WaveReport, next_wave: int, wave_count: int) -> void:
 	_shop_button.visible = DecorShop.is_unlocked()
 	show()
 	_next_button.grab_focus()
+
+
+func _apply_theme() -> void:
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.ACCENT, 2, 18, 28.0))

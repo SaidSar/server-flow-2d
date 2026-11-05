@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 
 DebugOverlay="*res://scripts/autoload/debug_overlay.gd"
 Settings="*res://scripts/autoload/settings.gd"
+UiTheme="*res://scripts/autoload/ui_theme.gd"
 Customization="*res://scripts/autoload/customization.gd"
 Simulation="*res://scripts/autoload/simulation.gd"
 GameState="*res://scripts/autoload/game_state.gd"

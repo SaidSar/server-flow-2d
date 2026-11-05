@@ -69,6 +69,7 @@ var _rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
+	UiTheme.changed.connect(queue_redraw)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_packet_route.resize(MAX_PACKETS)
 	_packet_server.resize(MAX_PACKETS)

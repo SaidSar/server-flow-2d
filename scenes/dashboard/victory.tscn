@@ -20,6 +20,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0431373, 0.0666667, 0.109804, 0.9)
+metadata/ui_tokens = {"color": "scrim"}
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -45,6 +46,7 @@ theme_override_colors/font_color = Color(0.239216, 0.862745, 0.517647, 1)
 theme_override_font_sizes/font_size = 46
 text = "¡Etapa Startup completada!"
 horizontal_alignment = 1
+metadata/ui_tokens = {"font_color": "ok"}
 
 [node name="StarsBox" type="HBoxContainer" parent="Center/Window/Content"]
 unique_name_in_owner = true
@@ -87,6 +89,7 @@ theme_override_colors/font_color = Color(0.901961, 0.929412, 0.968627, 1)
 theme_override_font_sizes/font_size = 24
 text = "Usuarios atendidos: 1000 / 1000"
 horizontal_alignment = 1
+metadata/ui_tokens = {"font_color": "text"}
 
 [node name="UnlocksLabel" type="Label" parent="Center/Window/Content"]
 unique_name_in_owner = true
@@ -97,6 +100,7 @@ theme_override_font_sizes/font_size = 22
 text = "Desbloqueado: Optimizar caché, + Servidor web"
 horizontal_alignment = 1
 autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "accent"}
 
 [node name="ContinueButton" type="Button" parent="Center/Window/Content"]
 unique_name_in_owner = true

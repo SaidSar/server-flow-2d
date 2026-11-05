@@ -21,7 +21,8 @@ var _circle_style := StyleBoxFlat.new()
 
 
 func _ready() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(Color("#16233a"), DashboardColors.ACCENT, 2, 18, 24.0))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_circle_style.set_corner_radius_all(999)
 	_portrait_circle.add_theme_stylebox_override(&"panel", _circle_style)
 	_continue_button.pressed.connect(_on_continue_pressed)
@@ -29,7 +30,10 @@ func _ready() -> void:
 
 
 ## `portrait` vacío = círculo de color con las iniciales.
-func show_dialog(speaker: String, role: String, text: String, button_text: String, color: Color = DashboardColors.ACCENT, portrait: Texture2D = null) -> void:
+## `color` transparente = el acento del tema.
+func show_dialog(speaker: String, role: String, text: String, button_text: String, color: Color = Color.TRANSPARENT, portrait: Texture2D = null) -> void:
+	if color.a == 0.0:
+		color = DashboardColors.ACCENT
 	_speaker_label.text = speaker
 	_role_label.text = role
 	_role_label.visible = not role.is_empty()
@@ -60,3 +64,7 @@ static func get_initials(speaker: String) -> String:
 func _on_continue_pressed() -> void:
 	hide()
 	closed.emit()
+
+
+func _apply_theme() -> void:
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.CARD, DashboardColors.ACCENT, 2, 18, 24.0))
