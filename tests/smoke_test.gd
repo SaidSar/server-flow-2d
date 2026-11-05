@@ -980,6 +980,17 @@ func _test_title_options(title: Node) -> void:
 	var sfx := panel.get_node("%SfxSlider") as HSlider
 	_check(is_equal_approx(music.value, 80.0) and is_equal_approx(sfx.value, 80.0), "sin settings.cfg los volúmenes son 80 %% (música %d, sonido %d)" % [music.value, sfx.value])
 	_check(not (panel.get_node("%MusicMute") as Button).button_pressed and not (panel.get_node("%SfxMute") as Button).button_pressed, "sin settings.cfg nada está silenciado")
+	var fullscreen := panel.get_node("%FullscreenCheck") as CheckButton
+	var ui_theme: Node = root.get_node("UiTheme")
+	for mode: StringName in [&"dark", &"light"]:
+		settings.call("set_ui_theme", mode)
+		var on_icon := fullscreen.get_theme_icon(&"checked").get_image()
+		var off_icon := fullscreen.get_theme_icon(&"unchecked").get_image()
+		var on_track := on_icon.get_pixel(4, 18)
+		var off_track := off_icon.get_pixel(60, 18)
+		_check(on_track.is_equal_approx(ui_theme.call("color", &"accent")) and off_track.is_equal_approx(ui_theme.call("color", &"card_border")), "%s: el interruptor usa los tokens del tema (encendido %s, apagado %s)" % [mode, on_track.to_html(false), off_track.to_html(false)])
+		_check(fullscreen.get_theme_color(&"font_color").is_equal_approx(ui_theme.call("color", &"text")), "%s: el texto del interruptor usa el token de texto" % mode)
+	settings.call("set_ui_theme", &"dark")
 	(panel.get_node("%ReturnButton") as Button).pressed.emit()
 	_check(not panel.visible, "Cerrar oculta Opciones")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(no_settings))

@@ -272,6 +272,20 @@ func _apply_project_theme() -> void:
 			theme.set_stylebox(item, type, _flat_style(pair[0], pair[1]))
 
 
+## Ícono de interruptor (CheckButton) con los colores del tema: pista de acento y perilla clara
+## encendido; pista gris y perilla de texto apagado.
+func switch_icon(on: bool) -> Texture2D:
+	var track := color(&"accent") if on else color(&"card_border")
+	var knob := color(&"text_on_accent") if on else color(&"text")
+	var svg := '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="36"><rect x="1" y="1" width="62" height="34" rx="17" fill="#%s"/><circle cx="%d" cy="18" r="12" fill="#%s"/></svg>' % [
+		track.to_html(false), 46 if on else 18, knob.to_html(false)]
+	var image := Image.new()
+	if image.load_svg_from_string(svg) != OK:
+		push_error("No se pudo dibujar el ícono del interruptor.")
+		return null
+	return ImageTexture.create_from_image(image)
+
+
 func _flat_style(fill: StringName, border: StringName) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.draw_center = fill != &""

@@ -173,6 +173,24 @@ func _save_and_quit() -> void:
 
 func _apply_theme() -> void:
 	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.ACCENT, 2, 18, 32.0))
+	_style_switch(_fullscreen_check)
+
+
+## El interruptor usa íconos con los colores del tema (el de Godot casi no se ve en oscuro) y sin
+## caja de botón, igual en los dos temas.
+static func _style_switch(check: CheckButton) -> void:
+	var on := UiTheme.switch_icon(true)
+	var off := UiTheme.switch_icon(false)
+	for icon_name: StringName in [&"checked", &"checked_mirrored"]:
+		check.add_theme_icon_override(icon_name, on)
+	for icon_name: StringName in [&"unchecked", &"unchecked_mirrored"]:
+		check.add_theme_icon_override(icon_name, off)
+	for style_name: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed", &"focus"]:
+		check.add_theme_stylebox_override(style_name, StyleBoxEmpty.new())
+	for color_name: StringName in [&"font_color", &"font_pressed_color", &"font_focus_color"]:
+		check.add_theme_color_override(color_name, DashboardColors.TEXT)
+	for color_name: StringName in [&"font_hover_color", &"font_hover_pressed_color"]:
+		check.add_theme_color_override(color_name, DashboardColors.ACCENT)
 
 
 func _on_fullscreen_toggled(enabled: bool) -> void:
