@@ -36,7 +36,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.15356869, 0.20862919, 0.45967478, 1)
+color = Color(0.08953328, 0.11056893, 0.31759542, 1)
 
 [node name="Center" type="CenterContainer" parent="." unique_id=815484892]
 layout_mode = 1
@@ -58,7 +58,7 @@ horizontal_alignment = 1
 
 [node name="SubtitleLabel" type="Label" parent="Center/Menu" unique_id=45891479]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_colors/font_color = Color(0.5958618, 0.8129535, 0.8768838, 1)
 text = "Mantén los servidores en pie"
 horizontal_alignment = 1
 
