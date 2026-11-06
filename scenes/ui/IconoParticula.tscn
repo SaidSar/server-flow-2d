@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://ca6h2r6ph26e5"]
+
+[ext_resource type="Shader" uid="uid://cskq2t6rrtgeg" path="res://assets/shaders/blanco.gdshader" id="1_klwap"]
+[ext_resource type="Script" uid="uid://bx4k13oomccsj" path="res://scripts/ui/icono_particula.gd" id="1_oco4c"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yntn8"]
+shader = ExtResource("1_klwap")
+
+[node name="Control" type="Sprite2D"]
+material = SubResource("ShaderMaterial_yntn8")
+script = ExtResource("1_oco4c")

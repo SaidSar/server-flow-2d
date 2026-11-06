@@ -65,6 +65,10 @@ const PALETTES := {
 		&"text_hint": Color("#99a6b8"),
 		&"text_subtitle": Color("#99b2cc"),
 		&"text_footer": Color("#738094"),
+		## Menú de título (fondo azulado, subtítulo e íconos que caen).
+		&"title_bg": Color("#171c51"),
+		&"title_subtitle": Color("#98cfe0"),
+		&"title_particle": Color("#ffffff"),
 		&"hud_text_soft": Color("#99a8c2"),
 		&"hud_accent": Color("#99ccff"),
 		## Texto que flota sobre el arte del cuarto (no sobre un panel): igual en los dos temas.
@@ -124,6 +128,9 @@ const PALETTES := {
 		&"text_hint": Color("#56627a"),
 		&"text_subtitle": Color("#46566f"),
 		&"text_footer": Color("#5f687a"),
+		&"title_bg": Color("#e8edf5"),
+		&"title_subtitle": Color("#46566f"),
+		&"title_particle": Color("#8d99b0"),
 		&"hud_text_soft": Color("#46536a"),
 		&"hud_accent": Color("#1d5ba6"),
 		&"float_text": Color("#b2bfd1"),
