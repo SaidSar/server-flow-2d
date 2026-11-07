@@ -604,7 +604,7 @@ CATALOGO = [
   ("planta_3", "Planta — diseño 3", planta_3, 150), ("planta_4", "Planta — diseño 4", planta_4, 150),
   ("florero", "Florero", florero, 100), ("osito", "Osito", osito, 80), ("balon_voli", "Balón de voli", balon_voli, 60),
   ("colocador", "Colocador", colocador, 220), ("lampara_2", "Lámpara — diseño 2", lampara_2, 210),
-  ("computadora_doble", "Computadora (doble monitor)", computadora_doble, 450),
+  ("computadora_doble", "Computadora (doble monitor)", computadora_doble, 1500),
 ]
 
 # ---------------- cámara y render ----------------

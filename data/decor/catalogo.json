@@ -1363,7 +1363,7 @@
   {
    "id": "computadora_doble",
    "nombre": "Computadora (doble monitor)",
-   "precio": 450,
+   "precio": 1500,
    "tipo": "piso",
    "orientaciones": {
     "a": {
