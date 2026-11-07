@@ -569,7 +569,7 @@
    "tipo": "tapete",
    "orientaciones": {
     "a": {
-     "sprite": "decor/tapete_redondo_a.png",
+     "sprite": "res://assets/art/decor/tapete_redondo_a.png",
      "ancla": [
       -36.0,
       49.83
@@ -588,7 +588,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/tapete_redondo_b.png",
+     "sprite": "res://assets/art/decor/tapete_redondo_b.png",
      "ancla": [
       -36.0,
       49.83
@@ -615,7 +615,7 @@
    "tipo": "tapete",
    "orientaciones": {
     "a": {
-     "sprite": "decor/tapete_estampado_a.png",
+     "sprite": "res://assets/art/decor/tapete_estampado_a.png",
      "ancla": [
       4.0,
       97.83
@@ -634,7 +634,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/tapete_estampado_b.png",
+     "sprite": "res://assets/art/decor/tapete_estampado_b.png",
      "ancla": [
       4.0,
       97.83
@@ -661,7 +661,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/sillon_l_a.png",
+     "sprite": "res://assets/art/decor/sillon_l_a.png",
      "ancla": [
       100.0,
       225.83
@@ -680,7 +680,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/sillon_l_b.png",
+     "sprite": "res://assets/art/decor/sillon_l_b.png",
      "ancla": [
       108.0,
       257.83
@@ -707,7 +707,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/mesa_auxiliar_a.png",
+     "sprite": "res://assets/art/decor/mesa_auxiliar_a.png",
      "ancla": [
       44.0,
       105.83
@@ -726,7 +726,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/mesa_auxiliar_b.png",
+     "sprite": "res://assets/art/decor/mesa_auxiliar_b.png",
      "ancla": [
       44.0,
       105.83
@@ -753,7 +753,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/estanteria_a.png",
+     "sprite": "res://assets/art/decor/estanteria_a.png",
      "ancla": [
       172.0,
       265.83
@@ -772,7 +772,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/estanteria_b.png",
+     "sprite": "res://assets/art/decor/estanteria_b.png",
      "ancla": [
       164.0,
       329.83
@@ -799,7 +799,7 @@
    "tipo": "pared",
    "orientaciones": {
     "der": {
-     "sprite": "decor/ventana_1_der.png",
+     "sprite": "res://assets/art/decor/ventana_1_der.png",
      "ancla": [
       4.0,
       297.83
@@ -818,7 +818,7 @@
      ]
     },
     "izq": {
-     "sprite": "decor/ventana_1_izq.png",
+     "sprite": "res://assets/art/decor/ventana_1_izq.png",
      "ancla": [
       20.0,
       353.83
@@ -849,7 +849,7 @@
    "tipo": "pared",
    "orientaciones": {
     "der": {
-     "sprite": "decor/ventana_2_der.png",
+     "sprite": "res://assets/art/decor/ventana_2_der.png",
      "ancla": [
       4.0,
       337.83
@@ -868,7 +868,7 @@
      ]
     },
     "izq": {
-     "sprite": "decor/ventana_2_izq.png",
+     "sprite": "res://assets/art/decor/ventana_2_izq.png",
      "ancla": [
       4.0,
       393.83
@@ -899,7 +899,7 @@
    "tipo": "pared",
    "orientaciones": {
     "der": {
-     "sprite": "decor/cuadro_2_der.png",
+     "sprite": "res://assets/art/decor/cuadro_2_der.png",
      "ancla": [
       4.0,
       313.83
@@ -918,7 +918,7 @@
      ]
     },
     "izq": {
-     "sprite": "decor/cuadro_2_izq.png",
+     "sprite": "res://assets/art/decor/cuadro_2_izq.png",
      "ancla": [
       4.0,
       369.83
@@ -949,7 +949,7 @@
    "tipo": "pared",
    "orientaciones": {
     "der": {
-     "sprite": "decor/posters_der.png",
+     "sprite": "res://assets/art/decor/posters_der.png",
      "ancla": [
       4.0,
       289.83
@@ -968,7 +968,7 @@
      ]
     },
     "izq": {
-     "sprite": "decor/posters_izq.png",
+     "sprite": "res://assets/art/decor/posters_izq.png",
      "ancla": [
       4.0,
       345.83
@@ -999,7 +999,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/planta_2_a.png",
+     "sprite": "res://assets/art/decor/planta_2_a.png",
      "ancla": [
       60.0,
       137.83
@@ -1018,7 +1018,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/planta_2_b.png",
+     "sprite": "res://assets/art/decor/planta_2_b.png",
      "ancla": [
       60.0,
       137.83
@@ -1045,7 +1045,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/planta_3_a.png",
+     "sprite": "res://assets/art/decor/planta_3_a.png",
      "ancla": [
       76.0,
       145.83
@@ -1064,7 +1064,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/planta_3_b.png",
+     "sprite": "res://assets/art/decor/planta_3_b.png",
      "ancla": [
       76.0,
       145.83
@@ -1091,7 +1091,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/planta_4_a.png",
+     "sprite": "res://assets/art/decor/planta_4_a.png",
      "ancla": [
       60.0,
       153.83
@@ -1110,7 +1110,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/planta_4_b.png",
+     "sprite": "res://assets/art/decor/planta_4_b.png",
      "ancla": [
       60.0,
       153.83
@@ -1137,7 +1137,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/florero_a.png",
+     "sprite": "res://assets/art/decor/florero_a.png",
      "ancla": [
       28.0,
       105.83
@@ -1156,7 +1156,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/florero_b.png",
+     "sprite": "res://assets/art/decor/florero_b.png",
      "ancla": [
       -12.0,
       113.83
@@ -1183,7 +1183,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/osito_a.png",
+     "sprite": "res://assets/art/decor/osito_a.png",
      "ancla": [
       12.0,
       89.83
@@ -1202,7 +1202,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/osito_b.png",
+     "sprite": "res://assets/art/decor/osito_b.png",
      "ancla": [
       12.0,
       89.83
@@ -1229,7 +1229,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/balon_voli_a.png",
+     "sprite": "res://assets/art/decor/balon_voli_a.png",
      "ancla": [
       -28.0,
       41.83
@@ -1248,7 +1248,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/balon_voli_b.png",
+     "sprite": "res://assets/art/decor/balon_voli_b.png",
      "ancla": [
       -28.0,
       41.83
@@ -1275,7 +1275,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/colocador_a.png",
+     "sprite": "res://assets/art/decor/colocador_a.png",
      "ancla": [
       108.0,
       289.83
@@ -1294,7 +1294,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/colocador_b.png",
+     "sprite": "res://assets/art/decor/colocador_b.png",
      "ancla": [
       108.0,
       289.83
@@ -1321,7 +1321,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/lampara_2_a.png",
+     "sprite": "res://assets/art/decor/lampara_2_a.png",
      "ancla": [
       116.0,
       257.83
@@ -1340,7 +1340,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/lampara_2_b.png",
+     "sprite": "res://assets/art/decor/lampara_2_b.png",
      "ancla": [
       116.0,
       257.83
@@ -1367,7 +1367,7 @@
    "tipo": "piso",
    "orientaciones": {
     "a": {
-     "sprite": "decor/computadora_doble_a.png",
+     "sprite": "res://assets/art/decor/computadora_doble_a.png",
      "ancla": [
       68.0,
       241.83
@@ -1386,7 +1386,7 @@
      ]
     },
     "b": {
-     "sprite": "decor/computadora_doble_b.png",
+     "sprite": "res://assets/art/decor/computadora_doble_b.png",
      "ancla": [
       100.0,
       273.83
