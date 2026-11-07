@@ -285,13 +285,15 @@ def planta_4(r):
 
 def florero(r):
     vidrio = C("flov", "#a9d4e8", .2, 0.6)
-    cyl("Base", (0.25, 0.25, 0.1), 0.08, 0.02, vidrio, r)
-    cyl("Cuerpo", (0.25, 0.25, 0.22), 0.07, 0.2, vidrio, r, r2=0.04)
-    cyl("Cuello", (0.25, 0.25, 0.36), 0.025, 0.08, vidrio, r)
-    for (x, y, z, c) in [(0.22, 0.24, 0.5, "#e8649b"), (0.28, 0.26, 0.54, "#f5c542"), (0.25, 0.22, 0.52, "#5aa9ff")]:
-        sph("Flor", (x, y, z), 0.045, C("flof" + c, c, .5), r)
+    cyl("Base", (0.25, 0.25, 0.04), 0.09, 0.03, vidrio, r)
+    cyl("Cuerpo", (0.25, 0.25, 0.17), 0.1, 0.2, vidrio, r, r2=0.06)
+    cyl("Cuello", (0.25, 0.25, 0.3), 0.035, 0.08, vidrio, r)
+    cyl("Boca", (0.25, 0.25, 0.345), 0.045, 0.015, vidrio, r)
     g = C("flog", "#3e8e4a")
-    cyl("Tallo", (0.25, 0.25, 0.44), 0.006, 0.2, g, r)
+    for (x, y, h) in [(0.22, 0.24, 0.26), (0.28, 0.26, 0.3), (0.25, 0.22, 0.22)]:
+        cyl("Tallo", (x, y, 0.35 + h / 2), 0.006, h, g, r)
+    for (x, y, z, c) in [(0.2, 0.22, 0.56, "#e8649b"), (0.3, 0.27, 0.6, "#f5c542"), (0.25, 0.2, 0.52, "#5aa9ff")]:
+        sph("Flor", (x, y, z), 0.05, C("flof" + c, c, .5), r)
     return (0.5, 0.5), "piso"
 
 def osito(r):
@@ -308,10 +310,11 @@ def osito(r):
     return (0.5, 0.5), "piso"
 
 def balon_voli(r):
-    cuero, linea = C("bvol", "#f4f4f4", .4), C("bvol2", "#5aa9ff", .4)
+    cuero = C("bvol", "#f4f4f4", .4)
+    linea = mat("d_bvol2", "#5aa9ff", .35, 0.3)
     sph("Balon", (0.25, 0.25, 0.12), 0.12, cuero, r)
     for ang in (0, 60, 120):
-        bpy.ops.mesh.primitive_torus_add(major_radius=0.12, minor_radius=0.006, location=(0.25, 0.25, 0.12), rotation=(math.radians(90), math.radians(ang), 0))
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.121, minor_radius=0.013, location=(0.25, 0.25, 0.12), rotation=(math.radians(90), math.radians(ang), 0))
         o = bpy.context.active_object; o.parent = r; o.data.materials.append(linea)
     return (0.5, 0.5), "piso"
 
@@ -325,7 +328,7 @@ def colocador(r):
     return (0.5, 0.5), "piso"
 
 def lampara_2(r):
-    met = C("lamp2m", "#9aa3ad", .3, 0, .6)
+    met = mat("d_lamp2m", "#9aa3ad", .3, 0, .6)
     cyl("Base", (0.25, 0.25, 0.02), 0.17, 0.04, met, r)
     cyl("Poste1", (0.25, 0.25, 0.5), 0.016, 1.0, met, r)
     cyl("Poste2", (0.33, 0.25, 1.1), 0.014, 0.4, met, r)
