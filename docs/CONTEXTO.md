@@ -75,8 +75,9 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
 - **Tamaño del catálogo extra:** las 2 zonas de pared del data center (`zonas_catalogo_extra`) miden 1.1 m (`pared_izq_1`) y 0.8 m (`pared_izq_2`). Las referencias personales de pared deben medir **≤ 0.8 m de ancho** para caber en cualquiera de las dos, o se amplían las zonas más adelante. El cuadro actual (0.9 m) solo cabe en la de 1.1 m y el neón (1.4 m) en ninguna.
 - **Ancla de los sprites:** el `ancla` de cada orientación en `catalogo.json` es el píxel del punto (0,0,0) del objeto, que es la **esquina mínima de su huella** (no el centro). El `Node2D` de cada objeto va en `world_to_canvas` del centro de la huella (para el `y_sort`) y su `Sprite2D` en `proj(esquina mínima) − proj(centro) − ancla`.
 - **Muros con altura:** los objetos de pared (cuadro z 1.25–1.95 m, neón z 1.95–2.45 m, en `altura_m` del catálogo) ocupan en el muro su tramo × su altura. Las zonas prohibidas (`tramos_prohibidos_pared` en `data/rooms/oficina.json`) también tienen tramo y altura, y solo chocan si se enciman en los dos:
-  - pared derecha: ventanas x 4.0–5.9 y 6.5–8.4 (z 1.0–2.5); racks x 0.8–2.5 (z 0–2.05);
+  - pared derecha: ventanas x 4.0–5.9 y 6.5–8.4 (z 1.0–2.5); racks x 0.0–2.5 (z 0–2.05);
   - pared izquierda: puerta y 4.3–5.5 (z 0–2.15); pizarrón y 6.2–8.6 (z 1.25–2.55); monitor del escritorio y 1.1–3.5 (z 0.75–1.6).
+  En el data center (`data/rooms/data_center.json`) la pared derecha tiene el bay (x 5.3–12, z 0–3.2) y el **riel superior del vidrio** (`riel_vidrio`): no toca el muro, pero en pantalla lo cruza en diagonal de x ≈ 0.9 (z 0) a x ≈ 5.0 (z 3.2), así que se guarda como tramos de 0.5 m, cada uno con la z que cubre el riel ahí (p. ej. x 2.5–3.0 → z 1.19–1.73).
   Por eso el neón cabe sobre el escritorio. Dos objetos del mismo muro siguen la misma regla (un neón puede ir encima de un cuadro).
 
 ## 8. Estado (actualiza esta sección en cada PR grande)
@@ -87,7 +88,7 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
   - `TouchScrollContainer` para las listas táctiles (Tienda, Inventario, pincel): se arrastran con el dedo también sobre los botones, sin comprar por accidente, y con la rueda en PC;
   - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
 - **v0.5.0 (en `main`, tag `v0.5.0`; PR #13 y #14):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
-- **En revisión:** retrato de Briseida en sus diálogos (PNG transparente recortado en círculo; la prueba de humo lo verifica); PR B — 18 objetos nuevos de mobiliario (ver sección 7) en la rama `feature/mobiliario-pr-b`: arte y `catalogo.json` listos, falta correr las pruebas de Godot (`tests/test_decor.gd` y el resto) y revisar in-game antes de fusionar.
+- **En revisión:** retrato de Briseida en sus diálogos (PNG transparente recortado en círculo; la prueba de humo lo verifica); PR B (#18) — 18 objetos de mobiliario: arte, catálogo y pruebas listos; computadora doble monitor 3×2 a 1500 monedas; revisión con script en oficina y data center hecha; falta revisión a mano de Said antes de fusionar.
 - **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retrato de BYTE en diálogos; tutorial de Briseida/BYTE para partidas nuevas; PRs A, D y E del feedback de Jaq (paleta/texturas/vestimenta, fondo exterior día/noche, mascotas con pathfinding).
 
 ## 9. Cómo trabajar
