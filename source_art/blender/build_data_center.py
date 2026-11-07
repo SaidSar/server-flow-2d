@@ -333,6 +333,8 @@ def completar_meta(meta, rack_xs, rack_ys, n, marco_sup, alto_muro):
         "lista": racks,
     }
 
+    # Tope de la altura a la que se cuelga decoración (RoomData.wall_height_m).
+    meta["alto_muro_m"] = alto_muro
     meta["tramos_prohibidos_pared"] = {
         "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura "
         "(metros). der = pared y=12 (eje x), izq = pared x=0 (eje y). Los muros miden 3.2 m.",
