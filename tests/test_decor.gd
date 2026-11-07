@@ -73,9 +73,19 @@ func _test_room_sizes() -> void:
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(4.0, 1.0)), "data center: no se encima con el vidrio")
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(7.5, 8.0)), "data center: no sobre el bay de racks")
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(0.5, 1.5)), "data center: no sobre el escritorio")
-	var on_right := in_data_center.snap_position(picture, &"der", Vector2(3.2, 0.0))
-	_check(on_right.is_equal_approx(Vector2(3.0, 11.95)), "data center: el cuadro se pega al muro derecho en y = 12 (%s)" % on_right)
+	# x 3.5–4.4: a esa altura (z 1.25–1.95) el cuadro ya quedó por debajo del riel del vidrio.
+	var on_right := in_data_center.snap_position(picture, &"der", Vector2(3.95, 0.0))
+	_check(on_right.is_equal_approx(Vector2(3.5, 11.95)), "data center: el cuadro se pega al muro derecho en y = 12 (%s)" % on_right)
 	_check(in_data_center.can_place(picture, &"der", on_right), "data center: cuadro en el muro derecho del lado del escritorio")
+	# El riel superior del vidrio se ve en diagonal sobre el muro derecho (tramos "riel_vidrio").
+	var posters := DecorData.find(&"posters")
+	var window_2 := DecorData.find(&"ventana_2")
+	_check(not in_data_center.can_place(posters, &"der", in_data_center.snap_position(posters, &"der", Vector2(2.9, 0.0)))
+		and not in_data_center.can_place(window_2, &"der", in_data_center.snap_position(window_2, &"der", Vector2(2.95, 0.0)))
+		and not in_data_center.can_place(picture, &"der", in_data_center.snap_position(picture, &"der", Vector2(3.2, 0.0))),
+		"data center: no se cuelga nada sobre el riel del vidrio")
+	_check(in_data_center.can_place(posters, &"der", in_data_center.snap_position(posters, &"der", Vector2(4.4, 0.0))),
+		"data center: los posters caben a la derecha del riel del vidrio")
 	_check(not in_data_center.can_place(picture, &"der", Vector2(7.0, 11.95)), "data center: no se cuelga nada en el muro del bay (placa de Firewall)")
 	_check(not in_data_center.can_place(picture, &"izq", Vector2(0.0, 4.5)), "data center: no sobre la puerta")
 	_check(in_data_center.can_place(picture, &"izq", Vector2(0.0, 9.0)), "data center: el muro izquierdo es más largo que en la oficina")
