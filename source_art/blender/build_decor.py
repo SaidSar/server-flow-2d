@@ -696,7 +696,7 @@ for oid, nombre, fn, precio in CATALOGO:
         ax = W / 2 + (p0.dot(RIGHT) - cxx) * PPM2 - bx0
         ay = H / 2 - (p0.dot(UP) - cyy) * PPM2 - by0
         huella = [fw, fd] if (tipo == "pared" or tag == "a") else [fd, fw]
-        entry["orientaciones"][tag] = {"sprite": f"decor/{oid}_{tag}.png", "ancla": [round(ax, 2), round(ay, 2)],
+        entry["orientaciones"][tag] = {"sprite": f"res://assets/art/decor/{oid}_{tag}.png", "ancla": [round(ax, 2), round(ay, 2)],
                                        "huella_m": huella, "huella_celdas": [int(round(huella[0] / 0.5)) or 1, int(round(huella[1] / 0.5)) or 1],
                                        "tam": [img.width, img.height]}
         bpy.data.objects.remove(catcher, do_unlink=True)
