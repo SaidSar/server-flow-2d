@@ -29,6 +29,7 @@ func _run() -> void:
 
 	_test_projection()
 	_test_layout()
+	_test_wall_height()
 	_test_room_sizes()
 	_test_shop_availability(game_state, simulation)
 	await _test_buy_place_cancel(game_state, simulation)
@@ -269,6 +270,48 @@ func _test_layout() -> void:
 	_check(with_picture.can_place(plant, &"a", Vector2(2.5, 8.5)), "un objeto de pared no estorba en el piso")
 
 
+func _test_wall_height() -> void:
+	var office := RoomData.load_room(&"oficina")
+	var data_center := RoomData.load_room(&"data_center")
+	_check(is_equal_approx(office.wall_height_m, 2.6) and is_equal_approx(data_center.wall_height_m, 3.2), "el alto de los muros viene del JSON del cuarto")
+	var picture := DecorData.find(&"cuadro")
+	var neon := DecorData.find(&"neon")
+	var window := DecorData.find(&"ventana_1")
+	var window_2 := DecorData.find(&"ventana_2")
+	var poster := DecorData.find(&"posters")
+	var empty_office := DecorLayout.new(office)
+	var empty_dc := DecorLayout.new(data_center)
+
+	# Límites de altura: el cuadro (z 1.25–1.95) sube hasta el techo de 2.6 m y baja hasta 0.25 m.
+	_check(is_equal_approx(empty_office.clamp_dz(picture, 5.0), 0.5), "el cuadro no sube más del techo (dz %s)" % empty_office.clamp_dz(picture, 5.0))
+	_check(is_equal_approx(empty_office.clamp_dz(picture, -5.0), -1.0), "el cuadro no baja del piso (dz %s)" % empty_office.clamp_dz(picture, -5.0))
+	_check(is_equal_approx(empty_office.clamp_dz(picture, 0.12), 0.0) and is_equal_approx(empty_office.clamp_dz(picture, 0.13), 0.25), "la altura se ajusta a pasos de 0.25 m")
+	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 0.0), -1, 0.75), "no se cuelga por arriba del techo")
+	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 0.0), -1, -1.25), "no se cuelga por debajo del mínimo")
+
+	# La altura cuenta contra las zonas prohibidas: el cuadro choca con el monitor a su altura base pero no más arriba.
+	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 1.5)), "cuadro a altura base choca con el monitor")
+	_check(empty_office.can_place(picture, &"izq", Vector2(0.0, 1.5), -1, 0.5), "el cuadro subido 0.5 m pasa sobre el monitor")
+
+	# Riel del vidrio (data center): a la altura base choca, pero más arriba hay lugar.
+	var along := Vector2(2.1, 11.91)
+	_check(not empty_dc.can_place(window, &"der", along), "data center: la ventana a su altura base choca con el riel")
+	var dz := empty_dc.find_valid_dz(window, &"der", along)
+	_check(not is_nan(dz) and dz > 0.0, "data center: hay una altura libre sobre el riel (dz %s)" % dz)
+	_check(empty_dc.can_place(window, &"der", along, -1, dz), "data center: la ventana sube sobre el riel")
+	var dz_2 := empty_dc.find_valid_dz(window_2, &"der", along)
+	_check(not is_nan(dz_2) and empty_dc.can_place(window_2, &"der", along, -1, dz_2), "data center: la ventana 2 también encuentra altura")
+	var dz_poster := empty_dc.find_valid_dz(poster, &"der", Vector2(3.0, 11.97))
+	_check(not is_nan(dz_poster) and empty_dc.can_place(poster, &"der", Vector2(3.0, 11.97), -1, dz_poster), "data center: los posters también suben sobre el riel")
+	_check(is_nan(empty_dc.find_valid_dz(window, &"der", Vector2(6.0, 11.91))), "data center: sigue sin caber en el muro del bay (placa de Firewall)")
+
+	# Un objeto ya colgado usa su propia altura contra los demás.
+	var raised := DecorLayout.new(office, [{"id": "cuadro", "ori": "der", "x": 2.5, "y": 8.95, "dz": 0.5}])
+	_check(not raised.can_place(neon, &"der", Vector2(2.5, 8.96)), "el neón ya no cabe sobre un cuadro subido (z 1.75–2.45)")
+	_check(raised.can_place(neon, &"der", Vector2(2.5, 8.96), -1, 0.0) == false and raised.can_place(picture, &"der", Vector2(2.5, 8.95), 0, 0.25), "mover un cuadro subido no choca consigo mismo")
+	_check(DecorLayout.get_dz({"id": "cuadro"}) == 0.0 and DecorLayout.get_dz({"dz": 0.75}) == 0.75, "una partida sin dz usa la altura base")
+
+
 func _test_shop_availability(game_state: Node, simulation: Node) -> void:
 	game_state.call("start_new_game", "Prueba", "TestCorp")
 	_check(not _shop.call("is_open"), "etapa 1: la tienda está cerrada")
@@ -342,7 +385,7 @@ func _test_save_load(game_state: Node, save_system: Node, simulation: Node) -> v
 	game_state.call("start_new_game", "Prueba", "TestCorp")
 	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 1000})
 	game_state.call("place_decor", &"oficina", {"id": "sillon", "ori": "b", "x": 4.0, "y": 4.0})
-	game_state.call("place_decor", &"oficina", {"id": "neon", "ori": "der", "x": 2.5, "y": 8.96})
+	game_state.call("place_decor", &"oficina", {"id": "neon", "ori": "der", "x": 2.5, "y": 8.96, "dz": -0.25})
 	game_state.call("add_to_inventory", &"planta")
 	game_state.call("add_to_inventory", &"planta")
 	game_state.call("set_color", &"piso_oficina", &"alfombra_gris")
@@ -354,6 +397,7 @@ func _test_save_load(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(save_system.call("load_game"), "cargar con decoración")
 	var placed: Array = game_state.call("get_placed_decor", &"oficina")
 	_check(placed.size() == 2 and placed[0]["id"] == "sillon" and placed[0]["ori"] == "b" and is_equal_approx(float(placed[1]["y"]), 8.96), "guardar → cargar conserva lo colocado (%s)" % [placed])
+	_check(is_equal_approx(DecorLayout.get_dz(placed[1]), -0.25) and not placed[0].has("dz"), "guardar → cargar conserva la altura (dz) de los objetos de pared")
 	_check(game_state.call("count_in_inventory", &"planta") == 2, "guardar → cargar conserva el inventario")
 	_check(game_state.get("colors")[&"piso_oficina"] == &"alfombra_gris", "guardar → cargar conserva el piso de la oficina")
 

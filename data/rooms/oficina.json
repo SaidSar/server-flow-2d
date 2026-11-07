@@ -266,6 +266,7 @@
   }
  },
  "nota_capas": "Capas propias de la oficina recortadas (offset x,y en lienzo 2x, múltiplos de 8). Puerta, mesa, racks y avatar reutilizan los sprites del garage sumando reutilizados_del_garage (dx,dy) a su offset del garage.",
+ "alto_muro_m": 2.6,
  "tramos_prohibidos_pared": {
   "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura (metros). Un objeto choca solo si se encima en los dos. der = pared y=9 (eje x), izq = pared x=0 (eje y).",
   "der": [

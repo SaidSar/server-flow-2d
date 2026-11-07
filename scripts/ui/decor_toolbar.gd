@@ -13,6 +13,7 @@ signal sell_pressed
 signal done_pressed
 
 const HINT_TOUCH := "Toca el piso para mover el objeto"
+const HINT_TOUCH_WALL := "Toca la pared para mover el objeto"
 const HINT_POINTER := "Clic para colocar · R para girar · Esc para cancelar"
 const HINT_INVALID := "No cabe ahí"
 
@@ -31,6 +32,7 @@ const HINT_INVALID := "No cabe ahí"
 @onready var _done_button: Button = %DoneButton
 
 var _touch := false
+var _on_wall := false
 
 
 func _ready() -> void:
@@ -47,8 +49,9 @@ func _ready() -> void:
 	_fit_safe_area()
 
 
-func show_placement(title: String, touch: bool) -> void:
+func show_placement(title: String, touch: bool, on_wall: bool = false) -> void:
 	_touch = touch
+	_on_wall = on_wall
 	_title_label.text = title
 	_placement_row.show()
 	_selection_row.hide()
@@ -60,7 +63,8 @@ func show_placement(title: String, touch: bool) -> void:
 ## Colocar solo se habilita si el objeto cabe donde está.
 func set_valid(valid: bool) -> void:
 	_confirm_button.disabled = not valid
-	_hint_label.text = (HINT_TOUCH if _touch else HINT_POINTER) if valid else HINT_INVALID
+	var hint := (HINT_TOUCH_WALL if _on_wall else HINT_TOUCH) if _touch else HINT_POINTER
+	_hint_label.text = hint if valid else HINT_INVALID
 
 
 ## `sell_price` < 0 = no se puede vender (el trofeo).

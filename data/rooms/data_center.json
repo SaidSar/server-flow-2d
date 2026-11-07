@@ -472,6 +472,7 @@
    11.375
   ]
  },
+ "alto_muro_m": 3.2,
  "tramos_prohibidos_pared": {
   "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura (metros). der = pared y=12 (eje x), izq = pared x=0 (eje y). Los muros miden 3.2 m.",
   "der": [
