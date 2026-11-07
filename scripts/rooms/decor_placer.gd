@@ -50,6 +50,8 @@ var _nodes: Array[Node2D] = []
 var _decor: DecorData
 var _orientation: StringName
 var _position := Vector2.ZERO
+## Desplazamiento vertical del objeto de pared respecto a su altura base (metros).
+var _dz := 0.0
 var _source: Source = Source.SHOP
 var _move_index := -1
 var _ghost: Node2D
@@ -125,10 +127,14 @@ func get_ghost_position() -> Vector2:
 	return _position
 
 
+func get_ghost_dz() -> float:
+	return _dz
+
+
 func is_ghost_valid() -> bool:
 	if _decor == null:
 		return false
-	return _layout().can_place(_decor, _orientation, _position, _move_index)
+	return _layout().can_place(_decor, _orientation, _position, _move_index, _dz)
 
 
 #region Colocación
@@ -143,16 +149,18 @@ func start_placement(decor: DecorData, source: Source, move_index: int = -1) -> 
 		var entry: Dictionary = GameState.get_placed_decor(room_id)[move_index]
 		_orientation = StringName(str(entry.get("ori", "")))
 		_position = DecorLayout.get_position(entry)
+		_dz = DecorLayout.get_dz(entry)
 	else:
 		_orientation = decor.get_default_orientation()
+		_dz = 0.0
 		_position = _find_start_position()
 	_footprint = Polygon2D.new()
 	(_wall_marks if decor.is_wall() else _floor_marks).add_child(_footprint)
-	_ghost = _create_item(decor, _orientation, _position)
+	_ghost = _create_item(decor, _orientation, _position, _dz)
 	_ghost.modulate.a = GHOST_ALPHA
 	_set_mode(Mode.PLACING)
 	_rebuild()
-	_toolbar.show_placement(decor.display_name, _touch)
+	_toolbar.show_placement(decor.display_name, _touch, decor.is_wall())
 	_update_ghost()
 
 
@@ -165,11 +173,28 @@ func move_ghost_to(target: Vector2) -> void:
 	_update_ghost()
 
 
+## Objeto de pared: mueve el fantasma a lo largo del muro (`along`) y a la altura `z` (metros) donde
+## quedará el centro del objeto.
+func move_ghost_to_wall(along: float, z: float) -> void:
+	if _mode != Mode.PLACING or not _decor.is_wall():
+		return
+	_position = _layout().snap_position(_decor, _orientation, Vector2(along, 0.0))
+	_dz = _layout().clamp_dz(_decor, z - (_decor.height_m.x + _decor.height_m.y) * 0.5)
+	# Si a la altura del dedo no cabe pero a otra sí, se acomoda sola a la más cercana.
+	if not _layout().can_place(_decor, _orientation, _position, _move_index, _dz):
+		var fitted := _layout().find_valid_dz(_decor, _orientation, _position, _dz, _move_index)
+		if not is_nan(fitted):
+			_dz = fitted
+	_update_ghost()
+
+
 func rotate() -> void:
 	if _mode == Mode.PLACING:
 		var target := _rotation_target(_decor, _orientation, _position)
 		_orientation = _decor.get_rotated(_orientation)
 		_position = _layout().snap_position(_decor, _orientation, target)
+		if _decor.is_wall():
+			_dz = _layout().clamp_dz(_decor, _dz)
 		_update_ghost()
 	elif _mode == Mode.SELECTED:
 		var rotated := _rotated_entry(_selected)
@@ -185,6 +210,8 @@ func confirm_placement() -> bool:
 	if _mode != Mode.PLACING or not is_ghost_valid():
 		return false
 	var entry := {"id": String(_decor.id), "ori": String(_orientation), "x": _position.x, "y": _position.y}
+	if _decor.is_wall():
+		entry["dz"] = _dz
 	var source := _source
 	var move_index := _move_index
 	_end_placement()
@@ -226,9 +253,9 @@ func _end_placement() -> void:
 
 
 func _update_ghost() -> void:
-	_layout_item(_ghost, _decor, _orientation, _position)
+	_layout_item(_ghost, _decor, _orientation, _position, _dz)
 	var valid := is_ghost_valid()
-	_footprint.polygon = _footprint_polygon(_decor, _orientation, _position)
+	_footprint.polygon = _footprint_polygon(_decor, _orientation, _position, _dz)
 	_footprint.color = VALID_COLOR if valid else INVALID_COLOR
 	_toolbar.set_valid(valid)
 
@@ -241,6 +268,8 @@ func _find_start_position() -> Vector2:
 	var first := layout.snap_position(_decor, _orientation, center)
 	if layout.can_place(_decor, _orientation, first):
 		return first
+	if _decor.is_wall():
+		return _find_wall_start(first)
 	var step := _room_data.projection.cell_m
 	var candidates: Array[Vector2] = []
 	var y := bounds.position.y
@@ -254,6 +283,29 @@ func _find_start_position() -> Vector2:
 	for candidate: Vector2 in candidates:
 		var position := layout.snap_position(_decor, _orientation, candidate)
 		if layout.can_place(_decor, _orientation, position):
+			return position
+	return first
+
+
+## Primer lugar libre en el muro (cualquier altura), empezando por el centro del muro.
+func _find_wall_start(first: Vector2) -> Vector2:
+	var layout := _layout()
+	var bounds := _room_data.projection.bounds
+	var step := _room_data.projection.cell_m
+	var wall_start := bounds.position.x if _orientation == RoomProjection.WALL_RIGHT else bounds.position.y
+	var wall_end := bounds.end.x if _orientation == RoomProjection.WALL_RIGHT else bounds.end.y
+	var middle := (wall_start + wall_end) * 0.5
+	var along: Array[float] = []
+	var value := wall_start
+	while value < wall_end:
+		along.append(value)
+		value += step
+	along.sort_custom(func(a: float, b: float) -> bool: return absf(a - middle) < absf(b - middle))
+	for coord: float in along:
+		var position := layout.snap_position(_decor, _orientation, Vector2(coord, 0.0))
+		var dz := layout.find_valid_dz(_decor, _orientation, position)
+		if not is_nan(dz):
+			_dz = dz
 			return position
 	return first
 
@@ -275,9 +327,16 @@ func _rotated_entry(index: int) -> Dictionary:
 	var target := _rotation_target(decor, orientation, DecorLayout.get_position(entry))
 	var rotated := decor.get_rotated(orientation)
 	var position := layout.snap_position(decor, rotated, target)
+	var result := {"id": String(decor.id), "ori": String(rotated), "x": position.x, "y": position.y}
+	if decor.is_wall():
+		var dz := layout.find_valid_dz(decor, rotated, position, DecorLayout.get_dz(entry), index)
+		if is_nan(dz):
+			return {}
+		result["dz"] = dz
+		return result
 	if not layout.can_place(decor, rotated, position, index):
 		return {}
-	return {"id": String(decor.id), "ori": String(rotated), "x": position.x, "y": position.y}
+	return result
 
 #endregion
 
@@ -297,7 +356,7 @@ func select(index: int) -> void:
 	node.modulate = SELECTED_MODULATE
 	_selection_mark = Polygon2D.new()
 	_selection_mark.color = SELECTED_COLOR
-	_selection_mark.polygon = _footprint_polygon(decor, orientation, DecorLayout.get_position(entry))
+	_selection_mark.polygon = _footprint_polygon(decor, orientation, DecorLayout.get_position(entry), DecorLayout.get_dz(entry))
 	(_wall_marks if decor.is_wall() else _floor_marks).add_child(_selection_mark)
 	_set_mode(Mode.SELECTED)
 	_toolbar.show_selection(decor.display_name, not _rotated_entry(index).is_empty(), -1 if decor.is_trophy() else decor.get_sell_price())
@@ -429,7 +488,7 @@ func _set_touch(touch: bool) -> void:
 	if touch != _touch:
 		_touch = touch
 		if _mode == Mode.PLACING:
-			_toolbar.show_placement(_decor.display_name, _touch)
+			_toolbar.show_placement(_decor.display_name, _touch, _decor.is_wall())
 			_update_ghost()
 
 
@@ -440,7 +499,8 @@ func _move_ghost_to_screen(screen_position: Vector2) -> void:
 		move_ghost_to(projection.canvas_to_world(local))
 		return
 	var wall_coord := _position.y if _orientation == RoomProjection.WALL_RIGHT else _position.x
-	move_ghost_to(Vector2(projection.canvas_to_wall(local, _orientation, wall_coord).x, 0.0))
+	var on_wall := projection.canvas_to_wall(local, _orientation, wall_coord)
+	move_ghost_to_wall(on_wall.x, on_wall.y)
 
 
 ## Objeto colocado bajo un punto de la pantalla (el de más adelante primero); -1 si no hay.
@@ -479,14 +539,14 @@ func _rebuild() -> void:
 	for entry: Dictionary in GameState.get_placed_decor(room_id):
 		var decor := DecorData.find(StringName(str(entry.get("id", ""))))
 		var orientation := StringName(str(entry.get("ori", "")))
-		var node := _create_item(decor, orientation, DecorLayout.get_position(entry))
+		var node := _create_item(decor, orientation, DecorLayout.get_position(entry), DecorLayout.get_dz(entry))
 		node.visible = not (_mode == Mode.PLACING and _source == Source.MOVE and _nodes.size() == _move_index)
 		_nodes.append(node)
 	if _mode == Mode.SELECTED and get_item_node(_selected) != null:
 		get_item_node(_selected).modulate = SELECTED_MODULATE
 
 
-func _create_item(decor: DecorData, orientation_id: StringName, position: Vector2) -> Node2D:
+func _create_item(decor: DecorData, orientation_id: StringName, position: Vector2, dz: float = 0.0) -> Node2D:
 	var item := Node2D.new()
 	item.name = "Decor_%s" % decor.id
 	var sprite := Sprite2D.new()
@@ -498,11 +558,11 @@ func _create_item(decor: DecorData, orientation_id: StringName, position: Vector
 	elif decor.kind == DecorData.KIND_RUG:
 		container = _rug_layer
 	container.add_child(item)
-	_layout_item(item, decor, orientation_id, position)
+	_layout_item(item, decor, orientation_id, position, dz)
 	return item
 
 
-func _layout_item(item: Node2D, decor: DecorData, orientation_id: StringName, position: Vector2) -> void:
+func _layout_item(item: Node2D, decor: DecorData, orientation_id: StringName, position: Vector2, dz: float = 0.0) -> void:
 	var projection := _room_data.projection
 	var orientation := decor.orientations[orientation_id]
 	var center := _layout().get_center(decor, orientation_id, position)
@@ -514,9 +574,9 @@ func _layout_item(item: Node2D, decor: DecorData, orientation_id: StringName, po
 	item.position = projection.world_to_canvas(center.x, center.y)
 	var sprite := item.get_child(0) as Sprite2D
 	sprite.texture = orientation.load_texture()
-	sprite.position = projection.world_to_canvas(position.x, position.y) - item.position - orientation.anchor
+	sprite.position = projection.world_to_canvas(position.x, position.y, dz) - item.position - orientation.anchor
 	if decor.id == NEON_ID:
-		_layout_neon_text(item, orientation_id, position, orientation.footprint_m.x, (decor.height_m.x + decor.height_m.y) * 0.5)
+		_layout_neon_text(item, orientation_id, position, orientation.footprint_m.x, (decor.height_m.x + decor.height_m.y) * 0.5 + dz)
 
 
 ## Nombre de la empresa sobre la placa del neón, en el plano del muro: eje x a lo largo del muro y
@@ -553,7 +613,7 @@ func _layout_neon_text(item: Node2D, orientation_id: StringName, position: Vecto
 	text_node.transform = Transform2D(axis.normalized() * scale, Vector2(0.0, scale), plate_center - item.position)
 
 
-func _footprint_polygon(decor: DecorData, orientation_id: StringName, position: Vector2) -> PackedVector2Array:
+func _footprint_polygon(decor: DecorData, orientation_id: StringName, position: Vector2, dz: float = 0.0) -> PackedVector2Array:
 	var projection := _room_data.projection
 	if not decor.is_wall():
 		var rect := _layout().get_rect(decor, orientation_id, position)
@@ -564,7 +624,7 @@ func _footprint_polygon(decor: DecorData, orientation_id: StringName, position: 
 			projection.world_to_canvas(rect.position.x, rect.end.y),
 		])
 	# En el muro se marca lo que ocupa: su tramo × su altura.
-	var rect := _layout().get_wall_rect(decor, orientation_id, position)
+	var rect := _layout().get_wall_rect(decor, orientation_id, position, dz)
 	var points := PackedVector2Array()
 	for corner: Vector2 in [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]:
 		if orientation_id == RoomProjection.WALL_RIGHT:

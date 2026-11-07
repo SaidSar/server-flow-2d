@@ -7,10 +7,14 @@ extends RefCounted
 ## - Pared: pegado a un muro ("der": y = fondo − grosor, se mueve en x; "izq": x = 0, se mueve en y).
 ##   En el plano del muro ocupa (tramo a lo largo del muro) × (altura_m): choca con una zona prohibida
 ##   o con otro objeto del mismo muro solo si se enciman en las dos (un neón puede ir sobre el monitor).
-## Cada objeto colocado es {id, ori, x, y}: (x, y) es la esquina mínima de su huella.
+##   La altura se puede mover: "dz" (metros, múltiplos de 0.25) se suma a la altura base `altura_m` del catálogo.
+## Cada objeto colocado es {id, ori, x, y[, dz]}: (x, y) es la esquina mínima de su huella.
 
 ## Margen para que dos huellas que solo se tocan no cuenten como encimadas.
 const EPSILON := 0.001
+## Paso y mínimo de la altura de los objetos de pared (metros).
+const WALL_Z_STEP := 0.25
+const WALL_Z_MIN := 0.25
 
 var room: RoomData
 var placed: Array[Dictionary] = []
@@ -59,17 +63,47 @@ func get_wall_span(decor: DecorData, orientation_id: StringName, position: Vecto
 
 
 ## Lo que ocupa en el plano del muro: x = a lo largo del muro, y = altura z.
-func get_wall_rect(decor: DecorData, orientation_id: StringName, position: Vector2) -> Rect2:
+func get_wall_rect(decor: DecorData, orientation_id: StringName, position: Vector2, dz: float = 0.0) -> Rect2:
 	var span := get_wall_span(decor, orientation_id, position)
-	return Rect2(span.x, decor.height_m.x, span.y - span.x, decor.height_m.y - decor.height_m.x)
+	return Rect2(span.x, decor.height_m.x + dz, span.y - span.x, decor.height_m.y - decor.height_m.x)
+
+
+## Desplazamiento vertical (dz) más cercano a `dz` que deja el objeto entre WALL_Z_MIN y el techo del muro.
+func clamp_dz(decor: DecorData, dz: float) -> float:
+	var low := WALL_Z_MIN - decor.height_m.x
+	var high := room.wall_height_m - decor.height_m.y
+	if high < low:
+		return 0.0
+	return clampf(roundf(dz / WALL_Z_STEP) * WALL_Z_STEP, ceilf(low / WALL_Z_STEP - EPSILON) * WALL_Z_STEP, floorf(high / WALL_Z_STEP + EPSILON) * WALL_Z_STEP)
+
+
+## El dz válido más cercano a `preferred` en esa posición; NAN si a ninguna altura cabe.
+func find_valid_dz(decor: DecorData, orientation_id: StringName, position: Vector2, preferred: float = 0.0, ignore_index: int = -1) -> float:
+	var start := clamp_dz(decor, preferred)
+	if can_place(decor, orientation_id, position, ignore_index, start):
+		return start
+	var steps := int(ceilf(room.wall_height_m / WALL_Z_STEP))
+	for i in range(1, steps + 1):
+		for direction: float in [1.0, -1.0]:
+			var candidate := start + direction * i * WALL_Z_STEP
+			if absf(clamp_dz(decor, candidate) - candidate) > EPSILON:
+				continue
+			if can_place(decor, orientation_id, position, ignore_index, candidate):
+				return candidate
+	return NAN
+
+
+## dz guardado en un objeto colocado (0 si no tiene).
+static func get_dz(entry: Dictionary) -> float:
+	return float(entry.get("dz", 0.0))
 
 
 ## `ignore_index` es el objeto que se está moviendo o girando (no choca consigo mismo).
-func can_place(decor: DecorData, orientation_id: StringName, position: Vector2, ignore_index: int = -1) -> bool:
+func can_place(decor: DecorData, orientation_id: StringName, position: Vector2, ignore_index: int = -1, dz: float = 0.0) -> bool:
 	if decor == null or not decor.orientations.has(orientation_id) or room.projection == null:
 		return false
 	if decor.is_wall():
-		return _can_place_on_wall(decor, orientation_id, position, ignore_index)
+		return _can_place_on_wall(decor, orientation_id, position, ignore_index, dz)
 	var rect := get_rect(decor, orientation_id, position)
 	var bounds := room.projection.bounds.grow(EPSILON)
 	if not bounds.encloses(rect):
@@ -95,9 +129,11 @@ static func get_position(entry: Dictionary) -> Vector2:
 	return Vector2(float(entry.get("x", 0.0)), float(entry.get("y", 0.0)))
 
 
-func _can_place_on_wall(decor: DecorData, orientation_id: StringName, position: Vector2, ignore_index: int) -> bool:
+func _can_place_on_wall(decor: DecorData, orientation_id: StringName, position: Vector2, ignore_index: int, dz: float) -> bool:
 	var bounds := room.projection.bounds
-	var rect := get_wall_rect(decor, orientation_id, position)
+	var rect := get_wall_rect(decor, orientation_id, position, dz)
+	if rect.position.y < WALL_Z_MIN - EPSILON or rect.end.y > room.wall_height_m + EPSILON:
+		return false
 	var wall_start := bounds.position.x if orientation_id == RoomProjection.WALL_RIGHT else bounds.position.y
 	var wall_end := bounds.end.x if orientation_id == RoomProjection.WALL_RIGHT else bounds.end.y
 	if rect.position.x < wall_start - EPSILON or rect.end.x > wall_end + EPSILON:
@@ -113,6 +149,6 @@ func _can_place_on_wall(decor: DecorData, orientation_id: StringName, position: 
 		var other := DecorData.find(StringName(str(placed[i].get("id", ""))))
 		if other == null or not other.is_wall() or other_ori != orientation_id:
 			continue
-		if inner.intersects(get_wall_rect(other, other_ori, get_position(placed[i]))):
+		if inner.intersects(get_wall_rect(other, other_ori, get_position(placed[i]), get_dz(placed[i]))):
 			return false
 	return true

@@ -185,12 +185,16 @@ func _restore_decor(raw_inventory: Variant, raw_placed: Variant) -> void:
 
 
 static func _clean_entry(entry: Dictionary) -> Dictionary:
-	return {
+	var clean := {
 		"id": str(entry.get("id", "")),
 		"ori": str(entry.get("ori", "")),
 		"x": float(entry.get("x", 0.0)),
 		"y": float(entry.get("y", 0.0)),
 	}
+	# Altura de los objetos de pared (dz); las partidas anteriores no la tienen y usan la altura base.
+	if entry.has("dz"):
+		clean["dz"] = float(entry["dz"])
+	return clean
 
 #endregion
 

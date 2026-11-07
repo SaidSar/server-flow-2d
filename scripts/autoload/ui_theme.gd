@@ -105,7 +105,7 @@ const PALETTES := {
 		&"card_border": Color("#c3ccdb"),
 		&"card_border_hover": Color("#8d99b0"),
 		&"hud_panel": Color("#f8fafd"),
-		&"hud_track": Color("#d9e0eb"),
+		&"hud_track": Color("#b9c4d8"),
 		&"track": Color("#d9e0eb"),
 		&"bar_track": Color("#dfe5ef"),
 		&"scroll_track": Color("#1c2433"),

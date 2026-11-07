@@ -472,6 +472,7 @@
    11.375
   ]
  },
+ "alto_muro_m": 3.2,
  "tramos_prohibidos_pared": {
   "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura (metros). der = pared y=12 (eje x), izq = pared x=0 (eje y). Los muros miden 3.2 m.",
   "der": [
@@ -483,6 +484,105 @@
     ],
     "z": [
      0.0,
+     3.2
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     0.5,
+     1.0
+    ],
+    "z": [
+     0.0,
+     0.09
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     1.0,
+     1.5
+    ],
+    "z": [
+     0.0,
+     0.5
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     1.5,
+     2.0
+    ],
+    "z": [
+     0.37,
+     0.91
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     2.0,
+     2.5
+    ],
+    "z": [
+     0.78,
+     1.32
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     2.5,
+     3.0
+    ],
+    "z": [
+     1.19,
+     1.73
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     3.0,
+     3.5
+    ],
+    "z": [
+     1.59,
+     2.13
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     3.5,
+     4.0
+    ],
+    "z": [
+     2.0,
+     2.54
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     4.0,
+     4.5
+    ],
+    "z": [
+     2.41,
+     2.95
+    ]
+   },
+   {
+    "id": "riel_vidrio",
+    "tramo": [
+     4.5,
+     5.0
+    ],
+    "z": [
+     2.82,
      3.2
     ]
    }
