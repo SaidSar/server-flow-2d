@@ -172,11 +172,195 @@ def neon(r):
         cube("Tubo", (x, -0.01, z), (w, 0.02, h), tubo, 0.005, r)
     return (1.4, 0.04), "pared"
 
+# ---------------- PR B: mobiliario nuevo (feedback de Jaq) ----------------
+def tapete_redondo(r):
+    tela, tela2 = C("tapred", "#6b4f8a", .95), C("tapred2", "#e6e1d4", .95)
+    cyl("Base", (0.5, 0.5, 0.006), 0.5, 0.012, tela, r, verts=32)
+    cyl("Borde", (0.5, 0.5, 0.013), 0.42, 0.002, tela2, r, verts=32)
+    cyl("Centro", (0.5, 0.5, 0.0145), 0.3, 0.002, tela, r, verts=32)
+    return (1.0, 1.0), "tapete"
+
+def tapete_estampado(r):
+    base, acc = C("tapest", "#2f6f7a", .95), C("tapest2", "#f5c542", .95)
+    cube("Base", (0.75, 0.75, 0.006), (1.5, 1.5, 0.012), base, 0.02, r)
+    cube("Borde", (0.75, 0.75, 0.0125), (1.3, 1.3, 0.002), C("tapest3", "#e6e1d4", .95), 0, r)
+    for i in range(5):
+        cube("Franja", (0.75, 0.2 + i * 0.3, 0.0155), (1.1, 0.06, 0.002), acc, 0, r)
+    return (1.5, 1.5), "tapete"
+
+def sillon_l(r):
+    tela, tela2 = C("sofal", "#7a5230", .8), C("sofal2", "#5e3f24", .8)
+    cube("Base_largo", (1.0, 0.43, 0.2), (2.0, 0.86, 0.3), tela2, 0.04, r)
+    cube("Base_corto", (0.43, 1.18, 0.2), (0.86, 0.86, 0.3), tela2, 0.04, r)
+    for x in (0.34, 1.0, 1.66):
+        cube("Cojin", (x, 0.37, 0.42), (0.6, 0.6, 0.14), tela, 0.05, r)
+    cube("Cojin_corto", (0.43, 1.12, 0.42), (0.6, 0.6, 0.14), tela, 0.05, r)
+    cube("Respaldo_largo", (1.0, 0.86, 0.6), (2.0, 0.2, 0.62), tela, 0.06, r)
+    cube("Respaldo_corto", (0.08, 1.18, 0.6), (0.2, 0.86, 0.62), tela, 0.06, r)
+    for x in (0.04, 1.96):
+        cube("Pata", (x, 0.1, 0.03), (0.06, 0.06, 0.06), C("patasl", "#2b2015"), 0.01, r)
+    for y in (0.1, 1.56):
+        cube("Pata2", (0.1, y, 0.03), (0.06, 0.06, 0.06), C("patasl", "#2b2015"), 0.01, r)
+    cube("CojinDeco", (1.5, 0.78, 0.62), (0.3, 0.12, 0.26), C("cojinl", "#3ddc84"), 0.05, r)
+    return (2.0, 1.5), "piso"
+
+def mesa_auxiliar(r):
+    mad = C("mesaux", "#8a5a2e")
+    cyl("Base", (0.25, 0.25, 0.02), 0.14, 0.04, mad, r)
+    cyl("Pata", (0.25, 0.25, 0.26), 0.02, 0.48, mad, r)
+    cyl("Tapa", (0.25, 0.25, 0.52), 0.2, 0.04, C("mesaux2", "#b5773f"), r)
+    return (0.5, 0.5), "piso"
+
+def estanteria(r):
+    mad, mad2 = C("estan", "#c9c2b2"), C("estan2", "#a69c86")
+    cube("Lateral_I", (0.02, 0.2, 0.75), (0.04, 0.4, 1.5), mad, 0.005, r)
+    cube("Lateral_D", (1.48, 0.2, 0.75), (0.04, 0.4, 1.5), mad, 0.005, r)
+    for z in (0.02, 0.5, 1.0, 1.48):
+        cube("Repisa", (0.75, 0.2, z), (1.46, 0.38, 0.03), mad2, 0.005, r)
+    colores = ["#5aa9ff", "#f5c542", "#3ddc84", "#e8649b"]
+    for i, x in enumerate((0.2, 0.55, 0.9, 1.25)):
+        cube("Objeto", (x, 0.2, 0.74 + 0.26 * (i % 2)), (0.16, 0.16, 0.22), C("estob" + colores[i], colores[i], .6), 0.01, r)
+    return (1.5, 0.5), "piso"
+
+def ventana_1(r):
+    marco, vidrio = C("vent1m", "#e9e4d8", .6), C("vent1v", "#a9d4e8", .15, 0.3)
+    cube("Marco", (0.45, 0.025, 1.3), (0.9, 0.05, 1.1), marco, 0.01, r)
+    cube("Vidrio", (0.45, -0.002, 1.3), (0.78, 0.01, 0.95), vidrio, 0, r)
+    cube("Cruz_v", (0.45, -0.004, 1.3), (0.04, 0.012, 0.95), marco, 0, r)
+    cube("Cruz_h", (0.45, -0.004, 1.3), (0.78, 0.012, 0.04), marco, 0, r)
+    cube("Repisa", (0.45, 0.06, 0.74), (0.96, 0.12, 0.04), marco, 0.005, r)
+    return (0.9, 0.05), "pared"
+
+def ventana_2(r):
+    marco, vidrio = C("vent2m", "#5a6a8a", .5), C("vent2v", "#cfe8ec", .15, 0.3)
+    cube("Marco", (0.45, 0.025, 1.4), (0.9, 0.05, 1.3), marco, 0.015, r)
+    cube("Vidrio", (0.45, -0.002, 1.4), (0.76, 0.01, 1.1), vidrio, 0, r)
+    for x in (0.2, 0.45, 0.7):
+        cube("Barra", (x, -0.004, 1.4), (0.025, 0.012, 1.1), marco, 0, r)
+    cube("Cortina", (0.1, 0.03, 1.85), (0.18, 0.05, 0.5), C("vent2c", "#e8649b", .8), 0.02, r)
+    return (0.9, 0.05), "pared"
+
+def cuadro_2(r):
+    marco, lienzo = C("cq2m", "#3b2a1c", .6), C("cq2l", "#f0e6d2", .8)
+    cube("Marco", (0.45, 0.025, 1.6), (0.9, 0.05, 0.7), marco, 0.01, r)
+    cube("Lienzo", (0.45, -0.002, 1.6), (0.8, 0.01, 0.6), lienzo, 0, r)
+    for (x, z, rad, c) in [(0.3, 1.75, 0.1, "#5aa9ff"), (0.6, 1.55, 0.13, "#f5c542"), (0.5, 1.7, 0.07, "#3ddc84")]:
+        sph("Forma", (x, -0.009, z), rad, C("cq2f" + c, c, .5), r, (1, 0.2, 1))
+    return (0.9, 0.05), "pared"
+
+def posters(r):
+    papel, papel2 = C("post1", "#f4efe4", .9), C("post2", "#e6e1d4", .9)
+    cube("Hoja1", (0.3, 0.012, 1.55), (0.42, 0.01, 0.56), papel, 0.004, r)
+    cube("Hoja2", (0.56, 0.01, 1.62), (0.4, 0.01, 0.52), papel2, 0.004, r)
+    for (x, z, c) in [(0.3, 1.75, "#ff4d5e"), (0.56, 1.8, "#5aa9ff")]:
+        cube("Linea", (x, 0.005, z), (0.3, 0.006, 0.05), C("postl" + c, c, .5), 0, r)
+    return (0.8, 0.03), "pared"
+
+def planta_2(r):
+    cyl("Maceta", (0.25, 0.25, 0.15), 0.15, 0.3, C("cact_m", "#c0663f"), r)
+    g = C("cact_g", "#3e8e4a")
+    cyl("Tallo1", (0.25, 0.25, 0.55), 0.06, 0.5, g, r)
+    cyl("Tallo2", (0.15, 0.28, 0.45), 0.04, 0.3, g, r)
+    cyl("Tallo3", (0.35, 0.22, 0.5), 0.045, 0.35, g, r)
+    sph("Flor", (0.25, 0.25, 0.82), 0.04, C("cact_f", "#e8649b", .4, 2), r)
+    return (0.5, 0.5), "piso"
+
+def planta_3(r):
+    cyl("Maceta", (0.25, 0.25, 0.15), 0.15, 0.3, C("fern_m", "#8a5a2e"), r)
+    g1, g2 = C("fern_g", "#57ad63"), C("fern_g2", "#3e8e4a")
+    for (x, y, z, s, m) in [(0.1, 0.25, 0.5, 0.22, g1), (0.4, 0.25, 0.5, 0.22, g2), (0.25, 0.1, 0.45, 0.2, g1),
+                             (0.25, 0.4, 0.45, 0.2, g2), (0.25, 0.25, 0.75, 0.16, g1)]:
+        sph("Hoja", (x, y, z), s, m, r, (1, 1, 0.6))
+    return (0.5, 0.5), "piso"
+
+def planta_4(r):
+    cyl("Maceta", (0.25, 0.25, 0.15), 0.14, 0.3, C("flor_m", "#e9e4d8"), r)
+    g = C("flor_g", "#3e8e4a")
+    cyl("Tallo", (0.25, 0.25, 0.55), 0.015, 0.5, g, r)
+    for (x, y, z, c) in [(0.18, 0.22, 0.78, "#e8649b"), (0.32, 0.28, 0.82, "#f5c542"), (0.25, 0.25, 0.9, "#5aa9ff")]:
+        sph("Flor", (x, y, z), 0.07, C("flor_f" + c, c, .5), r, (1, 1, 0.7))
+    for z in (0.45, 0.6):
+        sph("Hoja", (0.25, 0.25, z), 0.1, g, r, (1.3, 0.3, 1))
+    return (0.5, 0.5), "piso"
+
+def florero(r):
+    vidrio = C("flov", "#a9d4e8", .2, 0.6)
+    cyl("Base", (0.25, 0.25, 0.1), 0.08, 0.02, vidrio, r)
+    cyl("Cuerpo", (0.25, 0.25, 0.22), 0.07, 0.2, vidrio, r, r2=0.04)
+    cyl("Cuello", (0.25, 0.25, 0.36), 0.025, 0.08, vidrio, r)
+    for (x, y, z, c) in [(0.22, 0.24, 0.5, "#e8649b"), (0.28, 0.26, 0.54, "#f5c542"), (0.25, 0.22, 0.52, "#5aa9ff")]:
+        sph("Flor", (x, y, z), 0.045, C("flof" + c, c, .5), r)
+    g = C("flog", "#3e8e4a")
+    cyl("Tallo", (0.25, 0.25, 0.44), 0.006, 0.2, g, r)
+    return (0.5, 0.5), "piso"
+
+def osito(r):
+    tela, tela2 = C("osit", "#c08a4e", .85), C("osit2", "#8a5a2e", .85)
+    sph("Cuerpo", (0.25, 0.25, 0.18), 0.14, tela, r, (1, 1, 1.1))
+    sph("Cabeza", (0.25, 0.25, 0.4), 0.1, tela, r)
+    for x in (0.17, 0.33):
+        sph("Oreja", (x, 0.25, 0.49), 0.035, tela, r)
+    sph("Hocico", (0.25, 0.2, 0.37), 0.045, tela2, r)
+    for x in (0.12, 0.38):
+        sph("Brazo", (x, 0.25, 0.2), 0.05, tela, r)
+    for x in (0.18, 0.32):
+        sph("Pie", (x, 0.28, 0.04), 0.06, tela2, r, (1, 1.3, 0.7))
+    return (0.5, 0.5), "piso"
+
+def balon_voli(r):
+    cuero, linea = C("bvol", "#f4f4f4", .4), C("bvol2", "#5aa9ff", .4)
+    sph("Balon", (0.25, 0.25, 0.12), 0.12, cuero, r)
+    for ang in (0, 60, 120):
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.12, minor_radius=0.006, location=(0.25, 0.25, 0.12), rotation=(math.radians(90), math.radians(ang), 0))
+        o = bpy.context.active_object; o.parent = r; o.data.materials.append(linea)
+    return (0.5, 0.5), "piso"
+
+def colocador(r):
+    met = C("coloc", "#2b2f36", .4)
+    cyl("Base", (0.25, 0.25, 0.015), 0.16, 0.03, met, r)
+    cyl("Poste", (0.25, 0.25, 0.75), 0.02, 1.44, met, r)
+    for ang in (0, 72, 144, 216, 288):
+        x = 0.25 + 0.12 * math.cos(math.radians(ang)); y = 0.25 + 0.12 * math.sin(math.radians(ang))
+        cyl("Gancho", (x, y, 1.42), 0.012, 0.1, met, r, verts=8)
+    return (0.5, 0.5), "piso"
+
+def lampara_2(r):
+    met = C("lamp2m", "#9aa3ad", .3, 0, .6)
+    cyl("Base", (0.25, 0.25, 0.02), 0.17, 0.04, met, r)
+    cyl("Poste1", (0.25, 0.25, 0.5), 0.016, 1.0, met, r)
+    cyl("Poste2", (0.33, 0.25, 1.1), 0.014, 0.4, met, r)
+    cyl("Pantalla", (0.4, 0.25, 1.45), 0.16, 0.26, C("lamp2p", "#f3e3c3", .7, 0.9), r, r2=0.1)
+    sph("Foco", (0.4, 0.25, 1.4), 0.04, C("lamp2f", "#ffe9b0", .2, 8), r)
+    return (0.5, 0.5), "piso"
+
+def computadora_doble(r):
+    met, pant = C("compm", "#2b2f36", .5), C("compp", "#1f3a63", .2, 1.3)
+    cube("Mesa", (0.25, 0.35, 0.36), (0.46, 0.3, 0.04), C("compmesa", "#8a5a2e"), 0.01, r)
+    for (x, y) in [(0.05, 0.22), (0.45, 0.22), (0.05, 0.48), (0.45, 0.48)]:
+        cube("Pata", (x, y, 0.17), (0.03, 0.03, 0.34), C("compmesa2", "#5a3a1e"), 0, r)
+    for x in (0.14, 0.36):
+        cube("Monitor", (x, 0.2, 0.56), (0.18, 0.015, 0.2), met, 0.01, r)
+        cube("Pantalla", (x, 0.195, 0.56), (0.16, 0.004, 0.17), pant, 0, r)
+        cube("Pie_m", (x, 0.24, 0.4), (0.03, 0.03, 0.08), met, 0, r)
+    cube("Teclado", (0.25, 0.44, 0.385), (0.16, 0.06, 0.01), C("compk", "#4a4f5a"), 0, r)
+    sph("Led", (0.14, 0.192, 0.63), 0.006, C("compled", "#3ddc84", .2, 6), r)
+    return (0.5, 0.5), "piso"
+
 CATALOGO = [
   ("planta", "Planta", planta, 150), ("lampara", "Lámpara de pie", lampara, 200), ("sillon", "Sillón", sillon, 600),
   ("cafetera", "Mesita con cafetera", cafetera, 350), ("librero", "Librero", librero, 450), ("tapete", "Tapete", tapete, 250),
   ("snacks", "Máquina de snacks", snacks, 700), ("consola", "Consola de videojuegos", consola, 900), ("acuario", "Acuario", acuario, 800),
   ("trofeo", "Trofeo Scale-up", trofeo, 0), ("cuadro", "Cuadro", cuadro, 300), ("neon", "Letrero de neón (nombre de tu empresa)", neon, 500),
+  # PR B — mobiliario nuevo (feedback de Jaq)
+  ("tapete_redondo", "Tapete redondo", tapete_redondo, 180), ("tapete_estampado", "Tapete estampado", tapete_estampado, 220),
+  ("sillon_l", "Sillón en forma de L", sillon_l, 950), ("mesa_auxiliar", "Mesa auxiliar", mesa_auxiliar, 180),
+  ("estanteria", "Estantería", estanteria, 500), ("ventana_1", "Ventana — prototipo 1", ventana_1, 320),
+  ("ventana_2", "Ventana — prototipo 2", ventana_2, 320), ("cuadro_2", "Cuadro", cuadro_2, 300),
+  ("posters", "Posters", posters, 150), ("planta_2", "Planta — diseño 2", planta_2, 150),
+  ("planta_3", "Planta — diseño 3", planta_3, 150), ("planta_4", "Planta — diseño 4", planta_4, 150),
+  ("florero", "Florero", florero, 100), ("osito", "Osito", osito, 80), ("balon_voli", "Balón de voli", balon_voli, 60),
+  ("colocador", "Colocador", colocador, 220), ("lampara_2", "Lámpara — diseño 2", lampara_2, 210),
+  ("computadora_doble", "Computadora (doble monitor)", computadora_doble, 450),
 ]
 
 # ---------------- cámara y render ----------------
