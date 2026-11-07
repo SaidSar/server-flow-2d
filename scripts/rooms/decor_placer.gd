@@ -180,6 +180,11 @@ func move_ghost_to_wall(along: float, z: float) -> void:
 		return
 	_position = _layout().snap_position(_decor, _orientation, Vector2(along, 0.0))
 	_dz = _layout().clamp_dz(_decor, z - (_decor.height_m.x + _decor.height_m.y) * 0.5)
+	# Si a la altura del dedo no cabe pero a otra sí, se acomoda sola a la más cercana.
+	if not _layout().can_place(_decor, _orientation, _position, _move_index, _dz):
+		var fitted := _layout().find_valid_dz(_decor, _orientation, _position, _dz, _move_index)
+		if not is_nan(fitted):
+			_dz = fitted
 	_update_ghost()
 
 

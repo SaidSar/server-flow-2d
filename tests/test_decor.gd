@@ -305,6 +305,13 @@ func _test_wall_height() -> void:
 	_check(not is_nan(dz_poster) and empty_dc.can_place(poster, &"der", Vector2(3.0, 11.97), -1, dz_poster), "data center: los posters también suben sobre el riel")
 	_check(is_nan(empty_dc.find_valid_dz(window, &"der", Vector2(6.0, 11.91))), "data center: sigue sin caber en el muro del bay (placa de Firewall)")
 
+	# find_valid_dz busca en las dos direcciones: ventana bajo el riel o sobre el monitor del escritorio.
+	var desk_dz := empty_dc.find_valid_dz(window_2, &"izq", Vector2(0.0, 2.0), -0.5)
+	_check(not is_nan(desk_dz) and empty_dc.can_place(window_2, &"izq", Vector2(0.0, 2.0), -1, desk_dz) and window_2.height_m.x + desk_dz >= 1.6 - 0.001, "data center: la ventana 2 se acomoda sobre el monitor del escritorio (dz %s)" % desk_dz)
+	_check(is_nan(empty_office.find_valid_dz(window_2, &"izq", Vector2(0.0, 2.0))), "oficina: el muro de 2.6 m no deja la ventana 2 sobre el monitor")
+	var under_rail := empty_dc.find_valid_dz(window, &"der", Vector2(3.9, 11.91), 1.0)
+	_check(not is_nan(under_rail) and empty_dc.can_place(window, &"der", Vector2(3.9, 11.91), -1, under_rail), "data center: más a la derecha la ventana también cabe bajo el riel (dz %s)" % under_rail)
+
 	# Un objeto ya colgado usa su propia altura contra los demás.
 	var raised := DecorLayout.new(office, [{"id": "cuadro", "ori": "der", "x": 2.5, "y": 8.95, "dz": 0.5}])
 	_check(not raised.can_place(neon, &"der", Vector2(2.5, 8.96)), "el neón ya no cabe sobre un cuadro subido (z 1.75–2.45)")
