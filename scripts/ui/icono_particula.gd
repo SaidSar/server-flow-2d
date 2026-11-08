@@ -26,6 +26,8 @@ func _ready() -> void:
 	scale = Vector2(escala_aleatoria, escala_aleatoria)
 
 	modulate.a = randf_range(0.4, 0.9)
+	# El material es compartido: todos los íconos toman el color del tema actual.
+	(material as ShaderMaterial).set_shader_parameter(&"tinte", UiTheme.color(&"title_particle"))
 
 func _process(delta: float) -> void:
 	position.y += velocidad_caida * delta

@@ -8,12 +8,15 @@ const SETTINGS_SLOT_NAME := "SettingsSlot"
 ## La CEO que anuncia la ronda de inversión.
 const CEO_NAME := "Briseida"
 const CEO_ROLE := "CEO"
-const CEO_COLOR := Color("#e0569b")
 ## Con género (TextUtil.format): "{masculino|femenino}".
 const INVESTMENT_TEXT := "¡%s, lo logramos! Eres {el mejor|la mejor} SysAdmin que podíamos pedir. Conseguimos una ronda de inversión: +%s monedas para escalar %s."
 const INVESTMENT_BUTTON := "¡Vamos!"
 const SPEEDS: Array[float] = [1.0, 2.0]
 const BACK_FADE_SECONDS := 0.15
+## Parpadeo del aviso (opacidad media ± amplitud): oscila entre 80 % y 100 %. En oscuro llegaba a 20 %
+## de opacidad y casi desaparecía (1.3:1 de contraste); a 80 % se queda sobre 4.5:1 en los dos temas
+## (con el token "alert" de cada tema) y el aviso se lee siempre.
+const ALERT_PULSE := Vector2(0.9, 0.1)
 const RESOURCE_NAMES := {
 	&"cpu": "CPU",
 	&"ram": "RAM",
@@ -22,10 +25,10 @@ const RESOURCE_NAMES := {
 	&"disk": "Disco",
 }
 const LEGEND := [
-	[DashboardColors.OK, "200 OK"],
-	[DashboardColors.WARNING, "Latencia alta"],
-	[DashboardColors.DANGER, "Timeout / Error 500"],
-	[DashboardColors.MALICIOUS, "Tráfico malicioso (DDoS)"],
+	[&"ok", "200 OK"],
+	[&"warning", "Latencia alta"],
+	[&"danger", "Timeout / Error 500"],
+	[&"malicious", "Tráfico malicioso (DDoS)"],
 ]
 const SLA_GOOD := 80.0
 const SLA_WARNING := 50.0
@@ -34,6 +37,9 @@ const SLA_WARNING := 50.0
 static var _warned_resources: Dictionary[StringName, bool] = {}
 
 @onready var _title_label: Label = %TitleLabel
+## Barra superior en dos bloques: progreso de la oleada (oleada, monedas, usuarios) y salud del sistema (SLA).
+@onready var _wave_block: PanelContainer = %WaveBlock
+@onready var _health_block: PanelContainer = %HealthBlock
 @onready var _wave_label: Label = %WaveLabel
 @onready var _coins_label: Label = %CoinsLabel
 @onready var _users_label: Label = %UsersLabel
@@ -68,13 +74,10 @@ func _ready() -> void:
 	if not Simulation.has_session():
 		Simulation.new_game()
 
-	_top_bar.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 14.0))
-	_monitor_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 6.0))
-	_console_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 16.0))
+	_apply_panel_styles()
 	_sla_bar.add_theme_stylebox_override(&"fill", _sla_fill)
-	_sla_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
 	_users_bar.add_theme_stylebox_override(&"fill", _users_fill)
-	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
+	UiTheme.changed.connect(_apply_theme)
 	# Respeta la cámara frontal y la barra de gestos del celular.
 	_fit_safe_area()
 	SceneRouter.safe_area_changed.connect(_fit_safe_area)
@@ -109,7 +112,25 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _bottleneck_label.visible:
-		_bottleneck_label.modulate.a = 0.6 + 0.4 * sin(Time.get_ticks_msec() * 0.006)
+		_bottleneck_label.modulate.a = ALERT_PULSE.x + ALERT_PULSE.y * sin(Time.get_ticks_msec() * 0.006)
+
+
+## Contraste (WCAG) del aviso en su punto más tenue contra el panel del monitor, en el tema actual.
+func get_alert_min_contrast() -> float:
+	var background := UiTheme.color(&"panel")
+	var faded := UiTheme.color(&"alert").lerp(background, 1.0 - (ALERT_PULSE.x - ALERT_PULSE.y))
+	return _contrast_ratio(faded, background)
+
+
+static func _contrast_ratio(a: Color, b: Color) -> float:
+	var la := _relative_luminance(a)
+	var lb := _relative_luminance(b)
+	return (maxf(la, lb) + 0.05) / (minf(la, lb) + 0.05)
+
+
+static func _relative_luminance(color: Color) -> float:
+	var linear := color.srgb_to_linear()
+	return 0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -192,13 +213,33 @@ func _on_speed_pressed() -> void:
 
 #region Monitor y BYTE
 
+## Paneles, bloques de la barra superior y fondos de las barras con los colores del tema actual.
+func _apply_panel_styles() -> void:
+	_top_bar.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 14.0))
+	for block: PanelContainer in [_wave_block, _health_block]:
+		block.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.INSET, DashboardColors.INSET_BORDER, 2, 10, 10.0))
+	_monitor_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 6.0))
+	_console_panel.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.PANEL_BORDER, 2, 14, 16.0))
+	for bar: ProgressBar in [_sla_bar, _users_bar]:
+		bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BAR_TRACK))
+
+
+func _apply_theme() -> void:
+	_apply_panel_styles()
+	for child: Node in _legend_box.get_children():
+		_legend_box.remove_child(child)
+		child.queue_free()
+	_build_legend()
+	_refresh()
+
+
 func _build_legend() -> void:
 	for entry: Array in LEGEND:
 		var dot := Panel.new()
 		dot.custom_minimum_size = Vector2(18, 18)
 		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		var style := StyleBoxFlat.new()
-		style.bg_color = entry[0]
+		style.bg_color = UiTheme.color(entry[0])
 		style.set_corner_radius_all(9)
 		dot.add_theme_stylebox_override(&"panel", style)
 		_legend_box.add_child(dot)
@@ -359,7 +400,7 @@ func _on_victory_continue() -> void:
 		var avatar := GameState.avatar_name if not GameState.avatar_name.is_empty() else "equipo"
 		_dialog.show_dialog(CEO_NAME, CEO_ROLE,
 			TextUtil.format(INVESTMENT_TEXT % [avatar, NumberFormat.thousands(Simulation.pending_investment), _company_name()]),
-			INVESTMENT_BUTTON, CEO_COLOR)
+			INVESTMENT_BUTTON, DashboardColors.CEO, load(Paths.CEO_PORTRAIT) as Texture2D)
 		await _dialog.closed
 	Simulation.acknowledge_stage_report()
 	_go_to_room()

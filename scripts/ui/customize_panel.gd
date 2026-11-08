@@ -10,8 +10,6 @@ signal closed(saved: bool)
 const PANEL_WIDTH := 560.0
 const SWATCH_SIZE := Vector2(72, 72)
 const SWATCH_RADIUS := 10
-const SELECTED_BORDER_COLOR := Color(0.31, 0.76, 0.97)
-const IDLE_BORDER_COLOR := Color(0.05, 0.06, 0.09, 0.9)
 
 @onready var _panel: PanelContainer = %Panel
 @onready var _groups_box: VBoxContainer = %GroupsBox
@@ -76,7 +74,7 @@ func _build_groups(room_id: StringName) -> void:
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		header.add_child(title)
 		var selection_label := Label.new()
-		selection_label.add_theme_color_override(&"font_color", Color(0.7, 0.75, 0.82))
+		selection_label.add_theme_color_override(&"font_color", DashboardColors.TEXT_SOFT)
 		selection_label.add_theme_font_size_override(&"font_size", 24)
 		header.add_child(selection_label)
 		_selection_labels[layer_id] = selection_label
@@ -102,10 +100,10 @@ func _create_swatch(option: CustomizationOption, button_group: ButtonGroup) -> B
 	swatch.button_group = button_group
 	swatch.custom_minimum_size = SWATCH_SIZE
 	swatch.tooltip_text = option.display_name
-	swatch.add_theme_stylebox_override(&"normal", _make_swatch_style(option.color, IDLE_BORDER_COLOR, 3))
-	swatch.add_theme_stylebox_override(&"hover", _make_swatch_style(option.color, Color(0.8, 0.85, 0.9), 3))
-	swatch.add_theme_stylebox_override(&"pressed", _make_swatch_style(option.color, SELECTED_BORDER_COLOR, 6))
-	swatch.add_theme_stylebox_override(&"hover_pressed", _make_swatch_style(option.color, SELECTED_BORDER_COLOR, 6))
+	swatch.add_theme_stylebox_override(&"normal", _make_swatch_style(option.color, Color(DashboardColors.SWATCH_BORDER, 0.9), 3))
+	swatch.add_theme_stylebox_override(&"hover", _make_swatch_style(option.color, DashboardColors.SWATCH_BORDER_HOVER, 3))
+	swatch.add_theme_stylebox_override(&"pressed", _make_swatch_style(option.color, DashboardColors.HIGHLIGHT, 6))
+	swatch.add_theme_stylebox_override(&"hover_pressed", _make_swatch_style(option.color, DashboardColors.HIGHLIGHT, 6))
 	return swatch
 
 

@@ -11,11 +11,12 @@ const MAX_STARS := 4
 @onready var _stats_label: Label = %StatsLabel
 @onready var _unlocks_label: Label = %UnlocksLabel
 @onready var _continue_button: Button = %ContinueButton
-@onready var _window: PanelContainer = %Window
+@onready var _window: ReportWindow = %Window
 
 
 func _ready() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.OK, 3, 18, 32.0))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_continue_button.pressed.connect(continue_requested.emit)
 	hide()
 
@@ -40,4 +41,9 @@ func show_report(report: WaveReport, stage_name: String, unlock_names: PackedStr
 			_unlocks_label.text += "\nRonda de inversión: +%s monedas" % NumberFormat.thousands(investment)
 		_continue_button.text = "Siguiente etapa"
 	show()
+	_window.refit()
 	_continue_button.grab_focus()
+
+
+func _apply_theme() -> void:
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.OK, 3, 18, 24.0))

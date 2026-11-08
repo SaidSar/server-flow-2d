@@ -11,11 +11,12 @@ content_margin_left = 24.0
 content_margin_top = 16.0
 content_margin_right = 24.0
 content_margin_bottom = 16.0
-bg_color = Color(0.0588235, 0.0784314, 0.117647, 0.85)
+bg_color = Color(0.0588235, 0.0784314, 0.117647, 0.96)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
+metadata/ui_tokens = {"bg_color": "hud_panel"}
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sla_bg"]
 bg_color = Color(0.2, 0.22, 0.28, 1)
@@ -23,6 +24,7 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+metadata/ui_tokens = {"bg_color": "hud_track"}
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sla_fill"]
 bg_color = Color(0.298039, 0.733333, 0.427451, 1)
@@ -30,6 +32,7 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+metadata/ui_tokens = {"bg_color": "hud_ok"}
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -70,6 +73,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.66, 0.76, 1)
 theme_override_font_sizes/font_size = 22
 text = "Cuarto temporal: garage"
+metadata/ui_tokens = {"font_color": "hud_text_soft"}
 
 [node name="Stats" type="HBoxContainer" parent="Root/StatusPanel/Rows"]
 layout_mode = 2
@@ -91,6 +95,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.831373, 0.4, 1)
 theme_override_font_sizes/font_size = 26
 text = "100"
+metadata/ui_tokens = {"font_color": "hud_coin"}
 
 [node name="UsersIcon" type="TextureRect" parent="Root/StatusPanel/Rows/Stats"]
 custom_minimum_size = Vector2(32, 32)
@@ -107,6 +112,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 26
 text = "0 / 1,000"
+metadata/ui_tokens = {"font_color": "hud_accent"}
 
 [node name="UsersBar" type="ProgressBar" parent="Root/StatusPanel/Rows/Stats"]
 unique_name_in_owner = true
@@ -123,6 +129,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
 theme_override_font_sizes/font_size = 26
 text = "Oleada 1/5"
+metadata/ui_tokens = {"font_color": "accent"}
 
 [node name="Sla" type="HBoxContainer" parent="Root/StatusPanel/Rows"]
 layout_mode = 2
@@ -171,6 +178,7 @@ theme_override_font_sizes/font_size = 34
 text = "La oleada 1 te espera en la PC"
 horizontal_alignment = 1
 vertical_alignment = 1
+metadata/ui_tokens = {"font_color": "float_warning", "font_outline_color": "float_outline"}
 
 [node name="BrushButton" type="Button" parent="Root"]
 unique_name_in_owner = true
@@ -226,3 +234,4 @@ theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 24
 text = "Disponible en Scale-up"
 horizontal_alignment = 2
+metadata/ui_tokens = {"font_color": "float_text", "font_outline_color": "float_outline"}

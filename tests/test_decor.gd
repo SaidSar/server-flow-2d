@@ -29,12 +29,14 @@ func _run() -> void:
 
 	_test_projection()
 	_test_layout()
+	_test_wall_height()
 	_test_room_sizes()
 	_test_shop_availability(game_state, simulation)
 	await _test_buy_place_cancel(game_state, simulation)
 	await _test_data_center_layers(game_state, simulation)
 	await _test_stage_change_keeps_decor(game_state, save_system, simulation)
 	_test_save_load(game_state, save_system, simulation)
+	await _test_initial_windows(game_state, save_system, simulation)
 
 	save_system.call("delete_save")
 	if _failures.is_empty():
@@ -73,9 +75,19 @@ func _test_room_sizes() -> void:
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(4.0, 1.0)), "data center: no se encima con el vidrio")
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(7.5, 8.0)), "data center: no sobre el bay de racks")
 	_check(not in_data_center.can_place(sofa, &"a", Vector2(0.5, 1.5)), "data center: no sobre el escritorio")
-	var on_right := in_data_center.snap_position(picture, &"der", Vector2(3.2, 0.0))
-	_check(on_right.is_equal_approx(Vector2(3.0, 11.95)), "data center: el cuadro se pega al muro derecho en y = 12 (%s)" % on_right)
+	# x 3.5–4.4: a esa altura (z 1.25–1.95) el cuadro ya quedó por debajo del riel del vidrio.
+	var on_right := in_data_center.snap_position(picture, &"der", Vector2(3.95, 0.0))
+	_check(on_right.is_equal_approx(Vector2(3.5, 11.95)), "data center: el cuadro se pega al muro derecho en y = 12 (%s)" % on_right)
 	_check(in_data_center.can_place(picture, &"der", on_right), "data center: cuadro en el muro derecho del lado del escritorio")
+	# El riel superior del vidrio se ve en diagonal sobre el muro derecho (tramos "riel_vidrio").
+	var posters := DecorData.find(&"posters")
+	var window_2 := DecorData.find(&"ventana_2")
+	_check(not in_data_center.can_place(posters, &"der", in_data_center.snap_position(posters, &"der", Vector2(2.9, 0.0)))
+		and not in_data_center.can_place(window_2, &"der", in_data_center.snap_position(window_2, &"der", Vector2(2.95, 0.0)))
+		and not in_data_center.can_place(picture, &"der", in_data_center.snap_position(picture, &"der", Vector2(3.2, 0.0))),
+		"data center: no se cuelga nada sobre el riel del vidrio")
+	_check(in_data_center.can_place(posters, &"der", in_data_center.snap_position(posters, &"der", Vector2(4.4, 0.0))),
+		"data center: los posters caben a la derecha del riel del vidrio")
 	_check(not in_data_center.can_place(picture, &"der", Vector2(7.0, 11.95)), "data center: no se cuelga nada en el muro del bay (placa de Firewall)")
 	_check(not in_data_center.can_place(picture, &"izq", Vector2(0.0, 4.5)), "data center: no sobre la puerta")
 	_check(in_data_center.can_place(picture, &"izq", Vector2(0.0, 9.0)), "data center: el muro izquierdo es más largo que en la oficina")
@@ -233,8 +245,11 @@ func _test_layout() -> void:
 	var on_left := empty.snap_position(picture, &"izq", Vector2(0.5, 0.0))
 	_check(on_left.is_equal_approx(Vector2(0.0, 0.0)), "el cuadro se pega al muro izquierdo (%s)" % on_left)
 	_check(not empty.can_place(picture, &"der", Vector2(1.0, 8.95)), "muro derecho: no sobre los racks")
-	_check(not empty.can_place(picture, &"der", Vector2(4.5, 8.95)), "muro derecho: no sobre la primera ventana")
-	_check(not empty.can_place(picture, &"der", Vector2(7.0, 8.95)), "muro derecho: no sobre la segunda ventana")
+	# Las ventanas de la oficina ya no son parte del arte: son piezas colocadas (decoracion_inicial).
+	_check(empty.can_place(picture, &"der", Vector2(4.5, 8.95)), "muro derecho: sin ventanas pintadas, ese tramo está libre")
+	var with_windows := DecorLayout.new(room, room.initial_decor)
+	_check(not with_windows.can_place(picture, &"der", Vector2(4.5, 8.95)), "muro derecho: no sobre la primera ventana inicial")
+	_check(not with_windows.can_place(picture, &"der", Vector2(7.0, 8.95)), "muro derecho: no sobre la segunda ventana inicial")
 	_check(empty.can_place(picture, &"der", Vector2(2.5, 8.95)), "muro derecho: entre los racks y la ventana sí")
 	_check(not empty.can_place(picture, &"izq", Vector2(0.0, 1.5)), "muro izquierdo: no detrás del monitor")
 	_check(not empty.can_place(picture, &"izq", Vector2(0.0, 4.5)), "muro izquierdo: no sobre la puerta")
@@ -249,7 +264,7 @@ func _test_layout() -> void:
 	_check(not empty.can_place(neon, &"izq", Vector2(0.0, 4.0)), "el neón choca con la puerta (z 0–2.15)")
 	_check(not empty.can_place(neon, &"izq", Vector2(0.0, 6.5)), "el neón choca con el pizarrón")
 	_check(not empty.can_place(neon, &"der", Vector2(1.0, 8.96)), "el neón choca con los racks (z 0–2.05)")
-	_check(not empty.can_place(neon, &"der", Vector2(4.5, 8.96)), "el neón choca con la ventana (z 1.0–2.5)")
+	_check(not with_windows.can_place(neon, &"der", Vector2(4.5, 8.96)), "el neón choca con la ventana inicial (z 1.0–2.5)")
 
 	# Entre objetos del mismo muro también cuenta la altura.
 	var with_picture := DecorLayout.new(room, [{"id": "cuadro", "ori": "der", "x": 2.5, "y": 8.95}])
@@ -257,6 +272,56 @@ func _test_layout() -> void:
 	_check(with_picture.can_place(neon, &"der", Vector2(2.5, 8.96)), "el neón cabe encima del cuadro (alturas distintas)")
 	_check(with_picture.can_place(picture, &"izq", Vector2(0.0, 0.0)), "un cuadro en el otro muro no estorba")
 	_check(with_picture.can_place(plant, &"a", Vector2(2.5, 8.5)), "un objeto de pared no estorba en el piso")
+
+
+func _test_wall_height() -> void:
+	var office := RoomData.load_room(&"oficina")
+	var data_center := RoomData.load_room(&"data_center")
+	_check(is_equal_approx(office.wall_height_m, 3.2) and is_equal_approx(data_center.wall_height_m, 3.2), "el alto de los muros viene del JSON del cuarto")
+	var picture := DecorData.find(&"cuadro")
+	var neon := DecorData.find(&"neon")
+	var window := DecorData.find(&"ventana_1")
+	var window_2 := DecorData.find(&"ventana_2")
+	var poster := DecorData.find(&"posters")
+	var empty_office := DecorLayout.new(office)
+	var empty_dc := DecorLayout.new(data_center)
+
+	# Límites de altura: el cuadro (z 1.25–1.95) sube hasta el techo de 3.2 m y baja hasta 0.25 m.
+	_check(is_equal_approx(empty_office.clamp_dz(picture, 5.0), 1.25), "el cuadro no sube más del techo (dz %s)" % empty_office.clamp_dz(picture, 5.0))
+	_check(is_equal_approx(empty_office.clamp_dz(picture, -5.0), -1.0), "el cuadro no baja del piso (dz %s)" % empty_office.clamp_dz(picture, -5.0))
+	_check(is_equal_approx(empty_office.clamp_dz(picture, 0.12), 0.0) and is_equal_approx(empty_office.clamp_dz(picture, 0.13), 0.25), "la altura se ajusta a pasos de 0.25 m")
+	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 0.0), -1, 1.5), "no se cuelga por arriba del techo")
+	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 0.0), -1, -1.25), "no se cuelga por debajo del mínimo")
+
+	# La altura cuenta contra las zonas prohibidas: el cuadro choca con el monitor a su altura base pero no más arriba.
+	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 1.5)), "cuadro a altura base choca con el monitor")
+	_check(empty_office.can_place(picture, &"izq", Vector2(0.0, 1.5), -1, 0.5), "el cuadro subido 0.5 m pasa sobre el monitor")
+
+	# Riel del vidrio (data center): a la altura base choca, pero más arriba hay lugar.
+	var along := Vector2(2.1, 11.91)
+	_check(not empty_dc.can_place(window, &"der", along), "data center: la ventana a su altura base choca con el riel")
+	var dz := empty_dc.find_valid_dz(window, &"der", along)
+	_check(not is_nan(dz) and dz > 0.0, "data center: hay una altura libre sobre el riel (dz %s)" % dz)
+	_check(empty_dc.can_place(window, &"der", along, -1, dz), "data center: la ventana sube sobre el riel")
+	var dz_2 := empty_dc.find_valid_dz(window_2, &"der", along)
+	_check(not is_nan(dz_2) and empty_dc.can_place(window_2, &"der", along, -1, dz_2), "data center: la ventana 2 también encuentra altura")
+	var dz_poster := empty_dc.find_valid_dz(poster, &"der", Vector2(3.0, 11.97))
+	_check(not is_nan(dz_poster) and empty_dc.can_place(poster, &"der", Vector2(3.0, 11.97), -1, dz_poster), "data center: los posters también suben sobre el riel")
+	_check(is_nan(empty_dc.find_valid_dz(window, &"der", Vector2(6.0, 11.91))), "data center: sigue sin caber en el muro del bay (placa de Firewall)")
+
+	# find_valid_dz busca en las dos direcciones: ventana bajo el riel o sobre el monitor del escritorio.
+	var desk_dz := empty_dc.find_valid_dz(window_2, &"izq", Vector2(0.0, 2.0), -0.5)
+	_check(not is_nan(desk_dz) and empty_dc.can_place(window_2, &"izq", Vector2(0.0, 2.0), -1, desk_dz) and window_2.height_m.x + desk_dz >= 1.6 - 0.001, "data center: la ventana 2 se acomoda sobre el monitor del escritorio (dz %s)" % desk_dz)
+	var office_desk_dz := empty_office.find_valid_dz(window_2, &"izq", Vector2(0.0, 2.0))
+	_check(not is_nan(office_desk_dz) and empty_office.can_place(window_2, &"izq", Vector2(0.0, 2.0), -1, office_desk_dz), "oficina: con el muro de 3.2 m la ventana 2 también cabe sobre el monitor (dz %s)" % office_desk_dz)
+	var under_rail := empty_dc.find_valid_dz(window, &"der", Vector2(3.9, 11.91), 1.0)
+	_check(not is_nan(under_rail) and empty_dc.can_place(window, &"der", Vector2(3.9, 11.91), -1, under_rail), "data center: más a la derecha la ventana también cabe bajo el riel (dz %s)" % under_rail)
+
+	# Un objeto ya colgado usa su propia altura contra los demás.
+	var raised := DecorLayout.new(office, [{"id": "cuadro", "ori": "der", "x": 2.5, "y": 8.95, "dz": 0.5}])
+	_check(not raised.can_place(neon, &"der", Vector2(2.5, 8.96)), "el neón ya no cabe sobre un cuadro subido (z 1.75–2.45)")
+	_check(raised.can_place(neon, &"der", Vector2(2.5, 8.96), -1, 0.0) == false and raised.can_place(picture, &"der", Vector2(2.5, 8.95), 0, 0.25), "mover un cuadro subido no choca consigo mismo")
+	_check(DecorLayout.get_dz({"id": "cuadro"}) == 0.0 and DecorLayout.get_dz({"dz": 0.75}) == 0.75, "una partida sin dz usa la altura base")
 
 
 func _test_shop_availability(game_state: Node, simulation: Node) -> void:
@@ -286,6 +351,7 @@ func _test_buy_place_cancel(game_state: Node, simulation: Node) -> void:
 	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 1000})
 	game_state.set("decor_inventory", [] as Array[StringName])
 	(game_state.get("decor_placed") as Dictionary).clear()
+	(game_state.get("decor_initial_granted") as Array).append(&"oficina")  # aislar de las ventanas iniciales
 	var office := (load("res://scenes/rooms/oficina.tscn") as PackedScene).instantiate()
 	root.add_child(office)
 	await process_frame
@@ -332,7 +398,7 @@ func _test_save_load(game_state: Node, save_system: Node, simulation: Node) -> v
 	game_state.call("start_new_game", "Prueba", "TestCorp")
 	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 1000})
 	game_state.call("place_decor", &"oficina", {"id": "sillon", "ori": "b", "x": 4.0, "y": 4.0})
-	game_state.call("place_decor", &"oficina", {"id": "neon", "ori": "der", "x": 2.5, "y": 8.96})
+	game_state.call("place_decor", &"oficina", {"id": "neon", "ori": "der", "x": 2.5, "y": 8.96, "dz": -0.25})
 	game_state.call("add_to_inventory", &"planta")
 	game_state.call("add_to_inventory", &"planta")
 	game_state.call("set_color", &"piso_oficina", &"alfombra_gris")
@@ -344,6 +410,7 @@ func _test_save_load(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(save_system.call("load_game"), "cargar con decoración")
 	var placed: Array = game_state.call("get_placed_decor", &"oficina")
 	_check(placed.size() == 2 and placed[0]["id"] == "sillon" and placed[0]["ori"] == "b" and is_equal_approx(float(placed[1]["y"]), 8.96), "guardar → cargar conserva lo colocado (%s)" % [placed])
+	_check(is_equal_approx(DecorLayout.get_dz(placed[1]), -0.25) and not placed[0].has("dz"), "guardar → cargar conserva la altura (dz) de los objetos de pared")
 	_check(game_state.call("count_in_inventory", &"planta") == 2, "guardar → cargar conserva el inventario")
 	_check(game_state.get("colors")[&"piso_oficina"] == &"alfombra_gris", "guardar → cargar conserva el piso de la oficina")
 
@@ -358,6 +425,65 @@ func _test_save_load(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(save_system.call("load_game"), "cargar una partida vieja")
 	_check((game_state.call("get_placed_decor", &"oficina") as Array).is_empty() and (game_state.get("decor_inventory") as Array).is_empty(), "una partida vieja empieza sin decoración")
 	_check(game_state.get("colors")[&"piso_garage"] == &"concreto_oscuro" and game_state.get("colors")[&"piso_oficina"] == &"laminado_claro", "una partida vieja migra su piso al garage")
+
+
+## Las dos ventanas de la oficina ya no están en el arte: se entregan una sola vez al abrir el cuarto,
+## se pueden mover y guardar, pero no vender ni comprar.
+func _test_initial_windows(game_state: Node, save_system: Node, simulation: Node) -> void:
+	var window := DecorData.find(&"ventana_oficina")
+	_check(window != null and not window.in_shop and not window.can_sell(), "la ventana de la oficina no se compra ni se vende")
+	_check(DecorData.find(&"trofeo").can_sell() == false, "el trofeo sigue sin poder venderse")
+	_check(DecorData.find(&"sillon").in_shop and DecorData.find(&"sillon").can_sell(), "los demás objetos siguen en la tienda y se venden")
+	var room := RoomData.load_room(&"oficina")
+	_check(room.initial_decor.size() == 2, "la oficina define dos ventanas iniciales")
+	var initial := DecorLayout.new(room, room.initial_decor)
+	for entry: Dictionary in room.initial_decor:
+		_check(DecorLayout.new(room).can_place(window, StringName(entry["ori"]), DecorLayout.get_position(entry)), "cada ventana inicial cabe en un cuarto vacío")
+	_check(not initial.can_place(window, &"der", Vector2(4.0, 8.84)), "no se puede encimar otra ventana sobre una inicial")
+
+	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 1000})
+	game_state.call("start_new_game", "Prueba", "TestCorp")
+	_check((game_state.call("get_placed_decor", &"oficina") as Array).is_empty(), "antes de abrir la oficina no hay ventanas")
+	var office := (load("res://scenes/rooms/oficina.tscn") as PackedScene).instantiate()
+	root.add_child(office)
+	await process_frame
+	var placed: Array = game_state.call("get_placed_decor", &"oficina")
+	_check(placed.size() == 2 and placed[0]["id"] == "ventana_oficina" and placed[1]["id"] == "ventana_oficina", "al abrir la oficina aparecen las dos ventanas")
+	var placer: Node = office.get_node("%DecorPlacer")
+	# Se guarda una ventana en el inventario: abrir otra vez la oficina no la devuelve a la pared.
+	placer.call("select", 0)
+	var toolbar: CanvasLayer = office.get_node("%DecorToolbar")
+	_check(not (toolbar.get_node("%SellButton") as Button).visible or placer.call("get_selected_index") == 0, "la ventana seleccionada no ofrece vender")
+	_check(not _shop.call("sell_placed", &"oficina", 0), "vender una ventana no hace nada")
+	(toolbar.get_node("%StoreButton") as Button).pressed.emit()
+	_check(game_state.call("count_in_inventory", &"ventana_oficina") == 1 and (game_state.call("get_placed_decor", &"oficina") as Array).size() == 1, "una ventana se guarda en el inventario")
+	office.free()
+	await process_frame
+	office = (load("res://scenes/rooms/oficina.tscn") as PackedScene).instantiate()
+	root.add_child(office)
+	await process_frame
+	_check((game_state.call("get_placed_decor", &"oficina") as Array).size() == 1 and game_state.call("count_in_inventory", &"ventana_oficina") == 1, "las ventanas no se entregan dos veces")
+	office.free()
+	await process_frame
+
+	# Guardar y cargar conserva que ya se entregaron.
+	_check(save_system.call("save_game") and save_system.call("load_game"), "guardar y cargar con ventanas")
+	_check(game_state.call("count_in_inventory", &"ventana_oficina") == 1 and (game_state.call("get_placed_decor", &"oficina") as Array).size() == 1, "las ventanas sobreviven a guardar y cargar sin duplicarse")
+
+	# Una partida guardada antes de este cambio no tiene la marca: recibe las ventanas al abrir la oficina.
+	var config := ConfigFile.new()
+	config.load(save_system.get("save_path"))
+	config.erase_section_key("decor", "initial_granted")
+	config.save(save_system.get("save_path"))
+	_check(save_system.call("load_game"), "cargar una partida sin la marca de entregas")
+	(game_state.call("get_placed_decor", &"oficina") as Array).clear()
+	game_state.set("decor_inventory", [] as Array[StringName])
+	office = (load("res://scenes/rooms/oficina.tscn") as PackedScene).instantiate()
+	root.add_child(office)
+	await process_frame
+	_check((game_state.call("get_placed_decor", &"oficina") as Array).size() == 2, "una partida vieja recibe las ventanas al abrir la oficina")
+	office.free()
+	await process_frame
 
 
 func _check(condition: bool, label: String) -> void:

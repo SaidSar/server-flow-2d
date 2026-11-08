@@ -11,9 +11,10 @@ extends ScrollContainer
 const DEADZONE_PX := 14
 const SCROLLBAR_WIDTH := 10
 const SCROLLBAR_RADIUS := 5
-const SCROLLBAR_TRACK := Color(1, 1, 1, 0.06)
-const SCROLLBAR_GRABBER := Color(0.31, 0.76, 0.97, 0.55)
-const SCROLLBAR_GRABBER_ACTIVE := Color(0.31, 0.76, 0.97, 0.9)
+## Transparencia de la pista y de la barra (los colores vienen del tema).
+const SCROLLBAR_TRACK_ALPHA := 0.06
+const SCROLLBAR_GRABBER_ALPHA := 0.55
+const SCROLLBAR_GRABBER_ACTIVE_ALPHA := 0.9
 
 ## Dedo que está arrastrando la lista (-1 = ninguno).
 var _touch_index := -1
@@ -27,6 +28,8 @@ func _ready() -> void:
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
 	_style_scrollbar(get_v_scroll_bar())
+	# Los colores de la barra vienen del tema: se repintan al cambiarlo.
+	UiTheme.changed.connect(_on_theme_changed)
 	_let_input_through(self)
 	get_tree().node_added.connect(_on_node_added)
 
@@ -76,6 +79,10 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 
+func _on_theme_changed() -> void:
+	_style_scrollbar(get_v_scroll_bar())
+
+
 func _on_node_added(node: Node) -> void:
 	if is_ancestor_of(node):
 		_pass_input(node)
@@ -95,7 +102,7 @@ func _pass_input(node: Node) -> void:
 
 func _style_scrollbar(bar: ScrollBar) -> void:
 	var track := StyleBoxFlat.new()
-	track.bg_color = SCROLLBAR_TRACK
+	track.bg_color = Color(DashboardColors.SCROLL_TRACK, SCROLLBAR_TRACK_ALPHA)
 	track.set_corner_radius_all(SCROLLBAR_RADIUS)
 	track.content_margin_left = SCROLLBAR_RADIUS
 	track.content_margin_right = SCROLLBAR_RADIUS
@@ -103,7 +110,7 @@ func _style_scrollbar(bar: ScrollBar) -> void:
 	bar.add_theme_stylebox_override(&"scroll_focus", track)
 	for state: StringName in [&"grabber", &"grabber_highlight", &"grabber_pressed"]:
 		var grabber := StyleBoxFlat.new()
-		grabber.bg_color = SCROLLBAR_GRABBER if state == &"grabber" else SCROLLBAR_GRABBER_ACTIVE
+		grabber.bg_color = Color(DashboardColors.HIGHLIGHT, SCROLLBAR_GRABBER_ALPHA if state == &"grabber" else SCROLLBAR_GRABBER_ACTIVE_ALPHA)
 		grabber.set_corner_radius_all(SCROLLBAR_RADIUS)
 		grabber.content_margin_left = SCROLLBAR_RADIUS
 		grabber.content_margin_right = SCROLLBAR_RADIUS

@@ -21,6 +21,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0784314, 0.0941176, 0.141176, 1)
+metadata/ui_tokens = {"color": "screen_bg"}
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1

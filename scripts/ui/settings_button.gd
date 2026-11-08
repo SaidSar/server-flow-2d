@@ -8,6 +8,9 @@ extends CanvasLayer
 ## Separación del borde de la pantalla (más la zona segura del celular).
 const MARGIN := 20.0
 
+## true en el dashboard (adentro de la PC): el panel muestra la fila "Tema". En el cuarto, false.
+@export var show_theme_option := false
+
 @onready var _gear_button: Button = %GearButton
 @onready var _menu: SettingsMenu = %SettingsMenu
 
@@ -41,7 +44,7 @@ func open() -> void:
 	if is_open() or SceneRouter.is_changing():
 		return
 	get_tree().paused = true
-	_menu.open()
+	_menu.open(show_theme_option)
 
 
 func close() -> void:

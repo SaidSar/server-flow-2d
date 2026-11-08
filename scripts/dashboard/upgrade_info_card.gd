@@ -16,7 +16,8 @@ var _upgrade: UpgradeData
 
 
 func _ready() -> void:
-	add_theme_stylebox_override(&"panel", DashboardColors.panel_style(Color("#16233a"), DashboardColors.ACCENT, 2, 14, 20.0))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	custom_minimum_size.x = WIDTH
 	if _upgrade != null:
 		_apply(_upgrade)
@@ -52,3 +53,7 @@ static func describe_effect(upgrade: UpgradeData) -> String:
 	if upgrade.is_action() or upgrade.max_level <= 1:
 		return upgrade.short_effect
 	return "%s por nivel" % upgrade.short_effect
+
+
+func _apply_theme() -> void:
+	add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.CARD, DashboardColors.ACCENT, 2, 14, 20.0))

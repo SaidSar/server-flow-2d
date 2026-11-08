@@ -6,6 +6,6 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_yntn8"]
 shader = ExtResource("1_klwap")
 
-[node name="Control" type="Sprite2D" unique_id=1882574855]
+[node name="Control" type="Sprite2D"]
 material = SubResource("ShaderMaterial_yntn8")
 script = ExtResource("1_oco4c")

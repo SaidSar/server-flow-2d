@@ -12,13 +12,12 @@ signal room_requested
 @onready var _advice_label: Label = %AdviceLabel
 @onready var _repeat_button: Button = %RepeatButton
 @onready var _room_button: Button = %RoomButton
-@onready var _window: PanelContainer = %Window
+@onready var _window: ReportWindow = %Window
 
 
 func _ready() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.WARNING, 3, 18, 32.0))
-	_users_bar.add_theme_stylebox_override(&"fill", DashboardColors.bar_style(DashboardColors.WARNING))
-	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BACKGROUND))
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_repeat_button.pressed.connect(repeat_requested.emit)
 	_room_button.pressed.connect(room_requested.emit)
 	hide()
@@ -31,4 +30,11 @@ func show_report(report: WaveReport) -> void:
 	_sla_label.text = "SLA promedio: %.1f %%" % report.stage_avg_sla
 	_advice_label.text = report.get_stage_advice()
 	show()
+	_window.refit()
 	_repeat_button.grab_focus()
+
+
+func _apply_theme() -> void:
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.WARNING, 3, 18, 24.0))
+	_users_bar.add_theme_stylebox_override(&"fill", DashboardColors.bar_style(DashboardColors.WARNING))
+	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(DashboardColors.BAR_TRACK))

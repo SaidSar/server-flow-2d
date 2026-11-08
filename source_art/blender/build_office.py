@@ -2,9 +2,10 @@
 Oficina (etapa 2 · Scale-up) — Server Flow 2D.
 Cuarto 9x9 m. Conserva escritorio, silla, avatar y puerta en la MISMA posición del mundo que el garage,
 así sus sprites se reutilizan con un desplazamiento (dx, dy). Los racks se mueven a la pared derecha.
-Renderiza a 2x: piso (3 variantes), pared_izq (10), pared_der (10), capa 'ventanas' (luz),
+Renderiza a 2x: piso (3 variantes), pared_izq (10), pared_der (10; sin ventanas),
 y escribe office_meta.json con: lienzo, proyección mundo→píxel (para colocación libre),
-desplazamientos de los sprites reutilizados y zonas ocupadas.
+alto_muro_m (altura real de los muros, igual que build_data_center.py), desplazamientos de los
+sprites reutilizados y zonas ocupadas.
 Uso: python3 build_office.py <salida> <menu.png> [preview]
 """
 import sys, math, json, os
@@ -17,6 +18,7 @@ exec(SRC[:SRC.index("room = build_room()")])
 sc.eevee.taa_render_samples = 16   # escena, luces, materiales M, build_desk/chair/rack
 
 N = 9
+WALL_H = 3.2   # alto de los muros en metros; también va a office_meta.json como alto_muro_m (tope de altura de la decoración)
 P2 = dict(lam="#c9a77c", lam_seam="#a8875e", marco_ven="#eef1f4", vidrio="#9fd3f2", repisa="#d9d4c7", pizarra="#f4f4f4")
 M["piso_of"] = mat("piso_of", P2["lam"], 0.6)
 M["junta"] = mat("junta", P2["lam_seam"], 0.7)
@@ -34,21 +36,15 @@ def build_office():
             x = (k * 1.2 + (0.6 if i % 2 else 0)) % N
             if 0.05 < x < N - 0.05:
                 cube("JuntaT", (x, i * 0.3 + 0.15, 0.001), (0.012, 0.3, 0.002), M["junta"], 0, r)
-    cube("Pared_Izq", (-0.06, N/2, 1.6), (0.12, N, 3.2), M["pared_izq"], 0, r)
-    cube("Pared_Der", (N/2, N + 0.06, 1.6), (N, 0.12, 3.2), M["pared_der"], 0, r)
+    cube("Pared_Izq", (-0.06, N/2, WALL_H/2), (0.12, N, WALL_H), M["pared_izq"], 0, r)
+    cube("Pared_Der", (N/2, N + 0.06, WALL_H/2), (N, 0.12, WALL_H), M["pared_der"], 0, r)
     cube("Zoclo_Izq", (0.01, N/2, 0.06), (0.04, N, 0.12), M["zoclo"], 0, r)
     cube("Zoclo_Der", (N/2, N - 0.01, 0.06), (N, 0.04, 0.12), M["zoclo"], 0, r)
     # puerta: misma posición que el garage
     cube("Puerta", (0.02, 4.9, 1.05), (0.05, 1.0, 2.1), M["puerta"], 0.01, r)
     cube("Manija", (0.07, 4.5, 1.0), (0.05, 0.08, 0.05), M["manija"], 0.005, r)
-    # ventanas en la pared derecha (plano y = N)
-    for x0 in (4.1, 6.6):
-        w = 1.7
-        cube("Ven_Vidrio", (x0 + w/2, N - 0.015, 1.75), (w - 0.1, 0.02, 1.3), M["vidrio"], 0, r)
-        cube("Ven_Cielo", (x0 + w/2, N - 0.012, 2.05), (w - 0.1, 0.018, 0.55), M["cielo2"], 0, r)
-        for (dx, dz, sw, sh) in [(0, 0.7, w, .06), (0, -0.7, w, .06), (-w/2, 0, .06, 1.46), (w/2, 0, .06, 1.46), (0, 0, .04, 1.4), (0, 0.05, w, .04)]:
-            cube("Ven_Marco", (x0 + w/2 + dx, N - 0.04, 1.75 + dz), (sw, 0.06, sh), M["marco_ven"], 0.005, r)
-        cube("Ven_Repisa", (x0 + w/2, N - 0.08, 1.0), (w + 0.12, 0.16, 0.05), M["marco_ven"], 0.01, r)
+    # Las 2 ventanas de la pared derecha YA NO van en el muro: son la pieza de catálogo 'ventana_oficina'
+    # (build_decor.py), que se coloca, mueve y guarda como cualquier otro objeto de pared.
     # pizarrón en la pared izquierda (plano x = 0) con el boceto del equipo
     cube("Pizarron_Marco", (0.02, 7.4, 1.9), (0.04, 2.2, 1.3), M["marco"], 0.01, r)
     cube("Pizarron", (0.05, 7.4, 1.9), (0.03, 2.08, 1.18), M["pizarron"], 0, r)
@@ -131,7 +127,7 @@ ALL = [o for o in sc.objects if o.type == "MESH"]
 LAYERS = {
     "piso": [o for o in office.children if o.name.startswith(("Piso", "Junta"))],
     "pared_izq": [o for o in office.children if o.name.startswith(("Pared_Izq", "Zoclo_Izq", "Pizarron", "Trazo"))],
-    "pared_der": [o for o in office.children if o.name.startswith(("Pared_Der", "Zoclo_Der", "Ven_"))],
+    "pared_der": [o for o in office.children if o.name.startswith(("Pared_Der", "Zoclo_Der"))],
 }
 def only(objs, path):
     keep = set(objs)
@@ -150,18 +146,23 @@ if PREVIEW:
     sc.render.filepath = f"{OUTDIR}/preview_oficina.png"; bpy.ops.render.render(write_still=True)
     print("PREVIEW OK", W, H); sys.exit(0)
 
-for d in ("piso", "pared_izq", "pared_der"): os.makedirs(f"{OUTDIR}/2x/{d}", exist_ok=True)
-for vid, name, hx, seam in PAL_PISO:
-    setcol("piso_of", hx); setcol("junta", seam); only(LAYERS["piso"], f"{OUTDIR}/2x/piso/{vid}.png")
+# CAPAS="pared_der" (variable de entorno) renderiza solo esas capas; por defecto, todas.
+CAPAS = os.environ.get("CAPAS", "piso,pared_izq,pared_der").split(",")
+for d in CAPAS: os.makedirs(f"{OUTDIR}/2x/{d}", exist_ok=True)
+if "piso" in CAPAS:
+    for vid, name, hx, seam in PAL_PISO:
+        setcol("piso_of", hx); setcol("junta", seam); only(LAYERS["piso"], f"{OUTDIR}/2x/piso/{vid}.png")
 for v in PARED:
-    setcol("pared_izq", v["color"]); only(LAYERS["pared_izq"], f"{OUTDIR}/2x/pared_izq/{v['id']}.png")
-    setcol("pared_der", v["color"]); only(LAYERS["pared_der"], f"{OUTDIR}/2x/pared_der/{v['id']}.png")
+    for capa in ("pared_izq", "pared_der"):
+        if capa in CAPAS:
+            setcol(capa, v["color"]); only(LAYERS[capa], f"{OUTDIR}/2x/{capa}/{v['id']}.png")
 
 # ---------------- metadatos ----------------
 ex = [RIGHT.x * PPM2, -UP.x * PPM2]; ey = [RIGHT.y * PPM2, -UP.y * PPM2]; ez = [RIGHT.z * PPM2, -UP.z * PPM2]
 origin = proj((0, 0, 0))
 meta = {
   "room": "oficina", "canvas": [W, H], "escala_nodo": 0.5,
+  "alto_muro_m": WALL_H,
   "proyeccion": {"nota": "pixel(lienzo 2x) = origen + x*ex + y*ey + z*ez  (x, y, z en metros del mundo)",
                  "origen": [round(origin[0], 3), round(origin[1], 3)], "ex": ex, "ey": ey, "ez": ez},
   "cuadricula": {"celda_m": 0.5, "x": [0, N], "y": [0, N],

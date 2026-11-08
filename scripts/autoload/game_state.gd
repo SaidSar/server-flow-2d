@@ -24,6 +24,8 @@ var colors: Dictionary[StringName, StringName] = {}
 var decor_inventory: Array[StringName] = []
 ## Cuarto → objetos colocados: {id, ori, x, y} con (x, y) la esquina mínima de la huella en metros.
 var decor_placed: Dictionary[StringName, Array] = {}
+## Cuartos cuya decoración inicial ya se entregó (una sola vez por partida: si el jugador la guarda, no vuelve).
+var decor_initial_granted: Array[StringName] = []
 
 var _avatar: AvatarData
 
@@ -35,6 +37,7 @@ func start_new_game(new_avatar_name: String, new_company_name: String, new_avata
 	colors = Customization.sanitize_colors(Customization.DEFAULT_COLORS)
 	decor_inventory.clear()
 	decor_placed.clear()
+	decor_initial_granted.clear()
 	Simulation.new_game()
 	_begin_session()
 
@@ -47,7 +50,7 @@ func restore(data: Dictionary) -> void:
 	company_name = str(data.get("company_name", ""))
 	var saved_colors: Dictionary = data.get("colors", {})
 	colors = Customization.sanitize_colors(saved_colors)
-	_restore_decor(data.get("decor_inventory", []), data.get("decor_placed", {}))
+	_restore_decor(data.get("decor_inventory", []), data.get("decor_placed", {}), data.get("decor_initial_granted", []))
 	_begin_session()
 
 
@@ -64,6 +67,7 @@ func to_save_data() -> Dictionary:
 		"colors": colors.duplicate(),
 		"decor_inventory": decor_inventory.duplicate(),
 		"decor_placed": decor_placed.duplicate(true),
+		"decor_initial_granted": decor_initial_granted.duplicate(),
 	}
 
 
@@ -156,6 +160,21 @@ func collect_decor_from_other_rooms(current_room: StringName) -> int:
 	return moved
 
 
+## Entrega la decoración inicial del cuarto (las ventanas de la oficina), una sola vez por partida.
+## Las partidas anteriores, que no traen el registro, la reciben al entrar al cuarto. Devuelve cuántos puso.
+func grant_initial_decor(room_id: StringName, entries: Array) -> int:
+	if room_id in decor_initial_granted:
+		return 0
+	decor_initial_granted.append(room_id)
+	var placed := get_placed_decor(room_id)
+	for entry: Variant in entries:
+		if entry is Dictionary:
+			placed.append(_clean_entry(entry))
+	if not entries.is_empty():
+		decor_changed.emit()
+	return entries.size()
+
+
 ## Cuántos tiene el jugador entre el inventario y lo colocado en todos los cuartos.
 func count_owned(decor_id: StringName) -> int:
 	var count := count_in_inventory(decor_id)
@@ -167,9 +186,13 @@ func count_owned(decor_id: StringName) -> int:
 
 
 ## Ids desconocidos se descartan; las partidas sin decoración empiezan vacías.
-func _restore_decor(raw_inventory: Variant, raw_placed: Variant) -> void:
+func _restore_decor(raw_inventory: Variant, raw_placed: Variant, raw_granted: Variant = []) -> void:
 	decor_inventory.clear()
 	decor_placed.clear()
+	decor_initial_granted.clear()
+	if raw_granted is Array or raw_granted is PackedStringArray:
+		for room_id: Variant in raw_granted:
+			decor_initial_granted.append(StringName(str(room_id)))
 	if raw_inventory is Array or raw_inventory is PackedStringArray:
 		for decor_id: Variant in raw_inventory:
 			if DecorData.find(StringName(str(decor_id))) != null:
@@ -185,12 +208,16 @@ func _restore_decor(raw_inventory: Variant, raw_placed: Variant) -> void:
 
 
 static func _clean_entry(entry: Dictionary) -> Dictionary:
-	return {
+	var clean := {
 		"id": str(entry.get("id", "")),
 		"ori": str(entry.get("ori", "")),
 		"x": float(entry.get("x", 0.0)),
 		"y": float(entry.get("y", 0.0)),
 	}
+	# Altura de los objetos de pared (dz); las partidas anteriores no la tienen y usan la altura base.
+	if entry.has("dz"):
+		clean["dz"] = float(entry["dz"])
+	return clean
 
 #endregion
 

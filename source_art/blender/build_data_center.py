@@ -46,13 +46,19 @@ def build_data_center():
     cube("Manija", (0.07, 4.5, 1.0), (0.05, 0.08, 0.05), M["manija"], 0.005, r)
     return r
 
+# Partición de vidrio: plano x = VIDRIO_X. El marco superior (centro, tamaño) también lo usa
+# completar_meta() para calcular dónde se ve cruzando la pared derecha (tramos "riel_vidrio").
+VIDRIO_X = 5.4
+MARCO_SUP = ((VIDRIO_X, N / 2, 3.62), (0.05, N - 0.6, 0.08))
+ALTO_MURO = 3.2
+
 def build_vidrio():
     # partición de vidrio entre el escritorio y el bay de racks (solo decorativa, con hueco visual)
     r = group("Vidrio")
-    x0 = 5.4
+    x0 = VIDRIO_X
     for (y0, y1) in [(0.3, 5.0), (7.0, 11.7)]:
         cube("Panel", ((y0+y1)/2*0+x0, (y0+y1)/2, 1.95), (0.03, y1-y0, 3.5), M["vidrio_dc"], 0.002, r)
-    cube("Marco_Sup", (x0, N/2, 3.62), (0.05, N-0.6, 0.08), M["marco"], 0, r)
+    cube("Marco_Sup", MARCO_SUP[0], MARCO_SUP[1], M["marco"], 0, r)
     return r
 
 def build_firewall():
@@ -208,7 +214,78 @@ meta = {
 }
 
 
-def completar_meta(meta, rack_xs, rack_ys, n):
+def tramos_riel_vidrio(proyeccion, marco, n, alto_muro, paso=0.5):
+    """Tramos de la pared derecha (y = n) que el marco superior del vidrio tapa en pantalla.
+    El marco no toca el muro, pero en la proyección lo cruza en diagonal. Se proyectan las 8 esquinas
+    del marco a píxeles, cada píxel se lleva al plano del muro (X a lo largo, Z en altura) y la
+    silueta (envolvente convexa) se recorta en tramos de `paso` m, cada uno con su z mín/máx.
+    No usa bpy: se puede revisar aparte con la proyección del JSON."""
+    o, ex, ey, ez = proyeccion["origen"], proyeccion["ex"], proyeccion["ey"], proyeccion["ez"]
+
+    def pixel(p):
+        return [o[i] + p[0] * ex[i] + p[1] * ey[i] + p[2] * ez[i] for i in range(2)]
+
+    def en_muro(px):
+        # o + X*ex + n*ey + Z*ez = px  →  sistema 2×2 en (X, Z)
+        rx, ry = px[0] - o[0] - n * ey[0], px[1] - o[1] - n * ey[1]
+        det = ex[0] * ez[1] - ez[0] * ex[1]
+        return ((rx * ez[1] - ez[0] * ry) / det, (ex[0] * ry - rx * ex[1]) / det)
+
+    (cx, cy, cz), (sx, sy, sz) = marco
+    puntos = [en_muro(pixel((cx + dx * sx / 2, cy + dy * sy / 2, cz + dz * sz / 2)))
+              for dx in (-1, 1) for dy in (-1, 1) for dz in (-1, 1)]
+
+    def cruz(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+
+    # Envolvente convexa (monotone chain), en sentido antihorario.
+    puntos = sorted(set(puntos))
+    abajo, arriba = [], []
+    for p in puntos:
+        while len(abajo) >= 2 and cruz(abajo[-2], abajo[-1], p) <= 0:
+            abajo.pop()
+        abajo.append(p)
+    for p in reversed(puntos):
+        while len(arriba) >= 2 and cruz(arriba[-2], arriba[-1], p) <= 0:
+            arriba.pop()
+        arriba.append(p)
+    silueta = abajo[:-1] + arriba[:-1]
+
+    def recortar(poligono, eje, limite, mayor):
+        # Sutherland–Hodgman contra un semiplano (eje 0 = X, 1 = Z).
+        dentro = (lambda p: p[eje] >= limite) if mayor else (lambda p: p[eje] <= limite)
+        salida = []
+        for i, actual in enumerate(poligono):
+            previo = poligono[i - 1]
+            if dentro(actual) != dentro(previo):
+                t = (limite - previo[eje]) / (actual[eje] - previo[eje])
+                salida.append((previo[0] + t * (actual[0] - previo[0]), previo[1] + t * (actual[1] - previo[1])))
+            if dentro(actual):
+                salida.append(actual)
+        return salida
+
+    # Solo lo que cae sobre el muro (X 0..n, Z 0..alto).
+    visible = silueta
+    for eje, limite, mayor in ((0, 0.0, True), (0, float(n), False), (1, 0.0, True), (1, alto_muro, False)):
+        visible = recortar(visible, eje, limite, mayor)
+    if not visible:
+        return []
+    x_min, x_max = min(p[0] for p in visible), max(p[0] for p in visible)
+    tramos = []
+    a = math.floor(x_min / paso) * paso
+    while a < x_max:
+        b = a + paso
+        pedazo = recortar(recortar(visible, 0, a, True), 0, b, False)
+        if len(pedazo) >= 3:
+            z0 = max(0.0, math.floor(min(p[1] for p in pedazo) * 100) / 100)
+            z1 = min(alto_muro, math.ceil(max(p[1] for p in pedazo) * 100) / 100)
+            if z1 > z0:
+                tramos.append({"id": "riel_vidrio", "tramo": [round(a, 2), round(b, 2)], "z": [round(z0, 2), round(z1, 2)]})
+        a = b
+    return tramos
+
+
+def completar_meta(meta, rack_xs, rack_ys, n, marco_sup, alto_muro):
     """Lo que el juego necesita además de la geometría (antes se completaba a mano en el JSON).
     No usa bpy: tests/ no lo corre, pero se puede revisar aparte con los deltas del JSON."""
     grid = meta["cuadricula"]
@@ -256,10 +333,14 @@ def completar_meta(meta, rack_xs, rack_ys, n):
         "lista": racks,
     }
 
+    # Tope de la altura a la que se cuelga decoración (RoomData.wall_height_m).
+    meta["alto_muro_m"] = alto_muro
     meta["tramos_prohibidos_pared"] = {
         "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura "
         "(metros). der = pared y=12 (eje x), izq = pared x=0 (eje y). Los muros miden 3.2 m.",
-        "der": [{"id": "bay", "tramo": [5.3, float(n)], "z": [0.0, 3.2]}],
+        # El riel superior del vidrio se ve en diagonal sobre este muro: tramos calculados de su geometría.
+        "der": [{"id": "bay", "tramo": [5.3, float(n)], "z": [0.0, alto_muro]}]
+        + tramos_riel_vidrio(meta["proyeccion"], marco_sup, n, alto_muro),
         "izq": [
             {"id": "monitor", "tramo": [1.1, 3.5], "z": [0.75, 1.6]},
             {"id": "puerta", "tramo": [4.3, 5.5], "z": [0.0, 2.15]},
@@ -268,7 +349,7 @@ def completar_meta(meta, rack_xs, rack_ys, n):
     return meta
 
 
-completar_meta(meta, RACK_XS, RACK_YS, N)
+completar_meta(meta, RACK_XS, RACK_YS, N, MARCO_SUP, ALTO_MURO)
 json.dump(meta, open(f"{OUTDIR}/data_center_meta.json", "w"), ensure_ascii=False, indent=1)
 for o in ALL: o.visible_camera = True
 bpy.ops.wm.save_as_mainfile(filepath=f"{OUTDIR}/data_center.blend")

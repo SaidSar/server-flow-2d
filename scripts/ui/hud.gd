@@ -26,6 +26,7 @@ const DEFAULT_COMPANY_NAME := "Mi empresa"
 @onready var _root: Control = $Root
 
 var _users_fill := DashboardColors.bar_style(DashboardColors.ACCENT)
+var _users_track := DashboardColors.bar_style(DashboardColors.HUD_TRACK)
 var _buttons_enabled := true
 var _alert_suppressed := false
 
@@ -36,7 +37,9 @@ func _ready() -> void:
 	_brush_button.visible = show_customize_button
 	_shop_button.visible = show_customize_button
 	_users_bar.add_theme_stylebox_override(&"fill", _users_fill)
-	_users_bar.add_theme_stylebox_override(&"background", DashboardColors.bar_style(Color(0.2, 0.22, 0.28)))
+	_users_bar.add_theme_stylebox_override(&"background", _users_track)
+	_apply_theme()
+	UiTheme.changed.connect(_apply_theme)
 	_brush_button.pressed.connect(_on_brush_pressed)
 	_shop_button.pressed.connect(shop_requested.emit)
 	GameState.changed.connect(_refresh)
@@ -44,6 +47,16 @@ func _ready() -> void:
 	Simulation.infrastructure_changed.connect(_refresh)
 	Simulation.phase_changed.connect(_on_phase_changed)
 	_refresh()
+
+
+## Lo que se pinta por código (fondo de la barra de usuarios e ícono de la Tienda, que es blanco) se
+## vuelve a pintar con la paleta del tema: en el claro el ícono blanco desaparecía sobre el botón claro.
+func _apply_theme() -> void:
+	_users_track.bg_color = DashboardColors.HUD_TRACK
+	_users_fill.bg_color = DashboardColors.ACCENT
+	for item: StringName in [&"icon_normal_color", &"icon_hover_color", &"icon_pressed_color", &"icon_hover_pressed_color", &"icon_focus_color"]:
+		_shop_button.add_theme_color_override(item, DashboardColors.TEXT)
+	_shop_button.add_theme_color_override(&"icon_disabled_color", Color(DashboardColors.TEXT_MUTED, 0.9))
 
 
 func _process(_delta: float) -> void:

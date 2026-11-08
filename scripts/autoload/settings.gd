@@ -1,5 +1,5 @@
 extends Node
-## Autoload "Settings": volumen de música y efectos.
+## Autoload "Settings": volumen de música y efectos, y tema de la interfaz (Oscuro/Claro).
 ## Se guarda en user://settings.cfg, aparte de la partida, y se aplica al iniciar el juego.
 
 signal changed
@@ -7,6 +7,10 @@ signal changed
 const BUS_MUSIC: StringName = &"Music"
 const BUS_SFX: StringName = &"SFX"
 const SECTION_AUDIO := "audio"
+const SECTION_UI := "ui"
+## Tema de la interfaz: "dark" o "light" (ver UiTheme).
+const DEFAULT_UI_THEME: StringName = &"dark"
+const UI_THEMES: Array[StringName] = [&"dark", &"light"]
 const DEFAULT_VOLUME := 0.8
 
 ## Se puede cambiar en pruebas para no tocar los ajustes reales.
@@ -16,6 +20,7 @@ var music_volume := DEFAULT_VOLUME
 var sfx_volume := DEFAULT_VOLUME
 var music_muted := false
 var sfx_muted := false
+var ui_theme: StringName = DEFAULT_UI_THEME
 
 
 func _ready() -> void:
@@ -47,6 +52,11 @@ func set_sfx_muted(muted: bool) -> void:
 	_on_changed()
 
 
+func set_ui_theme(value: StringName) -> void:
+	ui_theme = value if value in UI_THEMES else DEFAULT_UI_THEME
+	_on_changed()
+
+
 ## Aplica los volúmenes a los buses de audio.
 func apply() -> void:
 	_apply_bus(BUS_MUSIC, music_volume, music_muted)
@@ -59,6 +69,7 @@ func save_settings() -> bool:
 	config.set_value(SECTION_AUDIO, "sfx_volume", sfx_volume)
 	config.set_value(SECTION_AUDIO, "music_muted", music_muted)
 	config.set_value(SECTION_AUDIO, "sfx_muted", sfx_muted)
+	config.set_value(SECTION_UI, "theme", String(ui_theme))
 	var error := config.save(settings_path)
 	if error != OK:
 		push_error("No se pudieron guardar los ajustes en %s: %s" % [settings_path, error_string(error)])
@@ -76,6 +87,8 @@ func load_settings() -> void:
 	sfx_volume = clampf(float(config.get_value(SECTION_AUDIO, "sfx_volume", DEFAULT_VOLUME)), 0.0, 1.0)
 	music_muted = bool(config.get_value(SECTION_AUDIO, "music_muted", false))
 	sfx_muted = bool(config.get_value(SECTION_AUDIO, "sfx_muted", false))
+	var saved_theme := StringName(str(config.get_value(SECTION_UI, "theme", DEFAULT_UI_THEME)))
+	ui_theme = saved_theme if saved_theme in UI_THEMES else DEFAULT_UI_THEME
 	apply()
 	changed.emit()
 

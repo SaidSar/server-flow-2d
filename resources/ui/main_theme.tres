@@ -15,6 +15,7 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+metadata/ui_tokens = {"bg_color": "card", "border_color": "accent"}
 
 [resource]
 default_font_size = 30

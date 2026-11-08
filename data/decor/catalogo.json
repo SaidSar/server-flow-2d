@@ -460,7 +460,8 @@
       416
      ]
     }
-   }
+   },
+   "vendible": false
   },
   {
    "id": "cuadro",
@@ -561,6 +562,902 @@
     1.95,
     2.45
    ]
+  },
+  {
+   "id": "tapete_redondo",
+   "nombre": "Tapete redondo",
+   "precio": 180,
+   "tipo": "tapete",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/tapete_redondo_a.png",
+     "ancla": [
+      -36.0,
+      49.83
+     ],
+     "huella_m": [
+      1.0,
+      1.0
+     ],
+     "huella_celdas": [
+      2,
+      2
+     ],
+     "tam": [
+      184,
+      96
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/tapete_redondo_b.png",
+     "ancla": [
+      -36.0,
+      49.83
+     ],
+     "huella_m": [
+      1.0,
+      1.0
+     ],
+     "huella_celdas": [
+      2,
+      2
+     ],
+     "tam": [
+      184,
+      96
+     ]
+    }
+   }
+  },
+  {
+   "id": "tapete_estampado",
+   "nombre": "Tapete estampado",
+   "precio": 220,
+   "tipo": "tapete",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/tapete_estampado_a.png",
+     "ancla": [
+      4.0,
+      97.83
+     ],
+     "huella_m": [
+      1.5,
+      1.5
+     ],
+     "huella_celdas": [
+      3,
+      3
+     ],
+     "tam": [
+      392,
+      200
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/tapete_estampado_b.png",
+     "ancla": [
+      4.0,
+      97.83
+     ],
+     "huella_m": [
+      1.5,
+      1.5
+     ],
+     "huella_celdas": [
+      3,
+      3
+     ],
+     "tam": [
+      392,
+      200
+     ]
+    }
+   }
+  },
+  {
+   "id": "sillon_l",
+   "nombre": "Sillón en forma de L",
+   "precio": 950,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/sillon_l_a.png",
+     "ancla": [
+      100.0,
+      225.83
+     ],
+     "huella_m": [
+      2.0,
+      1.5
+     ],
+     "huella_celdas": [
+      4,
+      3
+     ],
+     "tam": [
+      624,
+      408
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/sillon_l_b.png",
+     "ancla": [
+      108.0,
+      257.83
+     ],
+     "huella_m": [
+      1.5,
+      2.0
+     ],
+     "huella_celdas": [
+      3,
+      4
+     ],
+     "tam": [
+      528,
+      480
+     ]
+    }
+   }
+  },
+  {
+   "id": "mesa_auxiliar",
+   "nombre": "Mesa auxiliar",
+   "precio": 180,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/mesa_auxiliar_a.png",
+     "ancla": [
+      44.0,
+      105.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      200,
+      208
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/mesa_auxiliar_b.png",
+     "ancla": [
+      44.0,
+      105.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      200,
+      208
+     ]
+    }
+   }
+  },
+  {
+   "id": "estanteria",
+   "nombre": "Estantería",
+   "precio": 500,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/estanteria_a.png",
+     "ancla": [
+      172.0,
+      265.83
+     ],
+     "huella_m": [
+      1.5,
+      0.5
+     ],
+     "huella_celdas": [
+      3,
+      1
+     ],
+     "tam": [
+      576,
+      528
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/estanteria_b.png",
+     "ancla": [
+      164.0,
+      329.83
+     ],
+     "huella_m": [
+      0.5,
+      1.5
+     ],
+     "huella_celdas": [
+      1,
+      3
+     ],
+     "tam": [
+      576,
+      528
+     ]
+    }
+   }
+  },
+  {
+   "id": "ventana_1",
+   "nombre": "Ventana — prototipo 1",
+   "precio": 320,
+   "tipo": "pared",
+   "orientaciones": {
+    "der": {
+     "sprite": "res://assets/art/decor/ventana_1_der.png",
+     "ancla": [
+      4.0,
+      297.83
+     ],
+     "huella_m": [
+      0.9,
+      0.05
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      144,
+      248
+     ]
+    },
+    "izq": {
+     "sprite": "res://assets/art/decor/ventana_1_izq.png",
+     "ancla": [
+      20.0,
+      353.83
+     ],
+     "huella_m": [
+      0.9,
+      0.05
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      152,
+      248
+     ]
+    }
+   },
+   "altura_m": [
+    0.72,
+    1.85
+   ]
+  },
+  {
+   "id": "ventana_2",
+   "nombre": "Ventana — prototipo 2",
+   "precio": 320,
+   "tipo": "pared",
+   "orientaciones": {
+    "der": {
+     "sprite": "res://assets/art/decor/ventana_2_der.png",
+     "ancla": [
+      4.0,
+      337.83
+     ],
+     "huella_m": [
+      0.9,
+      0.09
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      136,
+      272
+     ]
+    },
+    "izq": {
+     "sprite": "res://assets/art/decor/ventana_2_izq.png",
+     "ancla": [
+      4.0,
+      393.83
+     ],
+     "huella_m": [
+      0.9,
+      0.09
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      144,
+      280
+     ]
+    }
+   },
+   "altura_m": [
+    0.78,
+    2.13
+   ]
+  },
+  {
+   "id": "cuadro_2",
+   "nombre": "Cuadro",
+   "precio": 300,
+   "tipo": "pared",
+   "orientaciones": {
+    "der": {
+     "sprite": "res://assets/art/decor/cuadro_2_der.png",
+     "ancla": [
+      4.0,
+      313.83
+     ],
+     "huella_m": [
+      0.9,
+      0.05
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      128,
+      184
+     ]
+    },
+    "izq": {
+     "sprite": "res://assets/art/decor/cuadro_2_izq.png",
+     "ancla": [
+      4.0,
+      369.83
+     ],
+     "huella_m": [
+      0.9,
+      0.05
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      128,
+      184
+     ]
+    }
+   },
+   "altura_m": [
+    1.25,
+    1.95
+   ]
+  },
+  {
+   "id": "posters",
+   "nombre": "Posters",
+   "precio": 150,
+   "tipo": "pared",
+   "orientaciones": {
+    "der": {
+     "sprite": "res://assets/art/decor/posters_der.png",
+     "ancla": [
+      4.0,
+      289.83
+     ],
+     "huella_m": [
+      0.8,
+      0.02
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      112,
+      128
+     ]
+    },
+    "izq": {
+     "sprite": "res://assets/art/decor/posters_izq.png",
+     "ancla": [
+      4.0,
+      345.83
+     ],
+     "huella_m": [
+      0.8,
+      0.02
+     ],
+     "huella_celdas": [
+      2,
+      1
+     ],
+     "tam": [
+      112,
+      144
+     ]
+    }
+   },
+   "altura_m": [
+    1.31,
+    1.85
+   ]
+  },
+  {
+   "id": "planta_2",
+   "nombre": "Planta — diseño 2",
+   "precio": 150,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/planta_2_a.png",
+     "ancla": [
+      60.0,
+      137.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      224,
+      264
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/planta_2_b.png",
+     "ancla": [
+      60.0,
+      137.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      224,
+      264
+     ]
+    }
+   }
+  },
+  {
+   "id": "planta_3",
+   "nombre": "Planta — diseño 3",
+   "precio": 150,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/planta_3_a.png",
+     "ancla": [
+      76.0,
+      145.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      256,
+      288
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/planta_3_b.png",
+     "ancla": [
+      76.0,
+      145.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      256,
+      288
+     ]
+    }
+   }
+  },
+  {
+   "id": "planta_4",
+   "nombre": "Planta — diseño 4",
+   "precio": 150,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/planta_4_a.png",
+     "ancla": [
+      60.0,
+      153.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      240,
+      288
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/planta_4_b.png",
+     "ancla": [
+      60.0,
+      153.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      232,
+      288
+     ]
+    }
+   }
+  },
+  {
+   "id": "florero",
+   "nombre": "Florero",
+   "precio": 100,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/florero_a.png",
+     "ancla": [
+      28.0,
+      105.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      176,
+      200
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/florero_b.png",
+     "ancla": [
+      -12.0,
+      113.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      128,
+      168
+     ]
+    }
+   }
+  },
+  {
+   "id": "osito",
+   "nombre": "Osito",
+   "precio": 80,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/osito_a.png",
+     "ancla": [
+      12.0,
+      89.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      144,
+      168
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/osito_b.png",
+     "ancla": [
+      12.0,
+      89.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      144,
+      168
+     ]
+    }
+   }
+  },
+  {
+   "id": "balon_voli",
+   "nombre": "Balón de voli",
+   "precio": 60,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/balon_voli_a.png",
+     "ancla": [
+      -28.0,
+      41.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      72,
+      72
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/balon_voli_b.png",
+     "ancla": [
+      -28.0,
+      41.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      72,
+      72
+     ]
+    }
+   }
+  },
+  {
+   "id": "colocador",
+   "nombre": "Colocador",
+   "precio": 220,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/colocador_a.png",
+     "ancla": [
+      108.0,
+      289.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      368,
+      472
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/colocador_b.png",
+     "ancla": [
+      108.0,
+      289.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      376,
+      472
+     ]
+    }
+   }
+  },
+  {
+   "id": "lampara_2",
+   "nombre": "Lámpara — diseño 2",
+   "precio": 210,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/lampara_2_a.png",
+     "ancla": [
+      116.0,
+      257.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      376,
+      440
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/lampara_2_b.png",
+     "ancla": [
+      116.0,
+      257.83
+     ],
+     "huella_m": [
+      0.5,
+      0.5
+     ],
+     "huella_celdas": [
+      1,
+      1
+     ],
+     "tam": [
+      376,
+      440
+     ]
+    }
+   }
+  },
+  {
+   "id": "computadora_doble",
+   "nombre": "Computadora (doble monitor)",
+   "precio": 1500,
+   "tipo": "piso",
+   "orientaciones": {
+    "a": {
+     "sprite": "res://assets/art/decor/computadora_doble_a.png",
+     "ancla": [
+      68.0,
+      241.83
+     ],
+     "huella_m": [
+      1.5,
+      1.0
+     ],
+     "huella_celdas": [
+      3,
+      2
+     ],
+     "tam": [
+      464,
+      472
+     ]
+    },
+    "b": {
+     "sprite": "res://assets/art/decor/computadora_doble_b.png",
+     "ancla": [
+      100.0,
+      273.83
+     ],
+     "huella_m": [
+      1.0,
+      1.5
+     ],
+     "huella_celdas": [
+      2,
+      3
+     ],
+     "tam": [
+      448,
+      456
+     ]
+    }
+   }
+  },
+  {
+   "id": "ventana_oficina",
+   "nombre": "Ventana de la oficina",
+   "precio": 0,
+   "tipo": "pared",
+   "orientaciones": {
+    "der": {
+     "sprite": "res://assets/art/decor/ventana_oficina_der.png",
+     "ancla": [
+      4.0,
+      401.83
+     ],
+     "huella_m": [
+      1.7,
+      0.16
+     ],
+     "huella_celdas": [
+      3,
+      1
+     ],
+     "tam": [
+      248,
+      368
+     ]
+    },
+    "izq": {
+     "sprite": "res://assets/art/decor/ventana_oficina_izq.png",
+     "ancla": [
+      4.0,
+      505.83
+     ],
+     "huella_m": [
+      1.7,
+      0.16
+     ],
+     "huella_celdas": [
+      3,
+      1
+     ],
+     "tam": [
+      280,
+      384
+     ]
+    }
+   },
+   "altura_m": [
+    0.97,
+    2.48
+   ],
+   "en_tienda": false,
+   "vendible": false
   }
  ],
  "etapa_desbloqueo": 2,

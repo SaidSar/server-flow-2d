@@ -22,6 +22,10 @@ var ysort_points: Dictionary[StringName, Vector2] = {}
 ## Muro ("der"/"izq") → zonas prohibidas en el plano del muro: Rect2 con x = a lo largo del muro
 ## y y = altura z (metros). Un objeto de pared choca solo si se encima en las dos.
 var wall_forbidden: Dictionary[StringName, Array] = {}
+## Alto de los muros en metros (tope de la altura a la que se cuelga decoración).
+var wall_height_m := 2.6
+## Objetos que vienen colocados la primera vez que se entra al cuarto: {id, ori, x, y}.
+var initial_decor: Array[Dictionary] = []
 ## x (metros) de la partición de vidrio; lo que está en x mayor se dibuja delante de ella. < 0 = no hay.
 var partition_x := -1.0
 ## Racks del cuarto en orden ("rack_1", "rack_2"...), sacados de reutilizados_del_garage.
@@ -114,6 +118,13 @@ func _parse(data: Dictionary) -> void:
 		if ysort[key] is Array:
 			ysort_points[StringName(key)] = RoomProjection.parse_vector(ysort[key])
 
+	wall_height_m = float(data.get("alto_muro_m", wall_height_m))
+	initial_decor.clear()
+	var initial: Variant = (data.get("decoracion_inicial", {}) as Dictionary).get("lista", [])
+	if initial is Array:
+		for item: Variant in initial:
+			if item is Dictionary:
+				initial_decor.append((item as Dictionary).duplicate())
 	var forbidden: Dictionary = data.get("tramos_prohibidos_pared", {})
 	for wall: String in forbidden:
 		if forbidden[wall] is Array:

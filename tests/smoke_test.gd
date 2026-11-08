@@ -2,7 +2,7 @@ extends SceneTree
 ## Prueba de humo: instancia todas las escenas y recorre el flujo completo sin ventana:
 ## título → personaje (Alexa) → nombres → garage → pincel → PC → dashboard (ajustes, ficha de mejora,
 ## comprar) → post-mortem → siguiente oleada → game over → reintentar → cuarto (ajustes) → Salir
-## → continuar → meta no alcanzada → repetir etapa → victoria → diálogo de Briseida (con Alexa y con Alex)
+## → continuar → meta no alcanzada → repetir etapa → victoria → diálogo de Briseida con su retrato (con Alexa y con Alex)
 ## → oficina y tienda → data center (9 racks, placa de Firewall, comprar Firewall, pico de DDoS).
 ## Uso: godot --headless --path . -s res://tests/smoke_test.gd -- --save-path=user://test_smoke.cfg
 ## Exige una partida alterna (SaveSystem --save-path) y falla si se toca la partida real.
@@ -135,6 +135,9 @@ func _run() -> void:
 	_check(simulation.get("is_saturated"), "la sobrecarga satura el servidor")
 	_check(rack.texture.resource_path.ends_with("rack_saturado.png"), "rack saturado")
 	_check(avatar.call("is_stressed"), "Alex estresado")
+	_check(avatar.call("is_alert_visible"), "aparece el \"!!\" sobre la cabeza con saturación")
+	var glow: PcAlertGlow = garage.call("get_pc_glow")
+	_check(glow.is_active() and glow.visible and glow.get_parent() == garage.get_node("%Desk"), "la pantalla de la PC destella en rojo con saturación")
 	simulation.set("overload_enabled", false)
 	# La oleada 1 empieza con la red al 90 % (tutorial): con Ancho de banda baja de 85 %.
 	_check(simulation.call("purchase", &"bandwidth"), "comprar Ancho de banda desde código")
@@ -142,6 +145,8 @@ func _run() -> void:
 		simulation.call("step")
 	_check(not simulation.get("is_saturated"), "la carga regresa a normal")
 	_check(rack.texture.resource_path.ends_with("rack_ok.png"), "rack normal")
+	_check(not glow.is_active() and not glow.visible, "la pantalla deja de destellar al normalizarse")
+	_check(not avatar.call("is_alert_visible"), "el \"!!\" desaparece al normalizarse")
 	garage.queue_free()
 
 	await _test_layer_offsets(game_state, customization)
@@ -344,6 +349,7 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	_test_settings_in_room(current_scene)
 	_check(await _wait_for_scene(&"TitleMenu"), "Salir lleva al menú de título")
 	_test_title_quit_confirmation(current_scene)
+	_test_title_options(current_scene)
 	var continue_button := current_scene.get_node("%ContinueButton") as Button
 	_check(not continue_button.disabled, "Continuar habilitado con partida")
 	continue_button.pressed.emit()
@@ -410,6 +416,7 @@ func _test_dashboard(dashboard: Node, simulation: Node) -> void:
 	var postmortem: Control = dashboard.get_node("%Postmortem")
 	_check(postmortem.visible, "al terminar la oleada aparece el post-mortem")
 	_check(not (postmortem.get_node("%Summary").get_node("%CauseText") as Label).text.is_empty(), "el post-mortem explica la causa")
+	await _test_report_fit(dashboard, simulation)
 	(postmortem.get_node("%NextButton") as Button).pressed.emit()
 	await process_frame
 	_check(simulation.get("phase") == PHASE_RUNNING and simulation.get("wave_number") == 2, "Siguiente oleada inicia la oleada 2")
@@ -428,6 +435,94 @@ func _test_dashboard(dashboard: Node, simulation: Node) -> void:
 	await process_frame
 	_check(simulation.get("phase") == PHASE_RUNNING and simulation.get("wave_number") == 2, "Reintentar vuelve a empezar la oleada 2")
 	_check(not game_over.visible, "el game over se cierra")
+
+
+## Post-mortem y game over con la causa más larga (DDoS): la ventana nunca es más alta que su área y
+## el título y los botones siempre se ven. Post-mortem dentro de MonitorArea; game over dentro de su
+## área (cubre todo el dashboard). En 1280×720 y 2400×1080 (alto lógico 1080), con los dos temas,
+## cabe sin scroll y lado a lado; en un área chica el contenido se desplaza y los botones siguen a la vista.
+func _test_report_fit(dashboard: Node, simulation: Node) -> void:
+	var settings: Node = root.get_node("Settings")
+	var postmortem: Control = dashboard.get_node("%Postmortem")
+	var game_over: Control = dashboard.get_node("%GameOver")
+	var monitor_area := postmortem.get_parent() as Control
+	var report := _ddos_report()
+	var original_size := root.size
+	for theme_id: StringName in [&"dark", &"light"]:
+		settings.call("set_ui_theme", theme_id)
+		for window_size: Vector2i in [Vector2i(1280, 720), Vector2i(2400, 1080)]:
+			root.size = window_size
+			var where := "%d×%d, tema %s" % [window_size.x, window_size.y, theme_id]
+			postmortem.call("show_report", report, 2, 5)
+			# Peor caso: con la Tienda desbloqueada son 3 botones.
+			(postmortem.get_node("%ShopButton") as Button).visible = true
+			await _settle_frames()
+			_check_report_fits(postmortem, monitor_area, ["%RoomButton", "%ShopButton", "%NextButton"], "post-mortem DDoS (%s)" % where)
+			postmortem.hide()
+			game_over.call("show_report", report, "Nexus Test")
+			await _settle_frames()
+			_check_report_fits(game_over, game_over, ["%MenuButton", "%RetryButton"], "game over DDoS (%s)" % where)
+			game_over.hide()
+	settings.call("set_ui_theme", &"dark")
+	root.size = original_size
+
+	# Área más baja que el reporte: el contenido se desplaza y título y botones quedan dentro.
+	var small_area := Control.new()
+	small_area.size = Vector2(1400, 380)
+	root.add_child(small_area)
+	var small: Control = load("res://scenes/dashboard/postmortem.tscn").instantiate()
+	small_area.add_child(small)
+	small.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	small.call("show_report", report, 2, 5)
+	await _settle_frames()
+	var body := small.get_node("%Body") as ScrollContainer
+	_check(body.get_v_scroll_bar().visible, "post-mortem en un área de 380 px: el resumen se desplaza")
+	var max_body: float = small.get_node("%Window").call("get_max_body_height")
+	_check(max_body > 48.0 and absf(body.size.y - max_body) <= 1.0,
+		"post-mortem en un área de 380 px: el resumen usa todo el alto libre (%d de %d px)" % [body.size.y, max_body])
+	_check_report_fits(small, small_area, ["%RoomButton", "%NextButton"], "post-mortem DDoS en un área de 380 px")
+	small_area.queue_free()
+
+	# Vuelve al reporte real para seguir el flujo.
+	postmortem.call("show_report", simulation.get("report"), simulation.get("wave_number"), simulation.call("get_wave_count"))
+	await _settle_frames()
+
+
+func _check_report_fits(overlay: Control, area: Control, buttons: Array, where: String) -> void:
+	var area_rect := area.get_global_rect().grow(0.5)
+	var window := overlay.get_node("%Window") as Control
+	_check(area_rect.encloses(window.get_global_rect()), "%s: la ventana %s cabe en su área %s" % [where, window.get_global_rect(), area.get_global_rect()])
+	var title := overlay.get_node("%TitleLabel") as Control
+	_check(title.is_visible_in_tree() and area_rect.encloses(title.get_global_rect()), "%s: el título se ve" % where)
+	for path: String in buttons:
+		var button := overlay.get_node(path) as Button
+		_check(button.is_visible_in_tree() and area_rect.encloses(button.get_global_rect()), "%s: %s se ve completo (%s)" % [where, button.text, button.get_global_rect()])
+	var body := overlay.get_node("%Body") as ScrollContainer
+	if area.size.y >= 500.0:
+		_check(not body.get_v_scroll_bar().visible and window.call("is_wide"), "%s: cabe sin scroll y lado a lado" % where)
+
+
+## Reporte con la causa de texto más largo (DDoS) y números grandes.
+func _ddos_report() -> WaveReport:
+	var report := WaveReport.new()
+	report.wave_number = 3
+	report.requests = 123456.0
+	report.green = 90000.0
+	report.yellow = 10000.0
+	report.timeouts = 23456.0
+	report.errors_500 = 120.0
+	report.latency_sum = report.requests * 0.25
+	report.sla_end = 0.0
+	report.coins_earned = 812.0
+	report.add_failures(&"ddos", 20000.0)
+	report.add_failures(&"net", 300.0)
+	return report
+
+
+## ReportWindow se ajusta en dos cuadros (ancho, luego alto); se dejan unos de más.
+func _settle_frames() -> void:
+	for i in 5:
+		await process_frame
 
 
 func _finish_wave(simulation: Node) -> void:
@@ -464,6 +559,7 @@ func _test_settings_in_dashboard(dashboard: Node, simulation: Node) -> void:
 	var menu: Control = settings_button.get_node("%SettingsMenu")
 	(settings_button.get_node("%GearButton") as Button).pressed.emit()
 	_check(menu.visible and paused, "el engranaje del dashboard abre Ajustes y pausa el juego")
+	_test_theme_toggle(dashboard, menu)
 	var wave_time: float = simulation.get("wave_time")
 	await create_timer(0.5).timeout
 	_check(is_equal_approx(simulation.get("wave_time"), wave_time), "con Ajustes abierto la simulación no avanza")
@@ -483,6 +579,42 @@ func _test_settings_in_dashboard(dashboard: Node, simulation: Node) -> void:
 	_check(not menu.visible and not paused, "el botón atrás de Android cierra Ajustes y reanuda")
 	await create_timer(0.3).timeout
 	_check(simulation.get("wave_time") > wave_time, "al cerrar Ajustes la simulación sigue")
+
+
+## Desde el dashboard el engranaje muestra la fila Tema: Claro cambia los paneles en vivo y se guarda
+## en settings.cfg; Oscuro los regresa. La barra superior agrupa sus datos en dos bloques.
+func _test_theme_toggle(dashboard: Node, menu: Control) -> void:
+	var settings: Node = root.get_node("Settings")
+	var ui_theme: Node = root.get_node("UiTheme")
+	_check(menu.call("is_theme_row_visible") and (menu.get_node("%ThemeRow") as Control).is_visible_in_tree(), "desde el dashboard el engranaje muestra la fila Tema")
+	_check((menu.get_node("%ThemeDarkButton") as Button).button_pressed, "el tema por defecto es Oscuro")
+	var top_bar: Control = dashboard.get_node("%TopBar")
+	var dark_panel: Color = (top_bar.get_theme_stylebox(&"panel") as StyleBoxFlat).bg_color
+	(menu.get_node("%ThemeLightButton") as Button).pressed.emit()
+	_check(settings.get("ui_theme") == &"light" and ui_theme.call("is_light"), "Claro cambia el tema")
+	var light_panel: Color = (top_bar.get_theme_stylebox(&"panel") as StyleBoxFlat).bg_color
+	_check(light_panel.is_equal_approx(ui_theme.call("color", &"panel")) and not light_panel.is_equal_approx(dark_panel), "el dashboard se repinta en vivo con el tema claro")
+	var title: Label = dashboard.get_node("%TitleLabel")
+	_check(title.get_theme_color(&"font_color").is_equal_approx(ui_theme.call("color", &"text")), "los textos con token cambian de color")
+	var alert: Label = dashboard.get_node("%BottleneckLabel")
+	_check(float(dashboard.call("get_alert_min_contrast")) >= 4.5, "en claro el aviso de ataque, en su punto más tenue, mantiene 4.5:1 (%.2f)" % float(dashboard.call("get_alert_min_contrast")))
+	_check(alert.get_theme_color(&"font_color").is_equal_approx(ui_theme.call("color", &"alert")) and alert.get_theme_color(&"font_color") != Color("#ff4d5e"), "en claro el aviso de ataque usa su rojo propio")
+	var project_theme := ThemeDB.get_project_theme()
+	_check(project_theme.get_color(&"font_color", &"ProgressBar").is_equal_approx(ui_theme.call("color", &"text")), "en claro el texto de las barras de progreso no es blanco")
+	_check(project_theme.get_color(&"clear_button_color", &"LineEdit").is_equal_approx(ui_theme.call("color", &"text_muted")), "en claro la × del campo de texto se ve")
+	settings.call("save_settings")
+	var saved := ConfigFile.new()
+	_check(saved.load(TEST_SETTINGS_PATH) == OK and str(saved.get_value("ui", "theme", "")) == "light", "settings.cfg guarda el tema")
+	(menu.get_node("%ThemeDarkButton") as Button).pressed.emit()
+	_check(settings.get("ui_theme") == &"dark" and (top_bar.get_theme_stylebox(&"panel") as StyleBoxFlat).bg_color.is_equal_approx(dark_panel), "Oscuro regresa los colores de siempre")
+	_check(float(dashboard.call("get_alert_min_contrast")) >= 4.5, "en oscuro el aviso de ataque, en su punto más tenue, mantiene 4.5:1 (%.2f)" % float(dashboard.call("get_alert_min_contrast")))
+	_check(alert.get_theme_color(&"font_color").is_equal_approx(ui_theme.call("color", &"alert")) and not project_theme.has_color(&"font_color", &"ProgressBar"), "en oscuro el aviso y las barras quedan como antes")
+	var wave_block: Node = dashboard.get_node("%WaveBlock")
+	var health_block: Node = dashboard.get_node("%HealthBlock")
+	var in_wave := ["%WaveLabel", "%CoinsLabel", "%UsersLabel"].all(func(path: String) -> bool: return wave_block.is_ancestor_of(dashboard.get_node(path)))
+	_check(in_wave, "oleada, monedas y usuarios van en el bloque de progreso")
+	_check(health_block.is_ancestor_of(dashboard.get_node("%SlaBar")) and not wave_block.is_ancestor_of(dashboard.get_node("%SlaBar")), "el SLA va en el bloque de salud")
+	_check(not wave_block.is_ancestor_of(title) and not health_block.is_ancestor_of(dashboard.get_node("%BackButton")), "empresa y botones quedan fuera de los bloques")
 
 
 ## Ficha de la mejora: con la "i" y manteniendo presionado (sin comprar).
@@ -523,6 +655,7 @@ func _test_settings_in_room(room: Node) -> void:
 	var menu: Control = settings_button.get_node("%SettingsMenu")
 	(settings_button.get_node("%GearButton") as Button).pressed.emit()
 	_check(menu.visible and paused, "el engranaje del garage abre Ajustes y pausa el juego")
+	_check(not menu.call("is_theme_row_visible") and not (menu.get_node("%ThemeRow") as Control).is_visible_in_tree(), "desde el cuarto el engranaje no muestra la fila Tema")
 	(menu.get_node("%MusicSlider") as HSlider).value = 35.0
 	(menu.get_node("%SfxSlider") as HSlider).value = 60.0
 	_check(not root.get_node("Settings").get("sfx_muted"), "mover el slider quita el silencio")
@@ -571,6 +704,10 @@ func _test_goal_missed(simulation: Node) -> void:
 ## comprar sillón → colocarlo → tocarlo → girarlo → guardarlo → colocarlo otra vez → venderlo.
 func _test_office_and_shop(game_state: Node, simulation: Node) -> void:
 	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 2, "coins": 2000})
+	# Se aísla de las ventanas iniciales (se prueban en test_decor): la oficina arranca vacía.
+	(game_state.call("get_placed_decor", &"oficina") as Array).clear()
+	if not &"oficina" in (game_state.get("decor_initial_granted") as Array):
+		(game_state.get("decor_initial_granted") as Array).append(&"oficina")
 	change_scene_to_file(root.get_node("SceneRouter").call("get_current_room_path"))
 	_check(await _wait_for_scene(&"Oficina"), "Scale-up abre la oficina")
 	var office := current_scene
@@ -846,7 +983,9 @@ func _test_victory_and_investment(simulation: Node, gendered_text: String) -> vo
 	var dialog: Control = dashboard.get_node("%DialogBox")
 	var text: String = dialog.call("get_text")
 	_check(dialog.visible and text.contains("Said") and text.contains("Nexus Test") and text.contains("1,500"), "Briseida anuncia la ronda de inversión (%s)" % text)
-	_check((dialog.get_node("%SpeakerLabel") as Label).text == "Briseida" and (dialog.get_node("%InitialsLabel") as Label).text == "B", "habla Briseida, con B en el retrato")
+	var portrait := dialog.get_node("%PortraitTexture") as TextureRect
+	_check((dialog.get_node("%SpeakerLabel") as Label).text == "Briseida", "habla Briseida")
+	_check(portrait.visible and portrait.texture == load(Paths.CEO_PORTRAIT) and not (dialog.get_node("%InitialsLabel") as Label).visible, "el retrato de Briseida sustituye a las iniciales")
 	_check(text.contains(gendered_text) and not text.contains("{"), "Briseida usa \"%s\" (%s)" % [gendered_text, text])
 	_check(simulation.get("coins") == coins_before_dialog, "las monedas llegan después del diálogo")
 	(dialog.get_node("%ContinueButton") as Button).pressed.emit()
@@ -918,6 +1057,47 @@ func _test_mobile_lifecycle(room: Node, save_system: Node) -> void:
 	_check(overlay.call("is_shown"), "F3 muestra el contador de FPS (build de depuración)")
 	overlay.call("_input", f3)
 	_check(not overlay.call("is_shown"), "F3 otra vez lo oculta")
+
+
+## Título: Opciones abre el mismo panel de ajustes del engranaje, con Tema y sin Salir. Sin settings.cfg,
+## el panel carga los valores de siempre (Oscuro, volumen 80 %, sin silenciar).
+func _test_title_options(title: Node) -> void:
+	var settings: Node = root.get_node("Settings")
+	var no_settings := "user://smoke_sin_ajustes.cfg"
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(no_settings))
+	settings.set("settings_path", no_settings)
+	settings.call("load_settings")
+	var options_button := title.get_node("%OptionsButton") as Button
+	_check(options_button.visible and not options_button.disabled, "Opciones está en el título")
+	options_button.pressed.emit()
+	var panel: Control = title.get_node("%OptionsPanel")
+	# Sin tipar SettingsMenu: depende del autoload UiTheme, que con -s se registra después de compilar.
+	var panel_script: Script = panel.get_script()
+	_check(panel.scene_file_path == "res://scenes/ui/settings_menu.tscn" and panel_script.resource_path == "res://scripts/ui/settings_menu.gd", "Opciones usa el mismo panel de ajustes (SettingsMenu)")
+	_check(panel.visible and panel.call("is_theme_row_visible"), "Opciones muestra la fila Tema")
+	_check(not (panel.get_node("%QuitButton") as Control).visible and (panel.get_node("%ReturnButton") as Button).text == "Cerrar", "en el título no hay Salir y Regresar dice Cerrar")
+	_check(not paused, "Opciones del título no pausa nada")
+	_check((panel.get_node("%ThemeDarkButton") as Button).button_pressed and not (panel.get_node("%ThemeLightButton") as Button).button_pressed, "sin settings.cfg el tema es Oscuro")
+	var music := panel.get_node("%MusicSlider") as HSlider
+	var sfx := panel.get_node("%SfxSlider") as HSlider
+	_check(is_equal_approx(music.value, 80.0) and is_equal_approx(sfx.value, 80.0), "sin settings.cfg los volúmenes son 80 %% (música %d, sonido %d)" % [music.value, sfx.value])
+	_check(not (panel.get_node("%MusicMute") as Button).button_pressed and not (panel.get_node("%SfxMute") as Button).button_pressed, "sin settings.cfg nada está silenciado")
+	var fullscreen := panel.get_node("%FullscreenCheck") as CheckButton
+	var ui_theme: Node = root.get_node("UiTheme")
+	for mode: StringName in [&"dark", &"light"]:
+		settings.call("set_ui_theme", mode)
+		var on_icon := fullscreen.get_theme_icon(&"checked").get_image()
+		var off_icon := fullscreen.get_theme_icon(&"unchecked").get_image()
+		var on_track := on_icon.get_pixel(4, 18)
+		var off_track := off_icon.get_pixel(60, 18)
+		_check(on_track.is_equal_approx(ui_theme.call("color", &"accent")) and off_track.is_equal_approx(ui_theme.call("color", &"card_border")), "%s: el interruptor usa los tokens del tema (encendido %s, apagado %s)" % [mode, on_track.to_html(false), off_track.to_html(false)])
+		_check(fullscreen.get_theme_color(&"font_color").is_equal_approx(ui_theme.call("color", &"text")), "%s: el texto del interruptor usa el token de texto" % mode)
+	settings.call("set_ui_theme", &"dark")
+	(panel.get_node("%ReturnButton") as Button).pressed.emit()
+	_check(not panel.visible, "Cerrar oculta Opciones")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(no_settings))
+	settings.set("settings_path", TEST_SETTINGS_PATH)
+	settings.call("load_settings")
 
 
 ## Título: Salir y el botón "atrás" piden confirmación (aquí nunca se confirma, cerraría el juego).

@@ -266,40 +266,19 @@
   }
  },
  "nota_capas": "Capas propias de la oficina recortadas (offset x,y en lienzo 2x, múltiplos de 8). Puerta, mesa, racks y avatar reutilizan los sprites del garage sumando reutilizados_del_garage (dx,dy) a su offset del garage.",
+ "alto_muro_m": 3.2,
  "tramos_prohibidos_pared": {
   "nota": "Zonas de cada muro donde no se puede colgar decoración: 'tramo' a lo largo del muro y 'z' en altura (metros). Un objeto choca solo si se encima en los dos. der = pared y=9 (eje x), izq = pared x=0 (eje y).",
   "der": [
    {
     "id": "racks",
     "tramo": [
-     0.8,
+     0.0,
      2.5
     ],
     "z": [
      0.0,
      2.05
-    ]
-   },
-   {
-    "id": "ventana_1",
-    "tramo": [
-     4.0,
-     5.9
-    ],
-    "z": [
-     1.0,
-     2.5
-    ]
-   },
-   {
-    "id": "ventana_2",
-    "tramo": [
-     6.5,
-     8.4
-    ],
-    "z": [
-     1.0,
-     2.5
     ]
    }
   ],
@@ -352,6 +331,23 @@
   "rack_2": [
    1.95,
    8.6
+  ]
+ },
+ "decoracion_inicial": {
+  "nota": "Objetos que vienen colocados la primera vez que se entra al cuarto (una vez por partida: si el jugador los guarda o los mueve de cuarto, no vuelven). Mismo formato que lo colocado: x, y = esquina mínima de la huella.",
+  "lista": [
+   {
+    "id": "ventana_oficina",
+    "ori": "der",
+    "x": 4.0,
+    "y": 8.84
+   },
+   {
+    "id": "ventana_oficina",
+    "ori": "der",
+    "x": 6.5,
+    "y": 8.84
+   }
   ]
  }
 }
