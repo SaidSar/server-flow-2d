@@ -41,6 +41,7 @@ func start() -> void:
 		return
 	GameState.tutorial_step = 0
 	step_changed.emit()
+	SaveSystem.save_game()  # Si la app se cierra a media repetición, el tutorial se retoma.
 
 
 func advance() -> void:

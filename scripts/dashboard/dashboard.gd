@@ -222,6 +222,14 @@ func _setup_tutorial() -> void:
 	_tutorial.byte_requested.connect(_byte.say_tutorial)
 	_byte.tutorial_dismissed.connect(_tutorial.on_byte_dismissed)
 	_tutorial.box_visibility_changed.connect(_byte.set_held)
+	Tutorial.finished.connect(_on_tutorial_finished)
+
+
+## Quien salta el tutorial en plena oleada 1 no oyó a BYTE presentarse: lo hace ahora.
+func _on_tutorial_finished(skipped: bool) -> void:
+	if skipped and Simulation.wave_number == 1 and Simulation.wave != null:
+		# Diferido: la caja de Briseida se esconde un cuadro después y BYTE sigue retenido hasta entonces.
+		_byte.say.call_deferred(TextUtil.format(Simulation.wave.tutorial_text))
 
 #endregion
 
@@ -301,7 +309,9 @@ func _byte_warning(resource: StringName) -> String:
 func _on_wave_started(_wave_number: int) -> void:
 	_postmortem.hide()
 	_game_over.hide()
-	_byte.say(TextUtil.format(Simulation.wave.tutorial_text))
+	# Con el tutorial activo, BYTE se presenta dentro del tutorial (si no, repetiría lo que dice Briseida).
+	if not Tutorial.is_active():
+		_byte.say(TextUtil.format(Simulation.wave.tutorial_text))
 	_refresh()
 
 #endregion

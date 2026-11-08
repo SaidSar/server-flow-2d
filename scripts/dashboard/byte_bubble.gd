@@ -26,23 +26,25 @@ func _ready() -> void:
 func say(text: String) -> void:
 	if text.is_empty() or _queue.has(text) or (visible and _text_label.text == text):
 		return
-	if visible or _held:
+	if _held:
+		return  # Briseida está hablando: un consejo que llegue ahora estaría desactualizado al terminar.
+	if visible:
 		_queue.append(text)
 	else:
 		_display(text)
 
 
-## Retiene (o libera) los mensajes normales; los del tutorial no se retienen.
+## Mientras se retiene, los mensajes normales se descartan (y los pendientes se borran); los del tutorial no.
 func set_held(held: bool) -> void:
 	_held = held
+	if held:
+		_queue.clear()
 	if not held and not visible and not _queue.is_empty():
 		_show_next()
 
 
 ## Mensaje del tutorial: aparece de inmediato (el que se estaba mostrando espera su turno).
 func say_tutorial(text: String) -> void:
-	if visible and not _showing_tutorial and not _text_label.text.is_empty():
-		_queue.insert(0, _text_label.text)
 	_showing_tutorial = true
 	_display(text)
 

@@ -43,6 +43,7 @@ func _run() -> void:
 	await _test_walkthrough()
 	await _test_not_shown_for_old_saves()
 	await _test_replay_from_settings()
+	await _test_skip_in_dashboard()
 
 	_save_system.call("delete_save")
 	if _failures.is_empty():
@@ -287,6 +288,7 @@ func _test_walkthrough() -> void:
 	await _frames(2)
 	_check(_game_state.get("tutorial_step") == 6, "comprar completa el paso de la mejora")
 	_check(not overlay_d.call("is_box_visible"), "paso 7: espera a que termine la oleada (no se muestra todavía)")
+	_check(not byte.visible and byte.call("get_text") == "", "BYTE no suelta consejos viejos tras comprar la mejora")
 
 	# 7 · Alerta: al terminar la oleada aparece Briseida preocupada sobre el post-mortem.
 	_run_wave()
@@ -373,6 +375,8 @@ func _test_replay_from_settings() -> void:
 	menu.connect("tutorial_replay_requested", func() -> void: requested.append(true))
 	button.pressed.emit()
 	_check(_game_state.get("tutorial_step") == 0 and _tutorial.call("is_active"), "repetirlo reinicia el tutorial en el primer paso")
+	_game_state.set("tutorial_step", -1)
+	_check(_save_system.call("load_game") and _game_state.get("tutorial_step") == 0, "repetirlo se guarda: al reabrir la app sigue en el primer paso")
 	_check(requested.size() == 1 and not menu.visible, "repetirlo cierra Ajustes y avisa")
 	# Se puede repetir a mitad de la partida: el recorrido vuelve a empezar en el cuarto.
 	_simulation.call("start_wave")
@@ -382,6 +386,21 @@ func _test_replay_from_settings() -> void:
 	_check(garage.get_node("%TutorialOverlay").call("is_box_visible") and garage.get_node("%TutorialOverlay").call("get_expression") == &"contenta", "al repetirlo, Briseida vuelve a saludar en el cuarto")
 	garage.free()
 	menu.free()
+	await _frames(2)
+
+## Saltar el tutorial en plena oleada 1 del dashboard: BYTE se presenta (el tutorial ya no lo hará).
+func _test_skip_in_dashboard() -> void:
+	_game_state.call("start_new_game", "Sayola", "NexusSoft", &"alex")
+	_game_state.set("tutorial_step", 4)
+	var dashboard: Node = (load(Paths.DASHBOARD) as PackedScene).instantiate()
+	root.add_child(dashboard)
+	await _frames(3)
+	var byte: Control = dashboard.get_node("%ByteBubble")
+	_check(not byte.visible, "con el tutorial activo BYTE no repite el texto de la oleada")
+	_tutorial.call("skip")
+	await _frames(3)
+	_check(byte.visible and (byte.call("get_text") as String).begins_with("¡Hola! Soy BYTE."), "al saltar el tutorial BYTE se presenta (%s)" % byte.call("get_text"))
+	dashboard.free()
 	await _frames(2)
 
 #endregion
