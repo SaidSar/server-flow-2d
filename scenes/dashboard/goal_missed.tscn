@@ -1,12 +1,14 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/dashboard/goal_missed.gd" id="1_goal"]
+[ext_resource type="Script" path="res://scripts/dashboard/report_window.gd" id="2_window"]
+[ext_resource type="Script" path="res://scripts/ui/touch_scroll_container.gd" id="3_scroll"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_advice"]
-content_margin_left = 18.0
-content_margin_top = 14.0
-content_margin_right = 18.0
-content_margin_bottom = 14.0
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
 bg_color = Color(0.0431373, 0.0666667, 0.109804, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
@@ -41,14 +43,15 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Window" type="PanelContainer" parent="Center"]
+[node name="Window" type="PanelContainer" parent="Center" node_paths=PackedStringArray("body")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(760, 0)
 layout_mode = 2
+script = ExtResource("2_window")
+body = NodePath("Content/Body")
 
 [node name="Content" type="VBoxContainer" parent="Center/Window"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="Center/Window/Content"]
 layout_mode = 2
@@ -58,8 +61,17 @@ text = "Meta no alcanzada"
 horizontal_alignment = 1
 metadata/ui_tokens = {"font_color": "warning"}
 
-[node name="SubtitleLabel" type="Label" parent="Center/Window/Content"]
-custom_minimum_size = Vector2(680, 0)
+[node name="Body" type="ScrollContainer" parent="Center/Window/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("3_scroll")
+
+[node name="BodyContent" type="VBoxContainer" parent="Center/Window/Content/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="SubtitleLabel" type="Label" parent="Center/Window/Content/Body/BodyContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.541176, 0.607843, 0.709804, 1)
 theme_override_font_sizes/font_size = 21
@@ -68,14 +80,14 @@ horizontal_alignment = 1
 autowrap_mode = 3
 metadata/ui_tokens = {"font_color": "text_muted"}
 
-[node name="UsersLabel" type="Label" parent="Center/Window/Content"]
+[node name="UsersLabel" type="Label" parent="Center/Window/Content/Body/BodyContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "Usuarios atendidos: 742 / 1,000"
 horizontal_alignment = 1
 
-[node name="UsersBar" type="ProgressBar" parent="Center/Window/Content"]
+[node name="UsersBar" type="ProgressBar" parent="Center/Window/Content/Body/BodyContent"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
@@ -83,37 +95,37 @@ max_value = 1000.0
 value = 742.0
 show_percentage = false
 
-[node name="SlaLabel" type="Label" parent="Center/Window/Content"]
+[node name="SlaLabel" type="Label" parent="Center/Window/Content/Body/BodyContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "SLA promedio: 87.3 %"
 horizontal_alignment = 1
 
-[node name="AdviceBox" type="PanelContainer" parent="Center/Window/Content"]
+[node name="AdviceBox" type="PanelContainer" parent="Center/Window/Content/Body/BodyContent"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_advice")
 
-[node name="Content" type="VBoxContainer" parent="Center/Window/Content/AdviceBox"]
+[node name="Content" type="VBoxContainer" parent="Center/Window/Content/Body/BodyContent/AdviceBox"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
-[node name="AdviceTitle" type="Label" parent="Center/Window/Content/AdviceBox/Content"]
+[node name="AdviceTitle" type="Label" parent="Center/Window/Content/Body/BodyContent/AdviceBox/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.352941, 0.662745, 1, 1)
 theme_override_font_sizes/font_size = 22
 text = "Consejo"
 metadata/ui_tokens = {"font_color": "accent"}
 
-[node name="AdviceLabel" type="Label" parent="Center/Window/Content/AdviceBox/Content"]
+[node name="AdviceLabel" type="Label" parent="Center/Window/Content/Body/BodyContent/AdviceBox/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
 text = "El ancho de banda se saturó: los paquetes hicieron fila."
 autowrap_mode = 3
 
 [node name="Buttons" type="HBoxContainer" parent="Center/Window/Content"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 16
 

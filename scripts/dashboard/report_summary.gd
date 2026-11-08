@@ -1,9 +1,11 @@
 class_name ReportSummary
-extends VBoxContainer
+extends BoxContainer
 ## Estadísticas de una oleada y su causa principal con la explicación educativa.
-## Lo usan el post-mortem y el game over.
+## Lo usan el post-mortem y el game over. En una ventana ancha (ReportWindow) va lado a lado:
+## estadísticas a la izquierda y causa a la derecha; si no, una debajo de la otra.
 
 @onready var _stats_grid: GridContainer = %StatsGrid
+@onready var _cause_box: PanelContainer = %CauseBox
 @onready var _cause_title: Label = %CauseTitle
 @onready var _cause_text: Label = %CauseText
 
@@ -53,6 +55,16 @@ func show_report(report: WaveReport) -> void:
 	_cause_title.text = "Causa principal: %s" % report.get_main_cause_title() if cause != &"" else "Causa principal: ninguna"
 	_cause_title.add_theme_color_override(&"font_color", DashboardColors.DANGER if cause != &"" else DashboardColors.OK)
 	_cause_text.text = report.get_main_cause_explanation()
+
+
+## true = estadísticas y causa lado a lado (la causa arriba, del alto de su texto).
+func set_wide(wide: bool) -> void:
+	vertical = not wide
+	_cause_box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN if wide else Control.SIZE_FILL
+
+
+func is_wide() -> bool:
+	return not vertical
 
 
 ## Las etiquetas se crean con los colores del tema actual; al cambiarlo se repintan.

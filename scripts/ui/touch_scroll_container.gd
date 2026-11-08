@@ -28,6 +28,8 @@ func _ready() -> void:
 	horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
 	_style_scrollbar(get_v_scroll_bar())
+	# Los colores de la barra vienen del tema: se repintan al cambiarlo.
+	UiTheme.changed.connect(_on_theme_changed)
 	_let_input_through(self)
 	get_tree().node_added.connect(_on_node_added)
 
@@ -75,6 +77,10 @@ func _gui_input(event: InputEvent) -> void:
 	var emulated := event.device == InputEvent.DEVICE_ID_EMULATION
 	if emulated and (event is InputEventMouseMotion or (event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT)):
 		accept_event()
+
+
+func _on_theme_changed() -> void:
+	_style_scrollbar(get_v_scroll_bar())
 
 
 func _on_node_added(node: Node) -> void:
