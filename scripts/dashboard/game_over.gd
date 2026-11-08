@@ -11,7 +11,7 @@ signal menu_requested
 @onready var _summary: ReportSummary = %Summary
 @onready var _retry_button: Button = %RetryButton
 @onready var _menu_button: Button = %MenuButton
-@onready var _window: PanelContainer = %Window
+@onready var _window: ReportWindow = %Window
 
 
 func _ready() -> void:
@@ -27,8 +27,9 @@ func show_report(report: WaveReport, company_name: String) -> void:
 	_reason_label.text = "El SLA llegó a 0 %: los clientes dejaron de confiar en el servicio."
 	_summary.show_report(report)
 	show()
+	_window.refit()
 	_retry_button.grab_focus()
 
 
 func _apply_theme() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.DANGER, 3, 18, 32.0))
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.DANGER, 3, 18, 24.0))

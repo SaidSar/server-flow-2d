@@ -13,7 +13,7 @@ signal shop_requested
 @onready var _next_button: Button = %NextButton
 @onready var _room_button: Button = %RoomButton
 @onready var _shop_button: Button = %ShopButton
-@onready var _window: PanelContainer = %Window
+@onready var _window: ReportWindow = %Window
 
 
 func _ready() -> void:
@@ -31,8 +31,9 @@ func show_report(report: WaveReport, next_wave: int, wave_count: int) -> void:
 	_next_button.text = "Siguiente oleada (%d/%d)" % [next_wave, wave_count]
 	_shop_button.visible = DecorShop.is_unlocked()
 	show()
+	_window.refit()
 	_next_button.grab_focus()
 
 
 func _apply_theme() -> void:
-	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.ACCENT, 2, 18, 28.0))
+	_window.add_theme_stylebox_override(&"panel", DashboardColors.panel_style(DashboardColors.PANEL, DashboardColors.ACCENT, 2, 18, 22.0))

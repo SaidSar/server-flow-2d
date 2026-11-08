@@ -414,6 +414,7 @@ func _test_dashboard(dashboard: Node, simulation: Node) -> void:
 	var postmortem: Control = dashboard.get_node("%Postmortem")
 	_check(postmortem.visible, "al terminar la oleada aparece el post-mortem")
 	_check(not (postmortem.get_node("%Summary").get_node("%CauseText") as Label).text.is_empty(), "el post-mortem explica la causa")
+	await _test_report_fit(dashboard, simulation)
 	(postmortem.get_node("%NextButton") as Button).pressed.emit()
 	await process_frame
 	_check(simulation.get("phase") == PHASE_RUNNING and simulation.get("wave_number") == 2, "Siguiente oleada inicia la oleada 2")
@@ -432,6 +433,94 @@ func _test_dashboard(dashboard: Node, simulation: Node) -> void:
 	await process_frame
 	_check(simulation.get("phase") == PHASE_RUNNING and simulation.get("wave_number") == 2, "Reintentar vuelve a empezar la oleada 2")
 	_check(not game_over.visible, "el game over se cierra")
+
+
+## Post-mortem y game over con la causa más larga (DDoS): la ventana nunca es más alta que su área y
+## el título y los botones siempre se ven. Post-mortem dentro de MonitorArea; game over dentro de su
+## área (cubre todo el dashboard). En 1280×720 y 2400×1080 (alto lógico 1080), con los dos temas,
+## cabe sin scroll y lado a lado; en un área chica el contenido se desplaza y los botones siguen a la vista.
+func _test_report_fit(dashboard: Node, simulation: Node) -> void:
+	var settings: Node = root.get_node("Settings")
+	var postmortem: Control = dashboard.get_node("%Postmortem")
+	var game_over: Control = dashboard.get_node("%GameOver")
+	var monitor_area := postmortem.get_parent() as Control
+	var report := _ddos_report()
+	var original_size := root.size
+	for theme_id: StringName in [&"dark", &"light"]:
+		settings.call("set_ui_theme", theme_id)
+		for window_size: Vector2i in [Vector2i(1280, 720), Vector2i(2400, 1080)]:
+			root.size = window_size
+			var where := "%d×%d, tema %s" % [window_size.x, window_size.y, theme_id]
+			postmortem.call("show_report", report, 2, 5)
+			# Peor caso: con la Tienda desbloqueada son 3 botones.
+			(postmortem.get_node("%ShopButton") as Button).visible = true
+			await _settle_frames()
+			_check_report_fits(postmortem, monitor_area, ["%RoomButton", "%ShopButton", "%NextButton"], "post-mortem DDoS (%s)" % where)
+			postmortem.hide()
+			game_over.call("show_report", report, "Nexus Test")
+			await _settle_frames()
+			_check_report_fits(game_over, game_over, ["%MenuButton", "%RetryButton"], "game over DDoS (%s)" % where)
+			game_over.hide()
+	settings.call("set_ui_theme", &"dark")
+	root.size = original_size
+
+	# Área más baja que el reporte: el contenido se desplaza y título y botones quedan dentro.
+	var small_area := Control.new()
+	small_area.size = Vector2(1400, 380)
+	root.add_child(small_area)
+	var small: Control = load("res://scenes/dashboard/postmortem.tscn").instantiate()
+	small_area.add_child(small)
+	small.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	small.call("show_report", report, 2, 5)
+	await _settle_frames()
+	var body := small.get_node("%Body") as ScrollContainer
+	_check(body.get_v_scroll_bar().visible, "post-mortem en un área de 380 px: el resumen se desplaza")
+	var max_body: float = small.get_node("%Window").call("get_max_body_height")
+	_check(max_body > 48.0 and absf(body.size.y - max_body) <= 1.0,
+		"post-mortem en un área de 380 px: el resumen usa todo el alto libre (%d de %d px)" % [body.size.y, max_body])
+	_check_report_fits(small, small_area, ["%RoomButton", "%NextButton"], "post-mortem DDoS en un área de 380 px")
+	small_area.queue_free()
+
+	# Vuelve al reporte real para seguir el flujo.
+	postmortem.call("show_report", simulation.get("report"), simulation.get("wave_number"), simulation.call("get_wave_count"))
+	await _settle_frames()
+
+
+func _check_report_fits(overlay: Control, area: Control, buttons: Array, where: String) -> void:
+	var area_rect := area.get_global_rect().grow(0.5)
+	var window := overlay.get_node("%Window") as Control
+	_check(area_rect.encloses(window.get_global_rect()), "%s: la ventana %s cabe en su área %s" % [where, window.get_global_rect(), area.get_global_rect()])
+	var title := overlay.get_node("%TitleLabel") as Control
+	_check(title.is_visible_in_tree() and area_rect.encloses(title.get_global_rect()), "%s: el título se ve" % where)
+	for path: String in buttons:
+		var button := overlay.get_node(path) as Button
+		_check(button.is_visible_in_tree() and area_rect.encloses(button.get_global_rect()), "%s: %s se ve completo (%s)" % [where, button.text, button.get_global_rect()])
+	var body := overlay.get_node("%Body") as ScrollContainer
+	if area.size.y >= 500.0:
+		_check(not body.get_v_scroll_bar().visible and window.call("is_wide"), "%s: cabe sin scroll y lado a lado" % where)
+
+
+## Reporte con la causa de texto más largo (DDoS) y números grandes.
+func _ddos_report() -> WaveReport:
+	var report := WaveReport.new()
+	report.wave_number = 3
+	report.requests = 123456.0
+	report.green = 90000.0
+	report.yellow = 10000.0
+	report.timeouts = 23456.0
+	report.errors_500 = 120.0
+	report.latency_sum = report.requests * 0.25
+	report.sla_end = 0.0
+	report.coins_earned = 812.0
+	report.add_failures(&"ddos", 20000.0)
+	report.add_failures(&"net", 300.0)
+	return report
+
+
+## ReportWindow se ajusta en dos cuadros (ancho, luego alto); se dejan unos de más.
+func _settle_frames() -> void:
+	for i in 5:
+		await process_frame
 
 
 func _finish_wave(simulation: Node) -> void:
