@@ -1,0 +1,68 @@
+{
+	"_comentario": "Guion del tutorial de Briseida y BYTE. Textos del juego en español. Marcadores: {jugador} (nombre del avatar), {empresa} y {masculino|femenino} (según el personaje). scene: room | dashboard. speaker: briseida | byte. expression (solo Briseida): normal | contenta | preocupada. action: none | tap_pc | buy_upgrade (el paso espera esa acción del jugador). also_on: otros eventos que también completan el paso (wave_finished). wait_for: wave_finished = el paso no aparece hasta que termine la oleada. highlight: pc | health | console.",
+	"steps": [
+		{
+			"id": "bienvenida",
+			"scene": "room",
+			"speaker": "briseida",
+			"expression": "contenta",
+			"text": "¡Hola, {jugador}! Soy Briseida, la CEO de {empresa}. Qué gusto tenerte en el equipo: vamos a poner tu primer servidor en marcha."
+		},
+		{
+			"id": "garage",
+			"scene": "room",
+			"speaker": "briseida",
+			"expression": "normal",
+			"text": "Esto es tu garage: una computadora, un rack y muchas ganas. Cada servidor que instales atenderá las peticiones de clientes reales."
+		},
+		{
+			"id": "toca_pc",
+			"scene": "room",
+			"speaker": "briseida",
+			"expression": "normal",
+			"text": "Para empezar, toca la computadora y abre tu panel de control.",
+			"action": "tap_pc",
+			"highlight": "pc"
+		},
+		{
+			"id": "trafico",
+			"scene": "dashboard",
+			"speaker": "byte",
+			"text": "Soy BYTE, tu asistente. Cada punto que ves es una petición que viaja de los clientes a tus servidores: verde es atendida, amarillo va lenta y rojo se perdió."
+		},
+		{
+			"id": "sla",
+			"scene": "dashboard",
+			"speaker": "briseida",
+			"expression": "normal",
+			"text": "Cada petición atendida te da monedas y usuarios. Si fallan demasiadas, el SLA baja y los clientes se van. Cuida ese número.",
+			"highlight": "health"
+		},
+		{
+			"id": "mejora",
+			"scene": "dashboard",
+			"speaker": "briseida",
+			"expression": "normal",
+			"text": "Cuando una barra pase del 85 %, ese es tu cuello de botella. Compra una mejora en la consola para arreglarlo.",
+			"action": "buy_upgrade",
+			"also_on": ["wave_finished"],
+			"highlight": "console"
+		},
+		{
+			"id": "alerta",
+			"scene": "dashboard",
+			"speaker": "briseida",
+			"expression": "preocupada",
+			"wait_for": "wave_finished",
+			"text": "Así termina cada oleada. Si un servidor se satura, verás «!!» sobre {jugador} y el monitor parpadeará en rojo. Este reporte te dice qué falló y cómo arreglarlo."
+		},
+		{
+			"id": "cierre",
+			"scene": "dashboard",
+			"speaker": "briseida",
+			"expression": "contenta",
+			"wait_for": "wave_finished",
+			"text": "Lo harás muy bien. Ahora es tu turno: mantén esos servidores arriba y haz crecer la empresa."
+		}
+	]
+}

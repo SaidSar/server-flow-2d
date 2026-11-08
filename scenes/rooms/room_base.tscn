@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/rooms/decor_placer.gd" id="6_placer"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_panel.tscn" id="7_shop"]
 [ext_resource type="PackedScene" path="res://scenes/ui/decor_toolbar.tscn" id="8_toolbar"]
+[ext_resource type="PackedScene" path="res://scenes/ui/tutorial_overlay.tscn" id="9_tutorial"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pc"]
 size = Vector2(128, 128)
@@ -105,3 +106,7 @@ unique_name_in_owner = true
 
 [node name="SettingsButton" parent="." instance=ExtResource("5_settings")]
 unique_name_in_owner = true
+
+[node name="TutorialOverlay" parent="." instance=ExtResource("9_tutorial")]
+unique_name_in_owner = true
+scene_id = &"room"

@@ -63,6 +63,7 @@ static var _warned_resources: Dictionary[StringName, bool] = {}
 @onready var _goal_missed: GoalMissed = %GoalMissed
 @onready var _upgrade_info: UpgradeInfoPanel = %UpgradeInfoPanel
 @onready var _dialog: DialogBox = %DialogBox
+@onready var _tutorial: TutorialOverlay = %TutorialOverlay
 
 var _upgrade_buttons: Array[UpgradeButton] = []
 var _sla_fill := DashboardColors.bar_style(DashboardColors.OK)
@@ -83,6 +84,7 @@ func _ready() -> void:
 	SceneRouter.safe_area_changed.connect(_fit_safe_area)
 	_build_legend()
 	_build_console()
+	_setup_tutorial()
 
 	Simulation.tick.connect(_on_tick)
 	Simulation.bottleneck_changed.connect(_on_bottleneck_changed)
@@ -145,7 +147,7 @@ func _fit_safe_area() -> void:
 
 ## Pantallas que no se cierran con Esc (hay que elegir una opción).
 func _is_blocking_modal_open() -> bool:
-	return _game_over.visible or _victory.visible or _goal_missed.visible or _dialog.visible
+	return _game_over.visible or _victory.visible or _goal_missed.visible or _dialog.visible or _tutorial.is_blocking()
 
 
 ## Retoma lo que estaba pasando al abrir el dashboard (la simulación sigue aunque estés en el garage).
@@ -207,6 +209,27 @@ func _on_speed_pressed() -> void:
 	var index := SPEEDS.find(Simulation.speed)
 	Simulation.set_speed(SPEEDS[(index + 1) % SPEEDS.size()])
 	_refresh()
+
+#endregion
+
+
+#region Tutorial
+
+## Lo que resalta el tutorial en el dashboard y el globo de BYTE (el tutorial lo usa en lugar de su caja).
+func _setup_tutorial() -> void:
+	_tutorial.register_highlight(&"health", func() -> Rect2: return _health_block.get_global_rect())
+	_tutorial.register_highlight(&"console", func() -> Rect2: return _console_panel.get_global_rect())
+	_tutorial.byte_requested.connect(_byte.say_tutorial)
+	_byte.tutorial_dismissed.connect(_tutorial.on_byte_dismissed)
+	_tutorial.box_visibility_changed.connect(_byte.set_held)
+	Tutorial.finished.connect(_on_tutorial_finished)
+
+
+## Quien salta el tutorial en plena oleada 1 sin haber oído a BYTE presentarse: lo hace ahora.
+func _on_tutorial_finished(skipped: bool) -> void:
+	if skipped and not Tutorial.byte_intro_seen and Simulation.wave_number == 1 and Simulation.wave != null:
+		# Diferido: la caja de Briseida se esconde un cuadro después y BYTE sigue retenido hasta entonces.
+		_byte.say.call_deferred(TextUtil.format(Simulation.wave.tutorial_text))
 
 #endregion
 
@@ -286,7 +309,9 @@ func _byte_warning(resource: StringName) -> String:
 func _on_wave_started(_wave_number: int) -> void:
 	_postmortem.hide()
 	_game_over.hide()
-	_byte.say(TextUtil.format(Simulation.wave.tutorial_text))
+	# Con el tutorial activo, BYTE se presenta dentro del tutorial (si no, repetiría lo que dice Briseida).
+	if not Tutorial.is_active():
+		_byte.say(TextUtil.format(Simulation.wave.tutorial_text))
 	_refresh()
 
 #endregion
@@ -316,7 +341,8 @@ func _highlight_fixes(resource: StringName) -> void:
 
 
 func _on_purchase_requested(upgrade_id: StringName) -> void:
-	Simulation.purchase(upgrade_id)
+	if Simulation.purchase(upgrade_id):
+		Tutorial.notify_action(&"buy_upgrade")
 
 
 func _on_info_requested(upgrade_id: StringName) -> void:
@@ -338,6 +364,7 @@ func get_upgrade_button(upgrade_id: StringName) -> UpgradeButton:
 
 func _on_wave_finished(report: WaveReport) -> void:
 	_show_postmortem(report)
+	Tutorial.notify_action(&"wave_finished")
 
 
 func _show_postmortem(report: WaveReport) -> void:

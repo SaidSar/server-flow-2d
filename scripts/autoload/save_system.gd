@@ -11,11 +11,12 @@ extends Node
 signal saved
 
 ## 3: agrega player/avatar_id (las partidas sin él son de Alex).
+## 6: player/tutorial_step (paso del tutorial; -1 = terminado). Las partidas anteriores no lo traen y no ven el tutorial.
 ## 5: decoración inicial entregada por cuarto (decor/initial_granted). Las partidas anteriores no la traen
 ##    y reciben las ventanas de la oficina al entrar a ella.
 ## 4: piso por cuarto (colors/piso_<cuarto>) y decoración (sección "decor"). Las partidas
 ##    anteriores migran su "piso" al garage y empiezan sin decoración.
-const SAVE_VERSION := 5
+const SAVE_VERSION := 6
 const SECTION_META := "meta"
 const SECTION_PLAYER := "player"
 const SECTION_COLORS := "colors"
@@ -80,6 +81,7 @@ func save_game() -> bool:
 	config.set_value(SECTION_PLAYER, "avatar_id", data["avatar_id"])
 	config.set_value(SECTION_PLAYER, "avatar_name", data["avatar_name"])
 	config.set_value(SECTION_PLAYER, "company_name", data["company_name"])
+	config.set_value(SECTION_PLAYER, "tutorial_step", data["tutorial_step"])
 	var colors: Dictionary = data["colors"]
 	for layer: StringName in colors:
 		config.set_value(SECTION_COLORS, layer, String(colors[layer]))
@@ -133,6 +135,7 @@ func load_game() -> bool:
 		"avatar_id": config.get_value(SECTION_PLAYER, "avatar_id", String(AvatarData.DEFAULT_ID)),
 		"avatar_name": config.get_value(SECTION_PLAYER, "avatar_name", ""),
 		"company_name": config.get_value(SECTION_PLAYER, "company_name", ""),
+		"tutorial_step": config.get_value(SECTION_PLAYER, "tutorial_step", GameState.TUTORIAL_DONE),
 		"colors": colors,
 		"decor_inventory": config.get_value(SECTION_DECOR, "inventory", PackedStringArray()),
 		"decor_placed": decor_placed,

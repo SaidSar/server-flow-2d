@@ -22,8 +22,11 @@ const INVALID_CHARS_PATTERN := "[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ ._\\-]"
 @onready var _name_edit: LineEdit = %NameEdit
 @onready var _confirm_button: Button = %ConfirmButton
 @onready var _back_button: Button = %BackButton
+@onready var _hint_label: Label = %HintLabel
+@onready var _content: VBoxContainer = %Content
 
 var _invalid_chars := RegEx.new()
+var _compact := false
 
 
 func _ready() -> void:
@@ -44,6 +47,21 @@ func _ready() -> void:
 	_update_confirm_state()
 	visibility_changed.connect(_on_visibility_changed)
 	_on_visibility_changed()
+
+
+## Modo compacto (teclado en pantalla abierto): sin paso ni ayuda y con menos aire, para caber sobre el teclado.
+func set_compact(compact: bool) -> void:
+	_compact = compact
+	if not is_node_ready():
+		return
+	_step_label.visible = not compact and not step_text.is_empty()
+	_hint_label.visible = not compact
+	_content.add_theme_constant_override(&"separation", 10 if compact else 24)
+	_title_label.add_theme_font_size_override(&"font_size", 36 if compact else 48)
+
+
+func is_compact() -> bool:
+	return _compact
 
 
 ## Texto escrito, sin espacios al inicio ni al final.

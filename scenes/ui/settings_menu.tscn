@@ -224,6 +224,13 @@ text = "Pantalla completa"
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 
+[node name="TutorialButton" type="Button" parent="Center/Window/Content/MainBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Ver tutorial otra vez"
+
 [node name="ReturnButton" type="Button" parent="Center/Window/Content/MainBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 76)

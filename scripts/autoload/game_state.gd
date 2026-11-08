@@ -13,6 +13,9 @@ signal decor_changed
 ## Empezó una partida (nueva o cargada).
 signal session_started
 
+## Valor de `tutorial_step` cuando el tutorial ya terminó o se saltó (también el de las partidas anteriores).
+const TUTORIAL_DONE := -1
+
 var is_active := false
 ## Personaje elegido (resources/avatars/<id>.tres).
 var avatar_id: StringName = AvatarData.DEFAULT_ID
@@ -26,6 +29,9 @@ var decor_inventory: Array[StringName] = []
 var decor_placed: Dictionary[StringName, Array] = {}
 ## Cuartos cuya decoración inicial ya se entregó (una sola vez por partida: si el jugador la guarda, no vuelve).
 var decor_initial_granted: Array[StringName] = []
+## Paso del tutorial en el que va la partida (ver Tutorial). Una partida nueva empieza en 0;
+## TUTORIAL_DONE = terminado o saltado. Las partidas guardadas antes del tutorial no lo traen y no lo ven.
+var tutorial_step := TUTORIAL_DONE
 
 var _avatar: AvatarData
 
@@ -38,6 +44,7 @@ func start_new_game(new_avatar_name: String, new_company_name: String, new_avata
 	decor_inventory.clear()
 	decor_placed.clear()
 	decor_initial_granted.clear()
+	tutorial_step = 0
 	Simulation.new_game()
 	_begin_session()
 
@@ -51,6 +58,7 @@ func restore(data: Dictionary) -> void:
 	var saved_colors: Dictionary = data.get("colors", {})
 	colors = Customization.sanitize_colors(saved_colors)
 	_restore_decor(data.get("decor_inventory", []), data.get("decor_placed", {}), data.get("decor_initial_granted", []))
+	tutorial_step = maxi(int(data.get("tutorial_step", TUTORIAL_DONE)), TUTORIAL_DONE)
 	_begin_session()
 
 
@@ -68,6 +76,7 @@ func to_save_data() -> Dictionary:
 		"decor_inventory": decor_inventory.duplicate(),
 		"decor_placed": decor_placed.duplicate(true),
 		"decor_initial_granted": decor_initial_granted.duplicate(),
+		"tutorial_step": tutorial_step,
 	}
 
 
