@@ -135,6 +135,7 @@ func _run() -> void:
 	_check(simulation.get("is_saturated"), "la sobrecarga satura el servidor")
 	_check(rack.texture.resource_path.ends_with("rack_saturado.png"), "rack saturado")
 	_check(avatar.call("is_stressed"), "Alex estresado")
+	_check(avatar.call("is_alert_visible"), "aparece el \"!!\" sobre la cabeza con saturación")
 	var glow: PcAlertGlow = garage.call("get_pc_glow")
 	_check(glow.is_active() and glow.visible and glow.get_parent() == garage.get_node("%Desk"), "la pantalla de la PC destella en rojo con saturación")
 	simulation.set("overload_enabled", false)
@@ -145,6 +146,7 @@ func _run() -> void:
 	_check(not simulation.get("is_saturated"), "la carga regresa a normal")
 	_check(rack.texture.resource_path.ends_with("rack_ok.png"), "rack normal")
 	_check(not glow.is_active() and not glow.visible, "la pantalla deja de destellar al normalizarse")
+	_check(not avatar.call("is_alert_visible"), "el \"!!\" desaparece al normalizarse")
 	garage.queue_free()
 
 	await _test_layer_offsets(game_state, customization)
