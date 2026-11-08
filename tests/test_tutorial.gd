@@ -391,7 +391,7 @@ func _test_replay_from_settings() -> void:
 ## Saltar el tutorial en plena oleada 1 del dashboard: BYTE se presenta (el tutorial ya no lo hará).
 func _test_skip_in_dashboard() -> void:
 	_game_state.call("start_new_game", "Sayola", "NexusSoft", &"alex")
-	_game_state.set("tutorial_step", 4)
+	_game_state.set("tutorial_step", 2)
 	var dashboard: Node = (load(Paths.DASHBOARD) as PackedScene).instantiate()
 	root.add_child(dashboard)
 	await _frames(3)
@@ -399,7 +399,20 @@ func _test_skip_in_dashboard() -> void:
 	_check(not byte.visible, "con el tutorial activo BYTE no repite el texto de la oleada")
 	_tutorial.call("skip")
 	await _frames(3)
-	_check(byte.visible and (byte.call("get_text") as String).begins_with("¡Hola! Soy BYTE."), "al saltar el tutorial BYTE se presenta (%s)" % byte.call("get_text"))
+	_check(byte.visible and (byte.call("get_text") as String).begins_with("¡Hola! Soy BYTE."), "al saltar antes del paso de BYTE, él se presenta (%s)" % byte.call("get_text"))
+	dashboard.free()
+	await _frames(2)
+
+	# Si BYTE ya se presentó en el tutorial (paso 4 en adelante), saltar no lo repite.
+	_game_state.call("start_new_game", "Sayola", "NexusSoft", &"alex")
+	_game_state.set("tutorial_step", 5)
+	dashboard = (load(Paths.DASHBOARD) as PackedScene).instantiate()
+	root.add_child(dashboard)
+	await _frames(3)
+	byte = dashboard.get_node("%ByteBubble")
+	_tutorial.call("skip")
+	await _frames(3)
+	_check(not byte.visible, "al saltar después de que BYTE se presentó, no se presenta otra vez (%s)" % byte.call("get_text"))
 	dashboard.free()
 	await _frames(2)
 

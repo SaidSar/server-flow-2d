@@ -225,9 +225,9 @@ func _setup_tutorial() -> void:
 	Tutorial.finished.connect(_on_tutorial_finished)
 
 
-## Quien salta el tutorial en plena oleada 1 no oyó a BYTE presentarse: lo hace ahora.
+## Quien salta el tutorial en plena oleada 1 sin haber oído a BYTE presentarse: lo hace ahora.
 func _on_tutorial_finished(skipped: bool) -> void:
-	if skipped and Simulation.wave_number == 1 and Simulation.wave != null:
+	if skipped and not Tutorial.byte_intro_seen and Simulation.wave_number == 1 and Simulation.wave != null:
 		# Diferido: la caja de Briseida se esconde un cuadro después y BYTE sigue retenido hasta entonces.
 		_byte.say.call_deferred(TextUtil.format(Simulation.wave.tutorial_text))
 

@@ -84,7 +84,16 @@ static func format(text: String) -> String:
 	return TextUtil.format(text.replace("{jugador}", player).replace("{empresa}", company))
 
 
+## ¿Ya había llegado el tutorial al paso donde BYTE se presenta? (se calcula al terminar, antes de borrar el paso)
+var byte_intro_seen := false
+
+
 func _finish(skipped: bool) -> void:
+	byte_intro_seen = false
+	for i in mini(get_step_index() + 1, steps.size()):
+		if steps[i].is_byte():
+			byte_intro_seen = true
+			break
 	GameState.tutorial_step = GameState.TUTORIAL_DONE
 	step_changed.emit()
 	finished.emit(skipped)
