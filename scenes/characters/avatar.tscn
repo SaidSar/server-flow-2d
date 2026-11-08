@@ -28,6 +28,24 @@ text = "Alex"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="AlertLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+offset_left = 420.0
+offset_top = 444.0
+offset_right = 520.0
+offset_bottom = 524.0
+grow_horizontal = 2
+pivot_offset = Vector2(50, 80)
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.301961, 0.368627, 1)
+theme_override_colors/font_outline_color = Color(0.0588235, 0.0784314, 0.117647, 1)
+theme_override_constants/outline_size = 16
+theme_override_font_sizes/font_size = 72
+text = "!!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="FrameTimer" type="Timer" parent="."]
 unique_name_in_owner = true
 wait_time = 0.25

@@ -5,15 +5,22 @@ extends Node2D
 ## cuarto; cada una tiene su propio offset.
 
 const TYPING_FRAME_SECONDS := 0.25
+## Aviso "!!" sobre la cabeza mientras hay saturación: salta y late para llamar la atención.
+const ALERT_BOUNCE_PX := 14.0
+const ALERT_BOUNCE_SECONDS := 0.28
+const ALERT_SCALE := 1.18
 
 @onready var _sprite: Sprite2D = %Sprite
 @onready var _name_label: Label = %NameLabel
 @onready var _frame_timer: Timer = %FrameTimer
+@onready var _alert_label: Label = %AlertLabel
 
 var _typing_textures: Array[Texture2D] = []
 var _stressed_texture: Texture2D
 var _frame := 0
 var _is_stressed := false
+var _alert_tween: Tween
+var _alert_rest_y := 0.0
 
 
 func _ready() -> void:
@@ -44,10 +51,36 @@ func set_stressed(stressed: bool) -> void:
 	else:
 		_frame_timer.start()
 	_refresh_texture()
+	_refresh_alert()
 
 
 func is_stressed() -> bool:
 	return _is_stressed
+
+
+## ¿Se ve el "!!" sobre la cabeza?
+func is_alert_visible() -> bool:
+	return _alert_label.visible
+
+
+func _refresh_alert() -> void:
+	if _alert_tween != null:
+		_alert_tween.kill()
+		_alert_tween = null
+	if _alert_rest_y == 0.0:
+		_alert_rest_y = _alert_label.position.y
+	_alert_label.position.y = _alert_rest_y
+	_alert_label.scale = Vector2.ONE
+	_alert_label.visible = _is_stressed
+	if not _is_stressed:
+		return
+	_alert_tween = create_tween().set_loops()
+	_alert_tween.set_parallel().set_trans(Tween.TRANS_SINE)
+	_alert_tween.tween_property(_alert_label, "position:y", _alert_rest_y - ALERT_BOUNCE_PX, ALERT_BOUNCE_SECONDS).set_ease(Tween.EASE_OUT)
+	_alert_tween.tween_property(_alert_label, "scale", Vector2.ONE * ALERT_SCALE, ALERT_BOUNCE_SECONDS).set_ease(Tween.EASE_OUT)
+	_alert_tween.chain().set_parallel()
+	_alert_tween.tween_property(_alert_label, "position:y", _alert_rest_y, ALERT_BOUNCE_SECONDS).set_ease(Tween.EASE_IN)
+	_alert_tween.tween_property(_alert_label, "scale", Vector2.ONE, ALERT_BOUNCE_SECONDS).set_ease(Tween.EASE_IN)
 
 
 func _on_frame_timer_timeout() -> void:
