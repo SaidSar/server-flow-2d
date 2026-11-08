@@ -50,6 +50,8 @@ var _rack_saturated: Array[bool] = []
 var _room_zoom := Vector2.ONE * CAMERA_MAX_ZOOM_ROOM
 var _pc_enabled := true
 var _camera_tween: Tween
+## Destello rojo de la pantalla del monitor mientras hay saturación.
+var _pc_glow: PcAlertGlow
 
 
 func _ready() -> void:
@@ -75,6 +77,9 @@ func _ready() -> void:
 	_avatar.set_display_name(GameState.avatar_name)
 	_refresh_racks(true)
 	_avatar.set_stressed(Simulation.is_saturated)
+	_pc_glow = PcAlertGlow.new()
+	(%Desk as Sprite2D).add_child(_pc_glow)
+	_pc_glow.set_active(Simulation.is_saturated)
 	_decor_placer.setup(self)
 
 	GameState.color_changed.connect(_apply_color)
@@ -106,6 +111,10 @@ func _exit_tree() -> void:
 
 func get_layers() -> Node2D:
 	return _layers
+
+
+func get_pc_glow() -> PcAlertGlow:
+	return _pc_glow
 
 
 func get_rack_sprites() -> Array[Sprite2D]:
@@ -188,6 +197,7 @@ func _on_simulation_tick(_snapshot: SimSnapshot) -> void:
 func _on_saturation_changed(saturated: bool) -> void:
 	_refresh_racks()
 	_avatar.set_stressed(saturated)
+	_pc_glow.set_active(saturated)
 
 
 func _on_phase_changed(_phase: Simulation.Phase) -> void:

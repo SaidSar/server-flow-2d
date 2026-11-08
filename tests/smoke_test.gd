@@ -135,6 +135,8 @@ func _run() -> void:
 	_check(simulation.get("is_saturated"), "la sobrecarga satura el servidor")
 	_check(rack.texture.resource_path.ends_with("rack_saturado.png"), "rack saturado")
 	_check(avatar.call("is_stressed"), "Alex estresado")
+	var glow: PcAlertGlow = garage.call("get_pc_glow")
+	_check(glow.is_active() and glow.visible and glow.get_parent() == garage.get_node("%Desk"), "la pantalla de la PC destella en rojo con saturación")
 	simulation.set("overload_enabled", false)
 	# La oleada 1 empieza con la red al 90 % (tutorial): con Ancho de banda baja de 85 %.
 	_check(simulation.call("purchase", &"bandwidth"), "comprar Ancho de banda desde código")
@@ -142,6 +144,7 @@ func _run() -> void:
 		simulation.call("step")
 	_check(not simulation.get("is_saturated"), "la carga regresa a normal")
 	_check(rack.texture.resource_path.ends_with("rack_ok.png"), "rack normal")
+	_check(not glow.is_active() and not glow.visible, "la pantalla deja de destellar al normalizarse")
 	garage.queue_free()
 
 	await _test_layer_offsets(game_state, customization)
