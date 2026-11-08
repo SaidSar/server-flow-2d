@@ -90,6 +90,7 @@ func setup(room: RoomBase) -> void:
 	# Al llegar al cuarto de una etapa nueva, también recupera partidas guardadas antes de este arreglo.
 	if _room_data.has_decor():
 		GameState.collect_decor_from_other_rooms(room_id)
+		GameState.grant_initial_decor(room_id, _room_data.initial_decor)
 	_rebuild()
 
 
@@ -359,7 +360,7 @@ func select(index: int) -> void:
 	_selection_mark.polygon = _footprint_polygon(decor, orientation, DecorLayout.get_position(entry), DecorLayout.get_dz(entry))
 	(_wall_marks if decor.is_wall() else _floor_marks).add_child(_selection_mark)
 	_set_mode(Mode.SELECTED)
-	_toolbar.show_selection(decor.display_name, not _rotated_entry(index).is_empty(), -1 if decor.is_trophy() else decor.get_sell_price())
+	_toolbar.show_selection(decor.display_name, not _rotated_entry(index).is_empty(), decor.get_sell_price() if decor.can_sell() else -1)
 
 
 func deselect() -> void:

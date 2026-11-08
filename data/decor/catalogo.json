@@ -460,7 +460,8 @@
       416
      ]
     }
-   }
+   },
+   "vendible": false
   },
   {
    "id": "cuadro",
@@ -1405,6 +1406,58 @@
      ]
     }
    }
+  },
+  {
+   "id": "ventana_oficina",
+   "nombre": "Ventana de la oficina",
+   "precio": 0,
+   "tipo": "pared",
+   "orientaciones": {
+    "der": {
+     "sprite": "res://assets/art/decor/ventana_oficina_der.png",
+     "ancla": [
+      4.0,
+      401.83
+     ],
+     "huella_m": [
+      1.7,
+      0.16
+     ],
+     "huella_celdas": [
+      3,
+      1
+     ],
+     "tam": [
+      248,
+      368
+     ]
+    },
+    "izq": {
+     "sprite": "res://assets/art/decor/ventana_oficina_izq.png",
+     "ancla": [
+      4.0,
+      505.83
+     ],
+     "huella_m": [
+      1.7,
+      0.16
+     ],
+     "huella_celdas": [
+      3,
+      1
+     ],
+     "tam": [
+      280,
+      384
+     ]
+    }
+   },
+   "altura_m": [
+    0.97,
+    2.48
+   ],
+   "en_tienda": false,
+   "vendible": false
   }
  ],
  "etapa_desbloqueo": 2,

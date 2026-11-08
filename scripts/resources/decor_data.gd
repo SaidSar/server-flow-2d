@@ -12,6 +12,10 @@ const TROPHY_ID := &"trofeo"
 @export var id: StringName
 @export var display_name: String
 @export var price := 0
+## false = no aparece en la pestaña Tienda (viene de inicio con el cuarto, como las ventanas de la oficina).
+@export var in_shop := true
+## false = no se puede vender (el trofeo y las ventanas de la oficina); sí se pueden mover y guardar.
+@export var sellable := true
 @export var kind: StringName = KIND_FLOOR
 ## Orientación → datos. Piso y tapete: "a" y "b"; pared: "der" e "izq".
 @export var orientations: Dictionary[StringName, DecorOrientation] = {}
@@ -72,6 +76,10 @@ func is_trophy() -> bool:
 	return id == TROPHY_ID
 
 
+func can_sell() -> bool:
+	return sellable and not is_trophy()
+
+
 ## Precio al vender (50 %).
 func get_sell_price() -> int:
 	return price / 2
@@ -82,6 +90,8 @@ static func _from_dict(data: Dictionary) -> DecorData:
 	decor.id = StringName(str(data.get("id", "")))
 	decor.display_name = str(data.get("nombre", decor.id))
 	decor.price = int(data.get("precio", 0))
+	decor.in_shop = bool(data.get("en_tienda", true))
+	decor.sellable = bool(data.get("vendible", true))
 	decor.kind = StringName(str(data.get("tipo", KIND_FLOOR)))
 	decor.height_m = RoomProjection.parse_vector(data.get("altura_m"))
 	var raw: Dictionary = data.get("orientaciones", {})

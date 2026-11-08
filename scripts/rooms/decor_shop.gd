@@ -69,7 +69,7 @@ static func refund(decor: DecorData) -> void:
 static func sell_placed(room_id: StringName, index: int) -> bool:
 	var entry: Dictionary = GameState.get_placed_decor(room_id)[index]
 	var decor := DecorData.find(StringName(str(entry.get("id", ""))))
-	if decor == null or decor.is_trophy():
+	if decor == null or not decor.can_sell():
 		return false
 	GameState.remove_placed_decor(room_id, index)
 	Simulation.adjust_coins(decor.get_sell_price())

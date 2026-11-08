@@ -36,6 +36,7 @@ func _run() -> void:
 	await _test_data_center_layers(game_state, simulation)
 	await _test_stage_change_keeps_decor(game_state, save_system, simulation)
 	_test_save_load(game_state, save_system, simulation)
+	await _test_initial_windows(game_state, save_system, simulation)
 
 	save_system.call("delete_save")
 	if _failures.is_empty():
@@ -244,8 +245,11 @@ func _test_layout() -> void:
 	var on_left := empty.snap_position(picture, &"izq", Vector2(0.5, 0.0))
 	_check(on_left.is_equal_approx(Vector2(0.0, 0.0)), "el cuadro se pega al muro izquierdo (%s)" % on_left)
 	_check(not empty.can_place(picture, &"der", Vector2(1.0, 8.95)), "muro derecho: no sobre los racks")
-	_check(not empty.can_place(picture, &"der", Vector2(4.5, 8.95)), "muro derecho: no sobre la primera ventana")
-	_check(not empty.can_place(picture, &"der", Vector2(7.0, 8.95)), "muro derecho: no sobre la segunda ventana")
+	# Las ventanas de la oficina ya no son parte del arte: son piezas colocadas (decoracion_inicial).
+	_check(empty.can_place(picture, &"der", Vector2(4.5, 8.95)), "muro derecho: sin ventanas pintadas, ese tramo está libre")
+	var with_windows := DecorLayout.new(room, room.initial_decor)
+	_check(not with_windows.can_place(picture, &"der", Vector2(4.5, 8.95)), "muro derecho: no sobre la primera ventana inicial")
+	_check(not with_windows.can_place(picture, &"der", Vector2(7.0, 8.95)), "muro derecho: no sobre la segunda ventana inicial")
 	_check(empty.can_place(picture, &"der", Vector2(2.5, 8.95)), "muro derecho: entre los racks y la ventana sí")
 	_check(not empty.can_place(picture, &"izq", Vector2(0.0, 1.5)), "muro izquierdo: no detrás del monitor")
 	_check(not empty.can_place(picture, &"izq", Vector2(0.0, 4.5)), "muro izquierdo: no sobre la puerta")
@@ -260,7 +264,7 @@ func _test_layout() -> void:
 	_check(not empty.can_place(neon, &"izq", Vector2(0.0, 4.0)), "el neón choca con la puerta (z 0–2.15)")
 	_check(not empty.can_place(neon, &"izq", Vector2(0.0, 6.5)), "el neón choca con el pizarrón")
 	_check(not empty.can_place(neon, &"der", Vector2(1.0, 8.96)), "el neón choca con los racks (z 0–2.05)")
-	_check(not empty.can_place(neon, &"der", Vector2(4.5, 8.96)), "el neón choca con la ventana (z 1.0–2.5)")
+	_check(not with_windows.can_place(neon, &"der", Vector2(4.5, 8.96)), "el neón choca con la ventana inicial (z 1.0–2.5)")
 
 	# Entre objetos del mismo muro también cuenta la altura.
 	var with_picture := DecorLayout.new(room, [{"id": "cuadro", "ori": "der", "x": 2.5, "y": 8.95}])
@@ -346,6 +350,7 @@ func _test_buy_place_cancel(game_state: Node, simulation: Node) -> void:
 	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 1000})
 	game_state.set("decor_inventory", [] as Array[StringName])
 	(game_state.get("decor_placed") as Dictionary).clear()
+	(game_state.get("decor_initial_granted") as Array).append(&"oficina")  # aislar de las ventanas iniciales
 	var office := (load("res://scenes/rooms/oficina.tscn") as PackedScene).instantiate()
 	root.add_child(office)
 	await process_frame
@@ -419,6 +424,65 @@ func _test_save_load(game_state: Node, save_system: Node, simulation: Node) -> v
 	_check(save_system.call("load_game"), "cargar una partida vieja")
 	_check((game_state.call("get_placed_decor", &"oficina") as Array).is_empty() and (game_state.get("decor_inventory") as Array).is_empty(), "una partida vieja empieza sin decoración")
 	_check(game_state.get("colors")[&"piso_garage"] == &"concreto_oscuro" and game_state.get("colors")[&"piso_oficina"] == &"laminado_claro", "una partida vieja migra su piso al garage")
+
+
+## Las dos ventanas de la oficina ya no están en el arte: se entregan una sola vez al abrir el cuarto,
+## se pueden mover y guardar, pero no vender ni comprar.
+func _test_initial_windows(game_state: Node, save_system: Node, simulation: Node) -> void:
+	var window := DecorData.find(&"ventana_oficina")
+	_check(window != null and not window.in_shop and not window.can_sell(), "la ventana de la oficina no se compra ni se vende")
+	_check(DecorData.find(&"trofeo").can_sell() == false, "el trofeo sigue sin poder venderse")
+	_check(DecorData.find(&"sillon").in_shop and DecorData.find(&"sillon").can_sell(), "los demás objetos siguen en la tienda y se venden")
+	var room := RoomData.load_room(&"oficina")
+	_check(room.initial_decor.size() == 2, "la oficina define dos ventanas iniciales")
+	var initial := DecorLayout.new(room, room.initial_decor)
+	for entry: Dictionary in room.initial_decor:
+		_check(DecorLayout.new(room).can_place(window, StringName(entry["ori"]), DecorLayout.get_position(entry)), "cada ventana inicial cabe en un cuarto vacío")
+	_check(not initial.can_place(window, &"der", Vector2(4.0, 8.84)), "no se puede encimar otra ventana sobre una inicial")
+
+	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 1000})
+	game_state.call("start_new_game", "Prueba", "TestCorp")
+	_check((game_state.call("get_placed_decor", &"oficina") as Array).is_empty(), "antes de abrir la oficina no hay ventanas")
+	var office := (load("res://scenes/rooms/oficina.tscn") as PackedScene).instantiate()
+	root.add_child(office)
+	await process_frame
+	var placed: Array = game_state.call("get_placed_decor", &"oficina")
+	_check(placed.size() == 2 and placed[0]["id"] == "ventana_oficina" and placed[1]["id"] == "ventana_oficina", "al abrir la oficina aparecen las dos ventanas")
+	var placer: Node = office.get_node("%DecorPlacer")
+	# Se guarda una ventana en el inventario: abrir otra vez la oficina no la devuelve a la pared.
+	placer.call("select", 0)
+	var toolbar: CanvasLayer = office.get_node("%DecorToolbar")
+	_check(not (toolbar.get_node("%SellButton") as Button).visible or placer.call("get_selected_index") == 0, "la ventana seleccionada no ofrece vender")
+	_check(not _shop.call("sell_placed", &"oficina", 0), "vender una ventana no hace nada")
+	(toolbar.get_node("%StoreButton") as Button).pressed.emit()
+	_check(game_state.call("count_in_inventory", &"ventana_oficina") == 1 and (game_state.call("get_placed_decor", &"oficina") as Array).size() == 1, "una ventana se guarda en el inventario")
+	office.free()
+	await process_frame
+	office = (load("res://scenes/rooms/oficina.tscn") as PackedScene).instantiate()
+	root.add_child(office)
+	await process_frame
+	_check((game_state.call("get_placed_decor", &"oficina") as Array).size() == 1 and game_state.call("count_in_inventory", &"ventana_oficina") == 1, "las ventanas no se entregan dos veces")
+	office.free()
+	await process_frame
+
+	# Guardar y cargar conserva que ya se entregaron.
+	_check(save_system.call("save_game") and save_system.call("load_game"), "guardar y cargar con ventanas")
+	_check(game_state.call("count_in_inventory", &"ventana_oficina") == 1 and (game_state.call("get_placed_decor", &"oficina") as Array).size() == 1, "las ventanas sobreviven a guardar y cargar sin duplicarse")
+
+	# Una partida guardada antes de este cambio no tiene la marca: recibe las ventanas al abrir la oficina.
+	var config := ConfigFile.new()
+	config.load(save_system.get("save_path"))
+	config.erase_section_key("decor", "initial_granted")
+	config.save(save_system.get("save_path"))
+	_check(save_system.call("load_game"), "cargar una partida sin la marca de entregas")
+	(game_state.call("get_placed_decor", &"oficina") as Array).clear()
+	game_state.set("decor_inventory", [] as Array[StringName])
+	office = (load("res://scenes/rooms/oficina.tscn") as PackedScene).instantiate()
+	root.add_child(office)
+	await process_frame
+	_check((game_state.call("get_placed_decor", &"oficina") as Array).size() == 2, "una partida vieja recibe las ventanas al abrir la oficina")
+	office.free()
+	await process_frame
 
 
 func _check(condition: bool, label: String) -> void:

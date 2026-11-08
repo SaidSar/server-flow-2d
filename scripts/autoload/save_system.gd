@@ -11,9 +11,11 @@ extends Node
 signal saved
 
 ## 3: agrega player/avatar_id (las partidas sin él son de Alex).
+## 5: decoración inicial entregada por cuarto (decor/initial_granted). Las partidas anteriores no la traen
+##    y reciben las ventanas de la oficina al entrar a ella.
 ## 4: piso por cuarto (colors/piso_<cuarto>) y decoración (sección "decor"). Las partidas
 ##    anteriores migran su "piso" al garage y empiezan sin decoración.
-const SAVE_VERSION := 4
+const SAVE_VERSION := 5
 const SECTION_META := "meta"
 const SECTION_PLAYER := "player"
 const SECTION_COLORS := "colors"
@@ -85,6 +87,10 @@ func save_game() -> bool:
 	for decor_id: StringName in data["decor_inventory"]:
 		inventory.append(String(decor_id))
 	config.set_value(SECTION_DECOR, "inventory", inventory)
+	var granted := PackedStringArray()
+	for room_id: StringName in data["decor_initial_granted"]:
+		granted.append(String(room_id))
+	config.set_value(SECTION_DECOR, "initial_granted", granted)
 	var placed: Dictionary = data["decor_placed"]
 	for room_id: StringName in placed:
 		config.set_value(SECTION_DECOR, "placed_" + room_id, placed[room_id])
@@ -130,6 +136,7 @@ func load_game() -> bool:
 		"colors": colors,
 		"decor_inventory": config.get_value(SECTION_DECOR, "inventory", PackedStringArray()),
 		"decor_placed": decor_placed,
+		"decor_initial_granted": config.get_value(SECTION_DECOR, "initial_granted", PackedStringArray()),
 	})
 	Simulation.load_checkpoint(progress)
 	return true
