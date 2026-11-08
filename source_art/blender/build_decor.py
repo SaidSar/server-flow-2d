@@ -400,6 +400,33 @@ def ventana_2(r):
         o = bpy.context.active_object; o.scale = (1, 0.45, 1); o.parent = r; o.data.materials.append(C("v2_amarre", "#8c7a62", .8))
     return (0.9, 0.09), "pared"
 
+def ventana_oficina(r):
+    # La ventana original de la pared derecha de la oficina (antes dibujada en el muro): marco blanco de 2 hojas
+    # con travesaño, vidrio y repisa. Gratis, se puede mover y guardar pero no vender.
+    # Frente hacia -Y, respaldo en y = 0.16: el vidrio queda pegado al muro y el marco al frente.
+    w, d = 1.7, 0.16
+    marco = C("vo_marco", "#eef1f4", .5)
+    vidrio = C("vo_vidrio", "#9fcfe8", .12, 0.12)
+    brillo = C("vo_brillo", "#e8f6fc", .1, 0.5)
+    cube("Vidrio", (w / 2, d - 0.015, 1.75), (w - 0.1, 0.02, 1.3), vidrio, 0, r)
+    # reflejos del cristal: dos franjas claras en diagonal en cada uno de los 4 paneles
+    # (paralelogramos sueltos: así no dependen de rotaciones ni del padre).
+    for px in (0.06, 0.87):
+        for (z0, z1) in ((1.08, 1.78), (1.82, 2.42)):
+            alto = (z1 - z0) * 0.55
+            zc = (z0 + z1) / 2
+            for dx, ancho in ((0.24, 0.07), (0.38, 0.025)):
+                x0 = px + dx
+                v = [(x0, d - 0.027, zc - alto / 2), (x0 + ancho, d - 0.027, zc - alto / 2),
+                     (x0 + ancho + alto * 0.45, d - 0.027, zc + alto / 2), (x0 + alto * 0.45, d - 0.027, zc + alto / 2)]
+                me = bpy.data.meshes.new("Brillo"); me.from_pydata(v, [], [(0, 1, 2, 3)]); me.update()
+                o = bpy.data.objects.new("Brillo", me); sc.collection.objects.link(o)
+                o.data.materials.append(brillo); o.parent = r
+    for (dx, dz, sw, sh) in [(0, 0.7, w, .06), (0, -0.7, w, .06), (-w / 2 + .03, 0, .06, 1.46), (w / 2 - .03, 0, .06, 1.46), (0, 0, .04, 1.4), (0, 0.05, w, .04)]:
+        cube("Marco", (w / 2 + dx, d - 0.04, 1.75 + dz), (sw, 0.06, sh), marco, 0.005, r)
+    cube("Repisa", (w / 2, d - 0.08, 1.0), (w, 0.16, 0.05), marco, 0.01, r)
+    return (w, d), "pared"
+
 def cuadro_2(r):
     marco, lienzo = C("cq2m", "#3b2a1c", .6), C("cq2l", "#f0e6d2", .8)
     cube("Marco", (0.45, 0.025, 1.6), (0.9, 0.05, 0.7), marco, 0.01, r)
@@ -605,6 +632,8 @@ CATALOGO = [
   ("florero", "Florero", florero, 100), ("osito", "Osito", osito, 80), ("balon_voli", "Balón de voli", balon_voli, 60),
   ("colocador", "Colocador", colocador, 220), ("lampara_2", "Lámpara — diseño 2", lampara_2, 210),
   ("computadora_doble", "Computadora (doble monitor)", computadora_doble, 1500),
+  # Ventana original de la oficina (gratis; ya no está dibujada en el muro)
+  ("ventana_oficina", "Ventana de la oficina", ventana_oficina, 0),
 ]
 
 # ---------------- cámara y render ----------------

@@ -608,6 +608,10 @@ func _test_goal_missed(simulation: Node) -> void:
 ## comprar sillón → colocarlo → tocarlo → girarlo → guardarlo → colocarlo otra vez → venderlo.
 func _test_office_and_shop(game_state: Node, simulation: Node) -> void:
 	simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 2, "coins": 2000})
+	# Se aísla de las ventanas iniciales (se prueban en test_decor): la oficina arranca vacía.
+	(game_state.call("get_placed_decor", &"oficina") as Array).clear()
+	if not &"oficina" in (game_state.get("decor_initial_granted") as Array):
+		(game_state.get("decor_initial_granted") as Array).append(&"oficina")
 	change_scene_to_file(root.get_node("SceneRouter").call("get_current_room_path"))
 	_check(await _wait_for_scene(&"Oficina"), "Scale-up abre la oficina")
 	var office := current_scene

@@ -106,7 +106,8 @@ func _refresh() -> void:
 	_row_buttons.clear()
 	if _tab == Tab.SHOP:
 		for decor: DecorData in DecorData.load_catalog():
-			_rows_box.add_child(_shop_row(decor))
+			if decor.in_shop:
+				_rows_box.add_child(_shop_row(decor))
 	else:
 		var shown: Array[StringName] = []
 		for decor_id: StringName in GameState.decor_inventory:
