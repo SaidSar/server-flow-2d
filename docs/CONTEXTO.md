@@ -48,6 +48,7 @@
 
 ## 4. Flujo del juego
 Menú de título (Continuar deshabilitado si no hay partida) → Nueva partida → carga → elegir personaje → nombre del avatar → nombre de la empresa → cuarto de la etapa.
+- En el teléfono, el teclado en pantalla tapa ~2/3 de la pantalla: `NewGameSetup` lee `DisplayServer.virtual_keyboard_get_height()` y, con el teclado abierto, compacta las ventanas de nombre (`NamePrompt.set_compact`: sin paso ni ayuda) y las centra en el espacio libre sobre el teclado.
 - En el cuarto: clic en la PC → zoom de cámara → **dashboard** (donde se juega). "← Cuarto" regresa sin pausar la simulación; el cuarto refleja el estado (rack rojo, avatar estresado).
 - **Pincel** (HUD del cuarto): personalizar colores en vivo. **Engranaje** (abajo a la derecha): música, sonido, regresar, salir (pausa el juego). Abierto desde el dashboard agrega la fila **Tema** (Oscuro/Claro); desde el cuarto no.
 - Colores por defecto de una partida nueva: paredes `blanco_hueso`, piso `concreto_calido` (garage), puerta `madera_natural`, mesa `roble`.

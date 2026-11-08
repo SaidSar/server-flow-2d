@@ -24,6 +24,7 @@ color = Color(0.0784314, 0.0941176, 0.141176, 1)
 metadata/ui_tokens = {"color": "screen_bg"}
 
 [node name="Center" type="CenterContainer" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

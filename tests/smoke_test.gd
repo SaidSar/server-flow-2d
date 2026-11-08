@@ -296,6 +296,21 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	(character_select.get_node("%NextButton") as Button).pressed.emit()
 	_check(avatar_prompt.visible and not character_select.visible, "paso 2: nombre del avatar")
 	_check((avatar_prompt.get_node("%StepLabel") as Label).text == "Paso 2 de 3", "el nombre dice Paso 2 de 3")
+	# Teclado en pantalla del teléfono: la ventana se compacta y queda sobre el teclado (alto simulado: 66 % de la pantalla).
+	var keyboard_height := root.get_visible_rect().size.y * 0.66
+	current_scene.call("apply_keyboard_height", keyboard_height)
+	await process_frame
+	await process_frame
+	var name_edit := avatar_prompt.get_node("%NameEdit") as LineEdit
+	var prompt_rect := avatar_prompt.get_global_rect()
+	var visible_bottom := root.get_visible_rect().size.y - keyboard_height
+	_check(avatar_prompt.call("is_compact") and not (avatar_prompt.get_node("%HintLabel") as Control).visible, "con el teclado abierto la ventana de nombre se compacta")
+	_check(name_edit.get_global_rect().end.y <= visible_bottom and (avatar_prompt.get_node("%ConfirmButton") as Control).get_global_rect().end.y <= visible_bottom + 1.0, "con el teclado abierto el campo y los botones quedan sobre el teclado (%s / %s)" % [prompt_rect, visible_bottom])
+	_check(prompt_rect.position.y >= 0.0, "con el teclado abierto la ventana no se sale por arriba")
+	current_scene.call("apply_keyboard_height", 0.0)
+	await process_frame
+	await process_frame
+	_check(not avatar_prompt.call("is_compact") and (avatar_prompt.get_node("%HintLabel") as Control).visible and avatar_prompt.scale == Vector2.ONE, "al cerrar el teclado la ventana vuelve a su forma normal")
 	_check((avatar_prompt.get_node("%NameEdit") as LineEdit).placeholder_text == "Alexa", "el placeholder es Alexa")
 	(avatar_prompt.get_node("%BackButton") as Button).pressed.emit()
 	_check(character_select.visible and character_select.call("get_selected_id") == &"alexa", "Atrás regresa a la selección con Alexa elegida")
