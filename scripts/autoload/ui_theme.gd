@@ -85,8 +85,9 @@ const PALETTES := {
 		&"ok": Color("#3ddc84"),
 		&"warning": Color("#f5c542"),
 		&"danger": Color("#ff4d5e"),
-		## Aviso urgente del dashboard (cuello de botella, ataque DDoS).
-		&"alert": Color("#ff4d5e"),
+		## Aviso urgente del dashboard (cuello de botella, ataque DDoS): coral más claro que "danger" para
+		## mantener 4.5:1 sobre el panel aun en el punto más tenue del parpadeo.
+		&"alert": Color("#ff7a85"),
 		&"malicious": Color("#b06cff"),
 		&"blocked": Color("#f59973"),
 		&"ceo": Color("#e0569b"),

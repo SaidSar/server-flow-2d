@@ -13,10 +13,10 @@ const INVESTMENT_TEXT := "¡%s, lo logramos! Eres {el mejor|la mejor} SysAdmin q
 const INVESTMENT_BUTTON := "¡Vamos!"
 const SPEEDS: Array[float] = [1.0, 2.0]
 const BACK_FADE_SECONDS := 0.15
-## Parpadeo del aviso (opacidad media ± amplitud). En el tema claro baja menos: sobre fondo blanco,
-## un rojo al 20 % casi no se ve y el aviso debe leerse siempre.
-const ALERT_PULSE_DARK := Vector2(0.6, 0.4)
-const ALERT_PULSE_LIGHT := Vector2(0.875, 0.125)
+## Parpadeo del aviso (opacidad media ± amplitud): oscila entre 80 % y 100 %. En oscuro llegaba a 20 %
+## de opacidad y casi desaparecía (1.3:1 de contraste); a 80 % se queda sobre 4.5:1 en los dos temas
+## (con el token "alert" de cada tema) y el aviso se lee siempre.
+const ALERT_PULSE := Vector2(0.9, 0.1)
 const RESOURCE_NAMES := {
 	&"cpu": "CPU",
 	&"ram": "RAM",
@@ -112,8 +112,25 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _bottleneck_label.visible:
-		var pulse := ALERT_PULSE_LIGHT if UiTheme.is_light() else ALERT_PULSE_DARK
-		_bottleneck_label.modulate.a = pulse.x + pulse.y * sin(Time.get_ticks_msec() * 0.006)
+		_bottleneck_label.modulate.a = ALERT_PULSE.x + ALERT_PULSE.y * sin(Time.get_ticks_msec() * 0.006)
+
+
+## Contraste (WCAG) del aviso en su punto más tenue contra el panel del monitor, en el tema actual.
+func get_alert_min_contrast() -> float:
+	var background := UiTheme.color(&"panel")
+	var faded := UiTheme.color(&"alert").lerp(background, 1.0 - (ALERT_PULSE.x - ALERT_PULSE.y))
+	return _contrast_ratio(faded, background)
+
+
+static func _contrast_ratio(a: Color, b: Color) -> float:
+	var la := _relative_luminance(a)
+	var lb := _relative_luminance(b)
+	return (maxf(la, lb) + 0.05) / (minf(la, lb) + 0.05)
+
+
+static func _relative_luminance(color: Color) -> float:
+	var linear := color.srgb_to_linear()
+	return 0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
 
 
 func _unhandled_input(event: InputEvent) -> void:
