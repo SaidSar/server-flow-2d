@@ -4,7 +4,8 @@ Cuarto 9x9 m. Conserva escritorio, silla, avatar y puerta en la MISMA posición 
 así sus sprites se reutilizan con un desplazamiento (dx, dy). Los racks se mueven a la pared derecha.
 Renderiza a 2x: piso (3 variantes), pared_izq (10), pared_der (10; sin ventanas),
 y escribe office_meta.json con: lienzo, proyección mundo→píxel (para colocación libre),
-desplazamientos de los sprites reutilizados y zonas ocupadas.
+alto_muro_m (altura real de los muros, igual que build_data_center.py), desplazamientos de los
+sprites reutilizados y zonas ocupadas.
 Uso: python3 build_office.py <salida> <menu.png> [preview]
 """
 import sys, math, json, os
@@ -17,6 +18,7 @@ exec(SRC[:SRC.index("room = build_room()")])
 sc.eevee.taa_render_samples = 16   # escena, luces, materiales M, build_desk/chair/rack
 
 N = 9
+WALL_H = 3.2   # alto de los muros en metros; también va a office_meta.json como alto_muro_m (tope de altura de la decoración)
 P2 = dict(lam="#c9a77c", lam_seam="#a8875e", marco_ven="#eef1f4", vidrio="#9fd3f2", repisa="#d9d4c7", pizarra="#f4f4f4")
 M["piso_of"] = mat("piso_of", P2["lam"], 0.6)
 M["junta"] = mat("junta", P2["lam_seam"], 0.7)
@@ -34,8 +36,8 @@ def build_office():
             x = (k * 1.2 + (0.6 if i % 2 else 0)) % N
             if 0.05 < x < N - 0.05:
                 cube("JuntaT", (x, i * 0.3 + 0.15, 0.001), (0.012, 0.3, 0.002), M["junta"], 0, r)
-    cube("Pared_Izq", (-0.06, N/2, 1.6), (0.12, N, 3.2), M["pared_izq"], 0, r)
-    cube("Pared_Der", (N/2, N + 0.06, 1.6), (N, 0.12, 3.2), M["pared_der"], 0, r)
+    cube("Pared_Izq", (-0.06, N/2, WALL_H/2), (0.12, N, WALL_H), M["pared_izq"], 0, r)
+    cube("Pared_Der", (N/2, N + 0.06, WALL_H/2), (N, 0.12, WALL_H), M["pared_der"], 0, r)
     cube("Zoclo_Izq", (0.01, N/2, 0.06), (0.04, N, 0.12), M["zoclo"], 0, r)
     cube("Zoclo_Der", (N/2, N - 0.01, 0.06), (N, 0.04, 0.12), M["zoclo"], 0, r)
     # puerta: misma posición que el garage
@@ -160,6 +162,7 @@ ex = [RIGHT.x * PPM2, -UP.x * PPM2]; ey = [RIGHT.y * PPM2, -UP.y * PPM2]; ez = [
 origin = proj((0, 0, 0))
 meta = {
   "room": "oficina", "canvas": [W, H], "escala_nodo": 0.5,
+  "alto_muro_m": WALL_H,
   "proyeccion": {"nota": "pixel(lienzo 2x) = origen + x*ex + y*ey + z*ez  (x, y, z en metros del mundo)",
                  "origen": [round(origin[0], 3), round(origin[1], 3)], "ex": ex, "ey": ey, "ez": ez},
   "cuadricula": {"celda_m": 0.5, "x": [0, N], "y": [0, N],

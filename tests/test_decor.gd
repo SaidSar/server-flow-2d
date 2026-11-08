@@ -277,7 +277,7 @@ func _test_layout() -> void:
 func _test_wall_height() -> void:
 	var office := RoomData.load_room(&"oficina")
 	var data_center := RoomData.load_room(&"data_center")
-	_check(is_equal_approx(office.wall_height_m, 2.6) and is_equal_approx(data_center.wall_height_m, 3.2), "el alto de los muros viene del JSON del cuarto")
+	_check(is_equal_approx(office.wall_height_m, 3.2) and is_equal_approx(data_center.wall_height_m, 3.2), "el alto de los muros viene del JSON del cuarto")
 	var picture := DecorData.find(&"cuadro")
 	var neon := DecorData.find(&"neon")
 	var window := DecorData.find(&"ventana_1")
@@ -286,11 +286,11 @@ func _test_wall_height() -> void:
 	var empty_office := DecorLayout.new(office)
 	var empty_dc := DecorLayout.new(data_center)
 
-	# Límites de altura: el cuadro (z 1.25–1.95) sube hasta el techo de 2.6 m y baja hasta 0.25 m.
-	_check(is_equal_approx(empty_office.clamp_dz(picture, 5.0), 0.5), "el cuadro no sube más del techo (dz %s)" % empty_office.clamp_dz(picture, 5.0))
+	# Límites de altura: el cuadro (z 1.25–1.95) sube hasta el techo de 3.2 m y baja hasta 0.25 m.
+	_check(is_equal_approx(empty_office.clamp_dz(picture, 5.0), 1.25), "el cuadro no sube más del techo (dz %s)" % empty_office.clamp_dz(picture, 5.0))
 	_check(is_equal_approx(empty_office.clamp_dz(picture, -5.0), -1.0), "el cuadro no baja del piso (dz %s)" % empty_office.clamp_dz(picture, -5.0))
 	_check(is_equal_approx(empty_office.clamp_dz(picture, 0.12), 0.0) and is_equal_approx(empty_office.clamp_dz(picture, 0.13), 0.25), "la altura se ajusta a pasos de 0.25 m")
-	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 0.0), -1, 0.75), "no se cuelga por arriba del techo")
+	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 0.0), -1, 1.5), "no se cuelga por arriba del techo")
 	_check(not empty_office.can_place(picture, &"izq", Vector2(0.0, 0.0), -1, -1.25), "no se cuelga por debajo del mínimo")
 
 	# La altura cuenta contra las zonas prohibidas: el cuadro choca con el monitor a su altura base pero no más arriba.
@@ -312,7 +312,8 @@ func _test_wall_height() -> void:
 	# find_valid_dz busca en las dos direcciones: ventana bajo el riel o sobre el monitor del escritorio.
 	var desk_dz := empty_dc.find_valid_dz(window_2, &"izq", Vector2(0.0, 2.0), -0.5)
 	_check(not is_nan(desk_dz) and empty_dc.can_place(window_2, &"izq", Vector2(0.0, 2.0), -1, desk_dz) and window_2.height_m.x + desk_dz >= 1.6 - 0.001, "data center: la ventana 2 se acomoda sobre el monitor del escritorio (dz %s)" % desk_dz)
-	_check(is_nan(empty_office.find_valid_dz(window_2, &"izq", Vector2(0.0, 2.0))), "oficina: el muro de 2.6 m no deja la ventana 2 sobre el monitor")
+	var office_desk_dz := empty_office.find_valid_dz(window_2, &"izq", Vector2(0.0, 2.0))
+	_check(not is_nan(office_desk_dz) and empty_office.can_place(window_2, &"izq", Vector2(0.0, 2.0), -1, office_desk_dz), "oficina: con el muro de 3.2 m la ventana 2 también cabe sobre el monitor (dz %s)" % office_desk_dz)
 	var under_rail := empty_dc.find_valid_dz(window, &"der", Vector2(3.9, 11.91), 1.0)
 	_check(not is_nan(under_rail) and empty_dc.can_place(window, &"der", Vector2(3.9, 11.91), -1, under_rail), "data center: más a la derecha la ventana también cabe bajo el riel (dz %s)" % under_rail)
 
