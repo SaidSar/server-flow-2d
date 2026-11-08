@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/dashboard/upgrade_info_panel.tscn" id="8_info"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialog_box.tscn" id="9_dialog"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_button.tscn" id="10_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/tutorial_overlay.tscn" id="11_tutorial"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/icon_coin.svg" id="11_coin"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/icon_users.svg" id="12_users"]
 
@@ -312,3 +313,10 @@ layout_mode = 1
 [node name="SettingsButton" parent="." instance=ExtResource("10_settings")]
 unique_name_in_owner = true
 show_theme_option = true
+
+[node name="TutorialOverlay" parent="." instance=ExtResource("11_tutorial")]
+unique_name_in_owner = true
+scene_id = &"dashboard"
+pause_simulation = true
+compact_top = 118.0
+fallback_text = "Regresa al cuarto para seguir con el tutorial."

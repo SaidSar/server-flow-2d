@@ -7,6 +7,8 @@ extends Control
 ## Funciona con el árbol en pausa (process_mode = ALWAYS); quien lo abre pausa y reanuda el juego.
 
 signal closed
+## "Ver tutorial otra vez": el tutorial ya se reinició (Tutorial.start); quien abrió el panel lleva al jugador al cuarto.
+signal tutorial_replay_requested
 
 const MUTE_TEXT := "Silenciar"
 const UNMUTE_TEXT := "Activar"
@@ -26,6 +28,7 @@ const CLOSE_TEXT := "Cerrar"
 @onready var _theme_dark_button: Button = %ThemeDarkButton
 @onready var _theme_light_button: Button = %ThemeLightButton
 @onready var _fullscreen_check: CheckButton = %FullscreenCheck
+@onready var _tutorial_button: Button = %TutorialButton
 @onready var _return_button: Button = %ReturnButton
 @onready var _quit_button: Button = %QuitButton
 @onready var _confirm_quit_button: Button = %ConfirmQuitButton
@@ -43,6 +46,7 @@ func _ready() -> void:
 	_theme_dark_button.pressed.connect(Settings.set_ui_theme.bind(UiTheme.DARK))
 	_theme_light_button.pressed.connect(Settings.set_ui_theme.bind(UiTheme.LIGHT))
 	_fullscreen_check.toggled.connect(_on_fullscreen_toggled)
+	_tutorial_button.pressed.connect(_on_tutorial_pressed)
 	_return_button.pressed.connect(close)
 	_quit_button.pressed.connect(_show_confirm.bind(true))
 	_cancel_quit_button.pressed.connect(_show_confirm.bind(false))
@@ -61,6 +65,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func open(show_theme: bool = false, in_game: bool = true) -> void:
 	_theme_row.visible = show_theme
 	_quit_button.visible = in_game
+	_tutorial_button.visible = in_game and Tutorial.get_step_count() > 0
 	_return_button.text = RETURN_TEXT if in_game else CLOSE_TEXT
 	# En Android el juego siempre es pantalla completa.
 	_fullscreen_check.visible = not in_game and OS.get_name() != "Android"
@@ -161,6 +166,12 @@ func _show_confirm(confirm: bool) -> void:
 		_cancel_quit_button.grab_focus()
 	elif visible:
 		_return_button.grab_focus()
+
+
+func _on_tutorial_pressed() -> void:
+	Tutorial.start()
+	close()
+	tutorial_replay_requested.emit()
 
 
 func _save_and_quit() -> void:

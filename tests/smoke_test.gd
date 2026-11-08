@@ -86,6 +86,8 @@ func _run() -> void:
 
 	# Partida nueva, guardado y carga
 	game_state.call("start_new_game", "Prueba", "TestCorp")
+	# El tutorial de Briseida tiene su propia prueba (test_tutorial.gd); aquí estorbaría a los toques.
+	game_state.set("tutorial_step", -1)
 	_check(game_state.get("colors")[&"piso_garage"] == &"concreto_calido", "piso del garage por defecto")
 	_check(game_state.get("colors")[&"piso_oficina"] == &"laminado_claro", "piso de la oficina por defecto")
 	_check(game_state.get("colors")[&"piso_data_center"] == &"tecnico_gris", "piso del data center por defecto")
@@ -311,6 +313,10 @@ func _test_full_flow(game_state: Node, save_system: Node, simulation: Node) -> v
 	(company_prompt.get_node("%ConfirmButton") as Button).pressed.emit()
 	_check(await _wait_for_scene(&"Garage"), "Comenzar abre el garage")
 	_check(save_system.call("has_save"), "la partida se guardó al comenzar")
+	_check(game_state.get("tutorial_step") == 0, "la partida nueva empieza el tutorial")
+	# El tutorial de Briseida tiene su propia prueba (test_tutorial.gd); aquí estorbaría a los toques.
+	root.get_node("Tutorial").call("skip")
+	await process_frame
 
 	var garage := current_scene
 	_check((garage.get_node("%Hud").get_node("%TitleLabel") as Label).text == "Nexus Test · Startup", "HUD con empresa y etapa")
@@ -396,7 +402,7 @@ func _test_dashboard(dashboard: Node, simulation: Node) -> void:
 	var monitor: Node = dashboard.get_node("%TrafficMonitor")
 	_check(monitor.call("get_server_count") == 1, "el monitor muestra 1 servidor")
 	var byte: Control = dashboard.get_node("%ByteBubble")
-	_check(byte.visible and str(byte.call("get_text")).contains("BYTE"), "BYTE da el tutorial de la oleada 1")
+	_check(byte.visible and str(byte.call("get_text")).contains("Servidor Web"), "BYTE da el tutorial de la oleada 1")
 	await _test_settings_in_dashboard(dashboard, simulation)
 	await _test_upgrade_info(dashboard, simulation)
 	await create_timer(0.6).timeout
