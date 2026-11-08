@@ -48,9 +48,18 @@
 
 ## 4. Flujo del juego
 Menú de título (Continuar deshabilitado si no hay partida) → Nueva partida → carga → elegir personaje → nombre del avatar → nombre de la empresa → cuarto de la etapa.
+- En el teléfono, el teclado en pantalla tapa ~2/3 de la pantalla: `NewGameSetup` lee `DisplayServer.virtual_keyboard_get_height()` y, con el teclado abierto, compacta las ventanas de nombre (`NamePrompt.set_compact`: sin paso ni ayuda) y las centra en el espacio libre sobre el teclado.
 - En el cuarto: clic en la PC → zoom de cámara → **dashboard** (donde se juega). "← Cuarto" regresa sin pausar la simulación; el cuarto refleja el estado (rack rojo, avatar estresado).
 - **Pincel** (HUD del cuarto): personalizar colores en vivo. **Engranaje** (abajo a la derecha): música, sonido, regresar, salir (pausa el juego). Abierto desde el dashboard agrega la fila **Tema** (Oscuro/Claro); desde el cuarto no.
 - Colores por defecto de una partida nueva: paredes `blanco_hueso`, piso `concreto_calido` (garage), puerta `madera_natural`, mesa `roble`.
+
+### 4.1 Tutorial de Briseida y BYTE (solo partidas nuevas)
+- Guion en `data/tutorial/tutorial_steps.json` (8 pasos; placeholders `{jugador}`, `{empresa}`, `{masculino|femenino}`). Lógica en el autoload `Tutorial` (`scripts/autoload/tutorial.gd`) y la clase `TutorialStep`; la interfaz es `scenes/ui/tutorial_overlay.tscn` (CanvasLayer 15), instanciada en el cuarto y en el dashboard.
+- Flujo: bienvenida y garage (cuarto) → toca la PC (acción `tap_pc`) → BYTE se presenta con su globo → SLA (bloque de salud resaltado) → comprar una mejora (acción `buy_upgrade`, consola resaltada) → alerta y cierre al terminar la oleada (post-mortem). Los pasos de acción dejan pasar los toques y muestran un "TAP" pulsante; "Omitir paso" y "Saltar tutorial" siempre están.
+- Briseida aparece de cintura para arriba **a la izquierda al 70 % de la altura**, con 3 expresiones (`normal`, `contenta`, `preocupada`) en `assets/art/characters/briseida/briseida_busto_*.png` (533×800, transparentes). Se generaron con IA de Canva usando el retrato original de Carlos (`briseida_retrato.png`) como referencia; no se editan a mano.
+- Pasos de lectura pausan la simulación. En el dashboard la caja de pasos de acción va arriba (`compact_top`) para no tapar la consola; los mensajes normales de BYTE **se descartan** mientras Briseida habla (`ByteBubble.set_held`; al terminar estarían desactualizados) y en el cuarto se oculta el aviso del HUD. Con el tutorial activo BYTE no dice el texto de la oleada 1 (se presenta dentro del tutorial); si el jugador lo salta en plena oleada 1, BYTE se presenta entonces. "Ver tutorial otra vez" guarda el reinicio.
+- Guardado v6: `player/tutorial_step` (-1 = terminado; las partidas anteriores no lo traen y no ven el tutorial). Ajustes → "Ver tutorial otra vez" (solo dentro de una partida) lo reinicia.
+- Pruebas: `tests/test_tutorial.gd`; `smoke_test.gd` lo salta tras crear la partida.
 
 ## 5. Dashboard
 HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usuarios/meta; bloque de **salud del sistema**: SLA; velocidad y "← Cuarto") · monitor de tráfico (Clientes → [Firewall] → [Load Balancer] → Servidores → BD, paquetes verde/amarillo/rojo/morado) · consola de mejoras (botón del cuello de botella resaltado; pulsación larga o "i" abre la ficha con el concepto que enseña). Tráfico mostrado ×100 (`display_scale`). Simulación con paso fijo de 0.1 s y semilla configurable; modelo descrito en `scripts/autoload/simulation.gd` y `docs/balance.md`.
@@ -94,8 +103,8 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
   - partida alterna para pruebas y mediciones (`--save-path`, `SERVERFLOW_SAVE_PATH` o `user://save_path_override.txt` en Android debug).
 - **v0.5.0 (en `main`, tag `v0.5.0`; PR #13 y #14):** data center de Enterprise con bay de 9 racks, vidrio y placa de Firewall; Firewall como mejora de la consola; DDoS con tráfico de fondo y picos que crecen con la oleada (parámetros en `enterprise.tres`, ya no en cada oleada); cuadrícula y racks leídos del JSON de cada cuarto; `tests/test_ddos.gd`; arte v2 y meta de 110,000 (ver 2.1 y 2.2).
 - **v0.6.0 (PR #15–#23):** tema Oscuro/Claro con tokens y HUD en 2 bloques (#15); retrato de Briseida en sus diálogos, PNG transparente recortado en círculo (#16); menú de título animado de Jesús sincronizado desde `main` (#17); 18 objetos de mobiliario nuevos con altura movible en la pared y con imán (#18); ventanas de la oficina como piezas movibles y guardables que no se compran ni se venden, con guardado v5 (#19); destello rojo en la pantalla de la PC con saturación (#20); post-mortem y pantallas de fin que no se desbordan, con scroll cuando el área es baja (#21); "!!" rojo sobre la cabeza del personaje con saturación (#22); `alto_muro_m` generado por `build_office.py` (muros de 3.2 m) y aviso de ataque con contraste ≥ 4.5:1 en los dos temas (#23).
-- **En revisión:** nada por ahora.
-- **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retrato de BYTE en diálogos; tutorial de Briseida/BYTE para partidas nuevas; PRs A, D y E del feedback de Jaq (paleta/texturas/vestimenta, fondo exterior día/noche, mascotas con pathfinding).
+- **En revisión:** tutorial de Briseida y BYTE (rama `feature/tutorial-briseida`, ver 4.1).
+- **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retrato de BYTE en diálogos; PRs A, D y E del feedback de Jaq (paleta/texturas/vestimenta, fondo exterior día/noche, mascotas con pathfinding).
 
 ## 9. Cómo trabajar
 1. `git checkout develop && git pull` → crea `feature/<tu-tarea>`.

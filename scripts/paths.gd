@@ -31,10 +31,14 @@ const AVATARS_DIR := "res://resources/avatars"
 const AVATAR := "res://resources/avatars/%s.tres"
 ## Retrato de Briseida (la CEO) para sus diálogos: PNG con fondo transparente.
 const CEO_PORTRAIT := "res://assets/art/characters/briseida/briseida_retrato.png"
+## Busto de Briseida (cintura para arriba) del tutorial: briseida_busto_<expresión>.png, 533×800, fondo transparente.
+const CEO_BUST := "res://assets/art/characters/briseida/briseida_busto_%s.png"
 
 ## Cuartos: data/rooms/<id>.json (lienzo, offsets, proyección...).
 const ROOM_IDS: Array[StringName] = [&"garage", &"oficina", &"data_center"]
 const ROOM_DATA := "res://data/rooms/%s.json"
+## Guion del tutorial de Briseida y BYTE.
+const TUTORIAL_STEPS_JSON := "res://data/tutorial/tutorial_steps.json"
 ## Catálogo de la tienda de decoración.
 const DECOR_CATALOG_JSON := "res://data/decor/catalogo.json"
 

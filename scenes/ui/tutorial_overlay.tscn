@@ -1,0 +1,97 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/tutorial_overlay.gd" id="1_overlay"]
+[ext_resource type="Script" path="res://scripts/ui/tutorial_highlight.gd" id="2_highlight"]
+
+[node name="TutorialOverlay" type="CanvasLayer"]
+layer = 15
+script = ExtResource("1_overlay")
+
+[node name="Root" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Highlight" type="Control" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_highlight")
+
+[node name="Bust" type="TextureRect" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Box" type="PanelContainer" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 0
+
+[node name="Column" type="VBoxContainer" parent="Root/Box"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TextLabel" type="Label" parent="Root/Box/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+autowrap_mode = 3
+metadata/ui_tokens = {"font_color": "text"}
+
+[node name="Footer" type="HBoxContainer" parent="Root/Box/Column"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Dots" type="HBoxContainer" parent="Root/Box/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="Spacer" type="Control" parent="Root/Box/Column/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="SkipStepButton" type="Button" parent="Root/Box/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Omitir paso"
+flat = true
+
+[node name="SkipButton" type="Button" parent="Root/Box/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Saltar tutorial"
+flat = true
+
+[node name="MoreLabel" type="Label" parent="Root/Box/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "▼"
+mouse_filter = 2
+
+[node name="Tab" type="PanelContainer" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+
+[node name="TabLabel" type="Label" parent="Root/Tab"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Briseida · CEO"

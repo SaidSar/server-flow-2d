@@ -17,6 +17,8 @@ const CAMERA_ZOOM_MONITOR := Vector2(12.0, 12.0)
 const CAMERA_ZOOM_SECONDS := 0.8
 const CAMERA_PAN_SECONDS := 0.35
 const DASHBOARD_FADE_SECONDS := 0.15
+## Mitad del recuadro que el tutorial dibuja alrededor de la PC, en píxeles del mundo (se multiplica por el zoom).
+const PC_HIGHLIGHT_HALF_SIZE := Vector2(70.0, 60.0)
 ## Alto aproximado de la barra de decoración: la cámara sube la mitad para que no tape el piso.
 const DECOR_TOOLBAR_HEIGHT := 200.0
 ## Hueco de la mesa con el avatar en ysort_m.
@@ -40,6 +42,7 @@ const DESK_SLOT := &"mesa"
 @onready var _customize_panel: CustomizePanel = %CustomizePanel
 @onready var _shop_panel: ShopPanel = %ShopPanel
 @onready var _settings_button: SettingsButton = %SettingsButton
+@onready var _tutorial: TutorialOverlay = %TutorialOverlay
 
 var room_data: RoomData
 ## Capa personalizable → sprite que la dibuja.
@@ -81,6 +84,9 @@ func _ready() -> void:
 	(%Desk as Sprite2D).add_child(_pc_glow)
 	_pc_glow.set_active(Simulation.is_saturated)
 	_decor_placer.setup(self)
+	_tutorial.register_highlight(&"pc", _get_pc_highlight_rect)
+	# El aviso "vuelve a la PC" del HUD sale del paso: Briseida ya lo está diciendo.
+	_tutorial.box_visibility_changed.connect(_hud.set_alert_suppressed)
 
 	GameState.color_changed.connect(_apply_color)
 	Simulation.saturation_changed.connect(_on_saturation_changed)
@@ -235,8 +241,18 @@ func _on_pc_area_mouse_exited() -> void:
 	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 
 
+## Rectángulo en pantalla de la PC (el tutorial la resalta con "TAP").
+func _get_pc_highlight_rect() -> Rect2:
+	var center := get_viewport().get_canvas_transform() * _monitor_focus.global_position
+	var half := PC_HIGHLIGHT_HALF_SIZE * _camera.zoom
+	return Rect2(center - half, half * 2.0)
+
+
 func _enter_monitor() -> void:
 	_set_pc_enabled(false)
+	# El tutorial (paso "toca la computadora") avanza y se esconde mientras la cámara hace zoom.
+	Tutorial.notify_action(&"tap_pc")
+	_tutorial.set_suspended(true)
 	_hud.hide()
 	var tween := _tween_camera(_monitor_focus.global_position, CAMERA_ZOOM_MONITOR, CAMERA_ZOOM_SECONDS, Tween.EASE_IN)
 	tween.finished.connect(SceneRouter.goto.bind(Paths.DASHBOARD, DASHBOARD_FADE_SECONDS))

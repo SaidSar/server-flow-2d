@@ -28,6 +28,7 @@ Simulation="*res://scripts/autoload/simulation.gd"
 GameState="*res://scripts/autoload/game_state.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
 SceneRouter="*res://scripts/autoload/scene_router.gd"
+Tutorial="*res://scripts/autoload/tutorial.gd"
 
 [display]
 

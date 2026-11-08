@@ -19,6 +19,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_gear_button.pressed.connect(open)
 	_menu.closed.connect(_on_menu_closed)
+	_menu.tutorial_replay_requested.connect(_on_tutorial_replay_requested)
 	SceneRouter.safe_area_changed.connect(_place_button)
 	_place_button()
 
@@ -82,6 +83,12 @@ func _on_go_back() -> void:
 
 func _on_menu_closed() -> void:
 	get_tree().paused = false
+
+
+## El tutorial empieza en el cuarto: desde el dashboard (show_theme_option) se regresa a él.
+func _on_tutorial_replay_requested() -> void:
+	if show_theme_option:
+		SceneRouter.goto_current_room()
 
 
 ## Coloca el engranaje respetando la zona segura (cámara, barra de gestos) en celulares.
