@@ -31,6 +31,8 @@ const AVATARS_DIR := "res://resources/avatars"
 const AVATAR := "res://resources/avatars/%s.tres"
 ## Patrones repetibles de paredes y pisos: assets/art/texturas/<id>.png (256 px = 1 m).
 const PATTERN_TEXTURE := "res://assets/art/texturas/%s.png"
+const PETS_JSON := "res://data/pets/mascotas.json"
+const PET_SHEET := "res://assets/art/mascotas/%s.png"
 const BACKDROP_TEXTURE := "res://assets/art/fondos/%s.png"
 ## Shader que recolorea o estampa un patrón sobre el render de una pared o piso.
 const SURFACE_SHADER := "res://assets/shaders/superficie.gdshader"

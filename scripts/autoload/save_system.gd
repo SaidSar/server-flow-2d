@@ -11,6 +11,7 @@ extends Node
 signal saved
 
 ## 3: agrega player/avatar_id (las partidas sin él son de Alex).
+## 8: pets/owned (mascotas compradas, un id por mascota). Las partidas anteriores no lo traen y empiezan sin mascotas.
 ## 7: colors/camiseta (color de la camiseta) y customization/unlocked (opciones de pago compradas: colores pastel y
 ##    texturas). Las partidas anteriores no los traen: camiseta original y nada desbloqueado.
 ## 6: player/tutorial_step (paso del tutorial; -1 = terminado). Las partidas anteriores no lo traen y no ven el tutorial.
@@ -18,13 +19,14 @@ signal saved
 ##    y reciben las ventanas de la oficina al entrar a ella.
 ## 4: piso por cuarto (colors/piso_<cuarto>) y decoración (sección "decor"). Las partidas
 ##    anteriores migran su "piso" al garage y empiezan sin decoración.
-const SAVE_VERSION := 7
+const SAVE_VERSION := 8
 const SECTION_META := "meta"
 const SECTION_PLAYER := "player"
 const SECTION_COLORS := "colors"
 const SECTION_PROGRESS := "progress"
 const SECTION_DECOR := "decor"
 const SECTION_CUSTOMIZATION := "customization"
+const SECTION_PETS := "pets"
 const SAVE_PATH_ARG := "--save-path="
 const SAVE_PATH_ENV := "SERVERFLOW_SAVE_PATH"
 const SAVE_PATH_OVERRIDE_FILE := "user://save_path_override.txt"
@@ -95,6 +97,10 @@ func save_game() -> bool:
 	for option_id: StringName in data["unlocked_options"]:
 		unlocked.append(String(option_id))
 	config.set_value(SECTION_CUSTOMIZATION, "unlocked", unlocked)
+	var owned_pets := PackedStringArray()
+	for pet_id: StringName in data["pets"]:
+		owned_pets.append(String(pet_id))
+	config.set_value(SECTION_PETS, "owned", owned_pets)
 	config.set_value(SECTION_DECOR, "inventory", inventory)
 	var granted := PackedStringArray()
 	for room_id: StringName in data["decor_initial_granted"]:
@@ -145,6 +151,7 @@ func load_game() -> bool:
 		"tutorial_step": config.get_value(SECTION_PLAYER, "tutorial_step", GameState.TUTORIAL_DONE),
 		"colors": colors,
 		"unlocked_options": config.get_value(SECTION_CUSTOMIZATION, "unlocked", PackedStringArray()),
+		"pets": config.get_value(SECTION_PETS, "owned", PackedStringArray()),
 		"decor_inventory": config.get_value(SECTION_DECOR, "inventory", PackedStringArray()),
 		"decor_placed": decor_placed,
 		"decor_initial_granted": config.get_value(SECTION_DECOR, "initial_granted", PackedStringArray()),

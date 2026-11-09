@@ -3,14 +3,16 @@ extends CanvasLayer
 ## Panel lateral de la tienda de decoración, con dos pestañas:
 ## - Tienda: miniatura, nombre, precio, tamaño en celdas, "tienes n" y "Comprar".
 ## - Inventario: lo guardado, con "Colocar".
+## - Mascotas: gato y perro, con precio y "Comprar" (se quedan en la empresa y caminan por el cuarto).
 ## Solo emite lo que pidió el jugador; DecorPlacer compra, coloca y guarda.
 
 signal opened
 signal closed
 signal buy_requested(decor_id: StringName)
 signal place_requested(decor_id: StringName)
+signal pet_buy_requested(pet_id: StringName)
 
-enum Tab { SHOP, INVENTORY }
+enum Tab { SHOP, INVENTORY, PETS }
 
 const THUMB_SIZE := Vector2(104, 104)
 ## Ancho máximo del panel: 560 px o el 30 % del ancho de la pantalla, lo que sea menor.
@@ -20,6 +22,7 @@ const MAX_WIDTH_RATIO := 0.3
 @onready var _coins_label: Label = %CoinsLabel
 @onready var _shop_tab: Button = %ShopTab
 @onready var _inventory_tab: Button = %InventoryTab
+@onready var _pets_tab: Button = %PetsTab
 @onready var _rows_box: VBoxContainer = %RowsBox
 @onready var _close_button: Button = %CloseButton
 
@@ -37,10 +40,13 @@ func _ready() -> void:
 	var tabs := ButtonGroup.new()
 	_shop_tab.button_group = tabs
 	_inventory_tab.button_group = tabs
+	_pets_tab.button_group = tabs
 	_shop_tab.pressed.connect(show_tab.bind(Tab.SHOP))
 	_inventory_tab.pressed.connect(show_tab.bind(Tab.INVENTORY))
+	_pets_tab.pressed.connect(show_tab.bind(Tab.PETS))
 	_close_button.pressed.connect(close)
 	GameState.decor_changed.connect(_queue_refresh)
+	GameState.pets_changed.connect(_queue_refresh)
 	Simulation.infrastructure_changed.connect(_queue_refresh)
 
 
@@ -80,6 +86,7 @@ func show_tab(tab: Tab) -> void:
 	_tab = tab
 	_shop_tab.set_pressed_no_signal(tab == Tab.SHOP)
 	_inventory_tab.set_pressed_no_signal(tab == Tab.INVENTORY)
+	_pets_tab.set_pressed_no_signal(tab == Tab.PETS)
 	_refresh()
 
 
@@ -104,7 +111,10 @@ func _refresh() -> void:
 		_rows_box.remove_child(child)
 		child.queue_free()
 	_row_buttons.clear()
-	if _tab == Tab.SHOP:
+	if _tab == Tab.PETS:
+		for pet: PetData in PetData.load_catalog():
+			_rows_box.add_child(_pet_row(pet))
+	elif _tab == Tab.SHOP:
 		for decor: DecorData in DecorData.load_catalog():
 			if decor.in_shop:
 				_rows_box.add_child(_shop_row(decor))
@@ -131,6 +141,15 @@ func _shop_row(decor: DecorData) -> Control:
 	return _row(decor, info, blocked, button)
 
 
+func _pet_row(pet: PetData) -> Control:
+	var blocked := PetShop.get_buy_block_reason(pet)
+	var info := "%s monedas · tienes %d" % [NumberFormat.thousands(pet.price), GameState.count_pets(pet.id)]
+	var button := _row_button("Comprar", not blocked.is_empty())
+	button.pressed.connect(pet_buy_requested.emit.bind(pet.id))
+	_row_buttons[pet.id] = button
+	return _row_with(pet.display_name, pet.get_frame_texture(PetData.FRAME_IDLE), info, blocked, button, pet.description)
+
+
 func _inventory_row(decor: DecorData) -> Control:
 	var info := "En inventario: %d" % GameState.count_in_inventory(decor.id)
 	var button := _row_button("Colocar", false)
@@ -140,6 +159,10 @@ func _inventory_row(decor: DecorData) -> Control:
 
 
 func _row(decor: DecorData, info: String, blocked: String, button: Button) -> Control:
+	return _row_with(decor.display_name, decor.orientations[decor.get_default_orientation()].load_texture(), info, blocked, button)
+
+
+func _row_with(title: String, picture: Texture2D, info: String, blocked: String, button: Button, extra: String = "") -> Control:
 	var row := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = DashboardColors.CARD_ALT
@@ -151,7 +174,7 @@ func _row(decor: DecorData, info: String, blocked: String, button: Button) -> Co
 	row.add_child(box)
 
 	var thumb := TextureRect.new()
-	thumb.texture = decor.orientations[decor.get_default_orientation()].load_texture()
+	thumb.texture = picture
 	thumb.custom_minimum_size = THUMB_SIZE
 	thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -160,8 +183,10 @@ func _row(decor: DecorData, info: String, blocked: String, button: Button) -> Co
 	var texts := VBoxContainer.new()
 	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	texts.alignment = BoxContainer.ALIGNMENT_CENTER
-	texts.add_child(_label(decor.display_name, 28, DashboardColors.TEXT_TITLE))
+	texts.add_child(_label(title, 28, DashboardColors.TEXT_TITLE))
 	texts.add_child(_label(info, 22, DashboardColors.TEXT_SOFT))
+	if not extra.is_empty():
+		texts.add_child(_label(extra, 20, DashboardColors.TEXT_MUTED))
 	if not blocked.is_empty():
 		texts.add_child(_label(blocked, 22, DashboardColors.BLOCKED))
 	box.add_child(texts)
