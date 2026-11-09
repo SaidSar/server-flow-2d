@@ -31,6 +31,7 @@ const DESK_SLOT := &"mesa"
 
 @onready var _camera: Camera2D = %Camera
 @onready var _layers: Node2D = %Layers
+@onready var _ysort: Node2D = %YSort
 @onready var _workstation: Node2D = %Workstation
 @onready var _racks: Array[Sprite2D] = [%Rack as Sprite2D, %Rack2 as Sprite2D]
 @onready var _boxes: Sprite2D = %Boxes
@@ -57,6 +58,8 @@ var _camera_tween: Tween
 var _pc_glow: PcAlertGlow
 ## Fondo exterior (ciudad de día o de noche) detrás del cuarto.
 var _backdrop: RoomBackdrop
+## Mascotas que caminan por el cuarto (las compradas en la Tienda).
+var _pet_keeper: PetKeeper
 
 
 func _ready() -> void:
@@ -76,6 +79,11 @@ func _ready() -> void:
 	_apply_backdrop(GameState.get_color(&"fondo"))
 	_build_racks()
 	_place_ysort_holders()
+	_pet_keeper = PetKeeper.new()
+	_pet_keeper.name = "PetKeeper"
+	add_child(_pet_keeper)
+	_pet_keeper.setup(room_id, room_data, _ysort)
+	_shop_panel.pet_buy_requested.connect(_on_pet_buy_requested)
 
 	for layer: StringName in _layer_sprites:
 		_apply_color(layer, GameState.get_color(layer))
@@ -172,6 +180,17 @@ func _place_ysort_holders() -> void:
 		var slot := _rack_slots[i] if i < _rack_slots.size() else &""
 		holder.position = room_data.get_ysort_position(slot)
 		holder.visible = i == 0 or room_data.reuses(slot)
+
+
+func get_pet_keeper() -> PetKeeper:
+	return _pet_keeper
+
+
+func _on_pet_buy_requested(pet_id: StringName) -> void:
+	var pet := PetData.find(pet_id)
+	if pet != null and PetShop.buy(pet):
+		# Como la decoración: se guarda al comprar, para no perder la compra si la app se cierra a la fuerza.
+		SaveSystem.save_game()
 
 
 func _apply_backdrop(option_id: StringName) -> void:

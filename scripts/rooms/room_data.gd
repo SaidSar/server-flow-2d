@@ -37,6 +37,15 @@ var rack_slots: Array[StringName] = []
 ## sin ese dato, rack_k muestra el servidor k.
 var rack_servers: Dictionary[StringName, int] = {}
 
+## Piso por donde caminan las mascotas, en metros (la cuadrícula de decoración o, en el garage, "mascotas.piso_m").
+var pet_bounds := Rect2()
+## Zonas del piso donde las mascotas no pueden pisar (escritorio, puerta, racks, vidrio, cajas...).
+var pet_blocked: Array[Rect2] = []
+## Punto donde el gato se echa a dormir (centro de casilla, metros).
+var pet_rest_point := Vector2.ZERO
+## mascota (id) → punto donde se esconde cuando hay saturación.
+var pet_shelters: Dictionary[StringName, Vector2] = {}
+
 static var _cache: Dictionary[StringName, RoomData] = {}
 
 
@@ -53,6 +62,11 @@ static func load_room(room_id: StringName) -> RoomData:
 		push_error("No se pudo leer %s" % path)
 	_cache[room_id] = room
 	return room
+
+
+## ¿El cuarto trae datos para que caminen mascotas?
+func has_pet_area() -> bool:
+	return pet_bounds.has_area()
 
 
 func has_decor() -> bool:
@@ -121,6 +135,8 @@ func _parse(data: Dictionary) -> void:
 		if rack is Dictionary and (rack as Dictionary).has("rack_id"):
 			rack_servers[StringName(str(rack["rack_id"]))] = int((rack as Dictionary).get("servidor", 1)) - 1
 
+	_parse_pet_area(data.get("mascotas", {}))
+
 	var ysort: Dictionary = data.get("ysort_m", {})
 	for key: String in ysort:
 		if ysort[key] is Array:
@@ -143,3 +159,26 @@ func _parse(data: Dictionary) -> void:
 					var height := RoomProjection.parse_vector((zone as Dictionary).get("z"))
 					zones.append(Rect2(span.x, height.x, span.y - span.x, height.y - height.x))
 			wall_forbidden[StringName(wall)] = zones
+
+
+## Zona de las mascotas: el piso y las zonas ocupadas salen de la cuadrícula de decoración si el cuarto la trae;
+## el bloque "mascotas" del JSON puede agregar las suyas (el garage no tiene cuadrícula).
+func _parse_pet_area(raw: Variant) -> void:
+	if not raw is Dictionary:
+		return
+	var pets: Dictionary = raw
+	if projection != null:
+		pet_bounds = projection.bounds
+		pet_blocked.append_array(projection.occupied)
+	var floor_size := RoomProjection.parse_vector(pets.get("piso_m"))
+	if floor_size != Vector2.ZERO:
+		pet_bounds = Rect2(Vector2.ZERO, floor_size)
+	for zone: Variant in pets.get("ocupado_m", []):
+		if zone is Dictionary:
+			var zx := RoomProjection.parse_vector((zone as Dictionary).get("x"))
+			var zy := RoomProjection.parse_vector((zone as Dictionary).get("y"))
+			pet_blocked.append(Rect2(zx.x, zy.x, zx.y - zx.x, zy.y - zy.x))
+	pet_rest_point = RoomProjection.parse_vector(pets.get("descanso"))
+	var shelters: Dictionary = pets.get("refugio", {}) if pets.get("refugio") is Dictionary else {}
+	for pet_id: String in shelters:
+		pet_shelters[StringName(pet_id)] = RoomProjection.parse_vector(shelters[pet_id])
