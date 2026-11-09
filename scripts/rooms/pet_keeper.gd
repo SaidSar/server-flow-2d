@@ -58,6 +58,7 @@ func _spawn(data: PetData) -> void:
 	var pet := Pet.new()
 	pet.name = "Pet_%s_%d" % [data.id, _pets.size()]
 	_holder.add_child(pet)
+	pet.sleep_spot_picker = _pick_sleep_spot
 	pet.setup(data, _room, _grid, _spawn_point())
 	_pets.append(pet)
 
@@ -69,6 +70,16 @@ func _spawn_point() -> Vector2:
 		taken.append(_grid.cell_of(pet.get_position_m()))
 	var cell := _grid.nearest_open_cell(_grid.cell_of(_room.pet_rest_point), taken)
 	return _grid.center_of(cell) if cell.x >= 0 else _room.pet_bounds.position
+
+
+## Sitio de siesta junto al punto de descanso que no usen ya otras mascotas (dormidas o en camino a dormir).
+func _pick_sleep_spot(sleeper: Pet) -> Vector2:
+	var taken: Array[Vector2i] = []
+	for pet: Pet in _pets:
+		if pet != sleeper and pet.get_sleep_spot_m() != Vector2.INF:
+			taken.append(_grid.cell_of(pet.get_sleep_spot_m()))
+	var cell := _grid.nearest_open_cell(_grid.cell_of(_room.pet_rest_point), taken)
+	return _grid.center_of(cell) if cell.x >= 0 else _room.pet_rest_point
 
 
 func _get_placed() -> Array:

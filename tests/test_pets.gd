@@ -334,6 +334,31 @@ func _test_room_scene() -> void:
 		_simulation.emit_signal("saturation_changed", false)
 		_game_state.set("pets", [&"gato", &"perro"] as Array[StringName])
 		_game_state.emit_signal("pets_changed")
+		# Varios gatos que duermen a la vez no lo hacen encimados.
+		var cat_data := PetData.find(&"gato")
+		var old_chance := cat_data.sleep_chance
+		cat_data.sleep_chance = 1.0
+		_game_state.set("pets", [&"gato", &"gato", &"gato", &"gato"] as Array[StringName])
+		_game_state.emit_signal("pets_changed")
+		var sleepers: Array = keeper.call("get_pets")
+		var all_asleep := false
+		for i in 3000:
+			for pet in sleepers:
+				pet.call("step", STEP)
+			all_asleep = true
+			for pet in sleepers:
+				if not pet.call("is_sleeping"):
+					all_asleep = false
+			if all_asleep:
+				break
+		var sleep_cells := {}
+		for pet in sleepers:
+			sleep_cells[crowd_grid.cell_of(pet.call("get_position_m"))] = true
+		_check(all_asleep, "%s: los 4 gatos llegan a dormir" % room_id)
+		_check(sleep_cells.size() == sleepers.size(), "%s: cada gato duerme en su casilla (%d de %d)" % [room_id, sleep_cells.size(), sleepers.size()])
+		cat_data.sleep_chance = old_chance
+		_game_state.set("pets", [&"gato", &"perro"] as Array[StringName])
+		_game_state.emit_signal("pets_changed")
 		# Comprar una más la agrega al cuarto en vivo.
 		_game_state.call("add_pet", &"gato")
 		_check(keeper.call("get_pets").size() == 3, "%s: una compra nueva aparece al momento" % room_id)

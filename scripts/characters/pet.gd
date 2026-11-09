@@ -28,6 +28,9 @@ var _path_index := 0
 var _wait := 1.0
 var _scared := false
 var _shelter_m := Vector2.INF
+var _sleep_spot_m := Vector2.INF
+## Opcional: PetKeeper la usa para repartir un sitio de siesta distinto a cada mascota. Recibe la mascota y devuelve metros.
+var sleep_spot_picker: Callable
 var _going_to_sleep := false
 var _facing := 1
 var _anim_time := 0.0
@@ -78,6 +81,13 @@ func get_target_m() -> Vector2:
 ## Punto de refugio de la última vez que se asustó (Vector2.INF si nunca).
 func get_shelter_m() -> Vector2:
 	return _shelter_m
+
+
+## Sitio de su siesta (Vector2.INF si no duerme ni va a dormir).
+func get_sleep_spot_m() -> Vector2:
+	if state == State.SLEEP or _going_to_sleep:
+		return _sleep_spot_m
+	return Vector2.INF
 
 
 func get_path_points() -> PackedVector2Array:
@@ -159,13 +169,17 @@ func _choose_next() -> void:
 	_going_to_sleep = false
 	if data.sleep_chance > 0.0 and _room.pet_rest_point != Vector2.ZERO and _rng.randf() < data.sleep_chance:
 		_going_to_sleep = true
-		_walk_to(_room.pet_rest_point)
+		_sleep_spot_m = _room.pet_rest_point
+		if sleep_spot_picker.is_valid():
+			_sleep_spot_m = sleep_spot_picker.call(self)
+		_walk_to(_sleep_spot_m)
 		if state == State.WALK:
 			return
-		if _grid.cell_of(_position_m) == _grid.cell_of(_room.pet_rest_point):
+		if _grid.cell_of(_position_m) == _grid.cell_of(_sleep_spot_m):
 			_fall_asleep()
 			return
 		_going_to_sleep = false
+		_sleep_spot_m = Vector2.INF
 	var target := _grid.pick_random_point(_position_m, _rng)
 	if target == Vector2.INF:
 		_wait = _random_idle()
