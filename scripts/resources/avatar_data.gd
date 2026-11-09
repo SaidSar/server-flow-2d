@@ -14,6 +14,13 @@ const DEFAULT_ID := &"alex"
 ## "m" o "f": elige la forma de los textos con género (ver TextUtil).
 @export_enum("m", "f") var gender: String = "m"
 
+@export_group("Camiseta")
+## Tono (0–1), saturación y valor de la sudadera original en el render. El shader de la camiseta
+## recolorea solo los píxeles cercanos a este tono.
+@export_range(0.0, 1.0) var shirt_hue := 0.61
+@export_range(0.0, 1.0) var shirt_saturation := 0.71
+@export_range(0.0, 1.0) var shirt_value := 0.97
+
 @export_group("Sprites")
 ## Poses sentado, recortadas del lienzo 2x del cuarto (offsets en layer_offsets.json).
 @export_file("*.png") var teclea_a: String

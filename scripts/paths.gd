@@ -29,6 +29,13 @@ const STAGES := {
 ## Personajes elegibles: resources/avatars/<id>.tres
 const AVATARS_DIR := "res://resources/avatars"
 const AVATAR := "res://resources/avatars/%s.tres"
+## Patrones repetibles de paredes y pisos: assets/art/texturas/<id>.png (256 px = 1 m).
+const PATTERN_TEXTURE := "res://assets/art/texturas/%s.png"
+const BACKDROP_TEXTURE := "res://assets/art/fondos/%s.png"
+## Shader que recolorea o estampa un patrón sobre el render de una pared o piso.
+const SURFACE_SHADER := "res://assets/shaders/superficie.gdshader"
+## Shader que recolorea la sudadera/camiseta del avatar.
+const SHIRT_SHADER := "res://assets/shaders/camiseta.gdshader"
 ## Retrato de Briseida (la CEO) para sus diálogos: PNG con fondo transparente.
 const CEO_PORTRAIT := "res://assets/art/characters/briseida/briseida_retrato.png"
 ## Busto de Briseida (cintura para arriba) del tutorial: briseida_busto_<expresión>.png, 533×800, fondo transparente.

@@ -11,17 +11,20 @@ extends Node
 signal saved
 
 ## 3: agrega player/avatar_id (las partidas sin él son de Alex).
+## 7: colors/camiseta (color de la camiseta) y customization/unlocked (opciones de pago compradas: colores pastel y
+##    texturas). Las partidas anteriores no los traen: camiseta original y nada desbloqueado.
 ## 6: player/tutorial_step (paso del tutorial; -1 = terminado). Las partidas anteriores no lo traen y no ven el tutorial.
 ## 5: decoración inicial entregada por cuarto (decor/initial_granted). Las partidas anteriores no la traen
 ##    y reciben las ventanas de la oficina al entrar a ella.
 ## 4: piso por cuarto (colors/piso_<cuarto>) y decoración (sección "decor"). Las partidas
 ##    anteriores migran su "piso" al garage y empiezan sin decoración.
-const SAVE_VERSION := 6
+const SAVE_VERSION := 7
 const SECTION_META := "meta"
 const SECTION_PLAYER := "player"
 const SECTION_COLORS := "colors"
 const SECTION_PROGRESS := "progress"
 const SECTION_DECOR := "decor"
+const SECTION_CUSTOMIZATION := "customization"
 const SAVE_PATH_ARG := "--save-path="
 const SAVE_PATH_ENV := "SERVERFLOW_SAVE_PATH"
 const SAVE_PATH_OVERRIDE_FILE := "user://save_path_override.txt"
@@ -88,6 +91,10 @@ func save_game() -> bool:
 	var inventory := PackedStringArray()
 	for decor_id: StringName in data["decor_inventory"]:
 		inventory.append(String(decor_id))
+	var unlocked := PackedStringArray()
+	for option_id: StringName in data["unlocked_options"]:
+		unlocked.append(String(option_id))
+	config.set_value(SECTION_CUSTOMIZATION, "unlocked", unlocked)
 	config.set_value(SECTION_DECOR, "inventory", inventory)
 	var granted := PackedStringArray()
 	for room_id: StringName in data["decor_initial_granted"]:
@@ -137,6 +144,7 @@ func load_game() -> bool:
 		"company_name": config.get_value(SECTION_PLAYER, "company_name", ""),
 		"tutorial_step": config.get_value(SECTION_PLAYER, "tutorial_step", GameState.TUTORIAL_DONE),
 		"colors": colors,
+		"unlocked_options": config.get_value(SECTION_CUSTOMIZATION, "unlocked", PackedStringArray()),
 		"decor_inventory": config.get_value(SECTION_DECOR, "inventory", PackedStringArray()),
 		"decor_placed": decor_placed,
 		"decor_initial_granted": config.get_value(SECTION_DECOR, "initial_granted", PackedStringArray()),

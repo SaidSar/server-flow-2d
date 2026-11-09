@@ -5,5 +5,28 @@
   1318
  ],
  "escala_nodo": 0.5,
- "nota": "El garage no tiene decoración: sin proyección ni cuadrícula. Sus capas usan layer_offsets.json y su piso la paleta de paleta.json."
+ "nota": "El garage no tiene decoración: sin proyección ni cuadrícula. Sus capas usan layer_offsets.json y su piso la paleta de paleta.json.",
+ "superficies": {
+  "nota": "Proyección del lienzo 2x del garage (6×6 m) solo para las texturas de paredes y piso; el garage no admite decoración. Origen = esquina izquierda del piso.",
+  "origen": [
+   28.0,
+   906.0
+  ],
+  "ex": [
+   128.0,
+   64.0
+  ],
+  "ey": [
+   128.0,
+   -64.0
+  ],
+  "ez": [
+   0.0,
+   -156.76735
+  ],
+  "tamano_m": [
+   6.0,
+   6.0
+  ]
+ }
 }

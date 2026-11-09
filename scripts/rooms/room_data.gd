@@ -10,6 +10,9 @@ var id: StringName
 var canvas_size := Vector2.ZERO
 ## null si el cuarto no admite decoración (el garage).
 var projection: RoomProjection
+## Proyección para estampar texturas en paredes y piso. Es la misma `projection` si el cuarto admite decoración;
+## el garage (sin decoración) la trae aparte en "superficies". null = el cuarto no admite texturas.
+var surfaces: RoomProjection
 ## Opciones de piso propias. Vacío = se usa el grupo "piso" de paleta.json.
 var floor_options: Array[CustomizationOption] = []
 ## "<cuarto>/<capa>/<id>" → posición en el lienzo 2x.
@@ -88,6 +91,11 @@ func _parse(data: Dictionary) -> void:
 	canvas_size = RoomProjection.parse_vector(data.get("canvas"))
 	if data.get("proyeccion") is Dictionary:
 		projection = RoomProjection.from_dict(data["proyeccion"], data.get("cuadricula", {}))
+		surfaces = projection
+	elif data.get("superficies") is Dictionary:
+		var raw: Dictionary = data["superficies"]
+		var size := RoomProjection.parse_vector(raw.get("tamano_m"))
+		surfaces = RoomProjection.from_dict(raw, {"x": [0.0, size.x], "y": [0.0, size.y]})
 	floor_options = CustomizationCatalog.parse_options(data.get("paleta_piso", []))
 
 	var layers: Dictionary = data.get("capas_offsets", {})

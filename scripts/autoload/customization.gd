@@ -20,6 +20,8 @@ const LAYER_GROUPS := {
 	&"pared_der": &"pared",
 	&"puerta": &"puerta",
 	&"mesa": &"mesa",
+	&"camiseta": &"camiseta",
+	&"fondo": &"fondo",
 }
 
 const LAYER_TITLES := {
@@ -27,6 +29,8 @@ const LAYER_TITLES := {
 	&"pared_der": "Pared derecha",
 	&"puerta": "Puerta",
 	&"mesa": "Mesa",
+	&"camiseta": "Camiseta",
+	&"fondo": "Fondo exterior",
 }
 const FLOOR_TITLE := "Piso"
 
@@ -38,6 +42,8 @@ const DEFAULT_COLORS := {
 	&"piso_garage": &"concreto_calido",
 	&"puerta": &"madera_natural",
 	&"mesa": &"roble",
+	&"camiseta": &"original",
+	&"fondo": &"oscuro",
 }
 
 var catalog: CustomizationCatalog
@@ -59,13 +65,13 @@ func get_all_layers() -> Array[StringName]:
 	var layers: Array[StringName] = [&"pared_izq", &"pared_der"]
 	for room_id: StringName in Paths.ROOM_IDS:
 		layers.append(get_floor_layer(room_id))
-	layers.append_array([&"puerta", &"mesa"])
+	layers.append_array([&"puerta", &"mesa", &"camiseta", &"fondo"])
 	return layers
 
 
 ## Capas de un cuarto, en el orden en que aparecen en el panel del pincel.
 func get_room_layers(room_id: StringName) -> Array[StringName]:
-	return [&"pared_izq", &"pared_der", get_floor_layer(room_id), &"puerta", &"mesa"]
+	return [&"pared_izq", &"pared_der", get_floor_layer(room_id), &"puerta", &"mesa", &"fondo", &"camiseta"]
 
 
 func get_floor_layer(room_id: StringName) -> StringName:
@@ -106,8 +112,9 @@ func get_default_option(layer: StringName) -> StringName:
 
 
 ## Devuelve un color válido para cada capa; los ids desconocidos se cambian por el valor por defecto.
-## Las partidas viejas guardaban el piso del garage como "piso".
-func sanitize_colors(raw_colors: Dictionary) -> Dictionary[StringName, StringName]:
+## Las partidas viejas guardaban el piso del garage como "piso". Una opción de pago que la partida no ha
+## desbloqueado (`unlocked`) también vuelve al valor por defecto.
+func sanitize_colors(raw_colors: Dictionary, unlocked: Array[StringName] = []) -> Dictionary[StringName, StringName]:
 	var colors := raw_colors.duplicate()
 	var garage_floor := get_floor_layer(&"garage")
 	if colors.has(LEGACY_FLOOR_LAYER) and not colors.has(garage_floor):
@@ -115,9 +122,12 @@ func sanitize_colors(raw_colors: Dictionary) -> Dictionary[StringName, StringNam
 	var result: Dictionary[StringName, StringName] = {}
 	for layer: StringName in get_all_layers():
 		var option_id := StringName(str(colors.get(layer, "")))
-		if not is_valid_option(layer, option_id):
+		var option := find_option(layer, option_id)
+		if option == null:
 			if option_id != &"":
 				push_warning("Color guardado desconocido %s/%s; se usa el valor por defecto." % [layer, option_id])
+			option_id = get_default_option(layer)
+		elif option.price > 0 and not unlocked.has(option.id):
 			option_id = get_default_option(layer)
 		result[layer] = option_id
 	return result
@@ -136,6 +146,83 @@ func load_layer_texture(room_id: StringName, layer: StringName, option_id: Strin
 		push_warning("No existe la textura %s; se usa el valor por defecto." % path)
 		path = get_layer_texture_path(room_id, layer, get_default_option(layer))
 	return load(path) as Texture2D
+
+
+#region Opciones de pago y con shader
+
+## Opciones de pago de `selection` (capa → id) que la partida aún no desbloquea, sin repetir:
+## una misma opción usada en las dos paredes se paga una vez.
+func get_locked_options(selection: Dictionary, unlocked: Array[StringName]) -> Array[CustomizationOption]:
+	var result: Array[CustomizationOption] = []
+	for layer: StringName in selection:
+		var option := find_option(layer, StringName(str(selection[layer])))
+		if option != null and option.price > 0 and not unlocked.has(option.id) and not result.has(option):
+			result.append(option)
+	return result
+
+
+func get_total_price(options: Array[CustomizationOption]) -> int:
+	var total := 0
+	for option: CustomizationOption in options:
+		total += option.price
+	return total
+
+
+## Dibuja la capa de una opción con shader (tinte o patrón) sobre el render de su opción base.
+## Si el cuarto no trae su proyección, el patrón se ve plano (sin perspectiva) pero no falla.
+func apply_procedural(sprite: Sprite2D, room_id: StringName, layer: StringName, option: CustomizationOption) -> void:
+	var base_option := find_option(layer, option.base_id)
+	if base_option == null:
+		push_warning("La opción %s/%s no tiene una base válida (%s)." % [layer, option.id, option.base_id])
+		sprite.material = null
+		return
+	var base_texture := load_layer_texture(room_id, layer, base_option.id)
+	apply_layer(sprite, base_texture)
+	var material := ShaderMaterial.new()
+	material.shader = load(Paths.SURFACE_SHADER) as Shader
+	material.set_shader_parameter(&"base_color", Vector3(base_option.color.r, base_option.color.g, base_option.color.b))
+	material.set_shader_parameter(&"layer_offset", get_layer_offset(base_texture))
+	var mask_option := find_option(layer, option.mask_id) if option.mask_id != &"" else null
+	material.set_shader_parameter(&"use_mask", mask_option != null)
+	if mask_option != null:
+		material.set_shader_parameter(&"mask_ref", load_layer_texture(room_id, layer, mask_option.id))
+	if option.kind == "patron":
+		material.set_shader_parameter(&"use_pattern", true)
+		material.set_shader_parameter(&"pattern", load(Paths.PATTERN_TEXTURE % option.pattern) as Texture2D)
+		material.set_shader_parameter(&"tile_m", option.tile_m)
+		var plane := get_surface_plane(room_id, layer)
+		material.set_shader_parameter(&"plane_origin", plane["origin"])
+		material.set_shader_parameter(&"plane_inv", plane["inverse"])
+		material.set_shader_parameter(&"flip_v", not is_floor_layer(layer))
+	else:
+		material.set_shader_parameter(&"tint", Vector3(option.color.r, option.color.g, option.color.b))
+	sprite.material = material
+
+
+## Plano de una pared o del piso en el lienzo 2x: { origin: Vector2, inverse: Vector4 }.
+## `inverse` es la matriz 2x2 (fila mayor) que lleva píxeles relativos a `origin` a metros (u, v) del plano:
+## pared izquierda (x = 0): (y, z); pared derecha (y = máximo): (x, z); piso: (x, y).
+func get_surface_plane(room_id: StringName, layer: StringName) -> Dictionary:
+	var surfaces := RoomData.load_room(room_id).surfaces
+	if surfaces == null:
+		return {"origin": Vector2.ZERO, "inverse": Vector4(1.0 / 256.0, 0.0, 0.0, 1.0 / 128.0)}
+	var origin := surfaces.origin
+	var axis_a := surfaces.ex
+	var axis_b := surfaces.ey
+	if layer == &"pared_izq":
+		axis_a = surfaces.ey
+		axis_b = surfaces.ez
+	elif layer == &"pared_der":
+		axis_a = surfaces.ex
+		axis_b = surfaces.ez
+		origin += surfaces.ey * surfaces.bounds.end.y
+	# Columnas (axis_a, axis_b): [[a, b], [c, d]] con a = axis_a.x, c = axis_a.y, b = axis_b.x, d = axis_b.y.
+	var det := axis_a.x * axis_b.y - axis_b.x * axis_a.y
+	if is_zero_approx(det):
+		return {"origin": origin, "inverse": Vector4(1.0 / 128.0, 0.0, 0.0, 1.0 / 128.0)}
+	return {"origin": origin, "inverse": Vector4(axis_b.y, -axis_b.x, -axis_a.y, axis_a.x) / det}
+
+#endregion
 
 
 ## Única forma de asignar la textura de una capa: textura y posición cambian juntas,
