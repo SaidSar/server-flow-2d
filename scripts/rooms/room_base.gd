@@ -188,8 +188,9 @@ func get_pet_keeper() -> PetKeeper:
 
 func _on_pet_buy_requested(pet_id: StringName) -> void:
 	var pet := PetData.find(pet_id)
-	if pet != null:
-		PetShop.buy(pet)
+	if pet != null and PetShop.buy(pet):
+		# Como la decoración: se guarda al comprar, para no perder la compra si la app se cierra a la fuerza.
+		SaveSystem.save_game()
 
 
 func _apply_backdrop(option_id: StringName) -> void:

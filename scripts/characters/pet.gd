@@ -27,6 +27,7 @@ var _path := PackedVector2Array()
 var _path_index := 0
 var _wait := 1.0
 var _scared := false
+var _shelter_m := Vector2.INF
 var _going_to_sleep := false
 var _facing := 1
 var _anim_time := 0.0
@@ -74,19 +75,25 @@ func get_target_m() -> Vector2:
 	return _path[_path.size() - 1]
 
 
+## Punto de refugio de la última vez que se asustó (Vector2.INF si nunca).
+func get_shelter_m() -> Vector2:
+	return _shelter_m
+
+
 func get_path_points() -> PackedVector2Array:
 	return _path.slice(_path_index) if state == State.WALK else PackedVector2Array()
 
 
 ## Con saturación corre a su refugio y se queda ahí; al terminar, vuelve a pasear.
-func set_scared(scared: bool) -> void:
+## `shelter_m` es el punto donde se refugia (si no se da, el refugio del cuarto); PetKeeper reparte uno distinto a cada mascota.
+func set_scared(scared: bool, shelter_m: Vector2 = Vector2.INF) -> void:
 	if _scared == scared:
 		return
 	_scared = scared
 	_going_to_sleep = false
 	if scared:
-		var shelter: Vector2 = _room.pet_shelters.get(data.id, _position_m)
-		_walk_to(shelter)
+		_shelter_m = shelter_m if shelter_m != Vector2.INF else _room.pet_shelters.get(data.id, _position_m)
+		_walk_to(_shelter_m)
 		if state != State.WALK:
 			state = State.IDLE
 			_wait = INF

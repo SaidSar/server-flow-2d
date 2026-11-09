@@ -50,6 +50,8 @@ func sync() -> void:
 		var data := PetData.find(pet_id)
 		if data != null:
 			_spawn(data)
+	if Simulation.is_saturated:
+		_apply_saturation(true)
 
 
 func _spawn(data: PetData) -> void:
@@ -57,13 +59,15 @@ func _spawn(data: PetData) -> void:
 	pet.name = "Pet_%s_%d" % [data.id, _pets.size()]
 	_holder.add_child(pet)
 	pet.setup(data, _room, _grid, _spawn_point())
-	pet.set_scared(Simulation.is_saturated)
 	_pets.append(pet)
 
 
-## Casilla libre junto al punto de descanso del cuarto (o la primera libre).
+## Casilla libre junto al punto de descanso del cuarto que no esté ya ocupada por otra mascota.
 func _spawn_point() -> Vector2:
-	var cell := _grid.nearest_free_cell(_grid.cell_of(_room.pet_rest_point))
+	var taken: Array[Vector2i] = []
+	for pet: Pet in _pets:
+		taken.append(_grid.cell_of(pet.get_position_m()))
+	var cell := _grid.nearest_open_cell(_grid.cell_of(_room.pet_rest_point), taken)
 	return _grid.center_of(cell) if cell.x >= 0 else _room.pet_bounds.position
 
 
@@ -78,5 +82,23 @@ func _on_decor_changed() -> void:
 
 
 func _on_saturation_changed(saturated: bool) -> void:
+	_apply_saturation(saturated)
+
+
+## Con saturación cada mascota corre a su refugio, pero a una casilla distinta (no se encima con las demás).
+func _apply_saturation(saturated: bool) -> void:
+	if not saturated:
+		for pet: Pet in _pets:
+			pet.set_scared(false)
+		return
+	var taken: Array[Vector2i] = []
 	for pet: Pet in _pets:
-		pet.set_scared(saturated)
+		if pet.is_scared():
+			taken.append(_grid.cell_of(pet.get_shelter_m()))
+	for pet: Pet in _pets:
+		if pet.is_scared():
+			continue
+		var shelter: Vector2 = _room.pet_shelters.get(pet.data.id, _room.pet_rest_point)
+		var cell := _grid.nearest_open_cell(_grid.cell_of(shelter), taken)
+		taken.append(cell)
+		pet.set_scared(true, _grid.center_of(cell) if cell.x >= 0 else Vector2.INF)

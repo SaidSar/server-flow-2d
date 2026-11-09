@@ -313,6 +313,27 @@ func _test_room_scene() -> void:
 		_check(pets.size() == 2, "%s muestra las 2 mascotas (%d)" % [room_id, pets.size()])
 		for pet in pets:
 			_check((pet as Node).get_parent() == scene.get_node("%YSort"), "%s: las mascotas van en el YSort" % room_id)
+		# Varias mascotas del mismo tipo no se encimen: ni al aparecer ni en el refugio.
+		_game_state.set("pets", [&"gato", &"gato", &"gato", &"perro", &"perro"] as Array[StringName])
+		_game_state.emit_signal("pets_changed")
+		var crowd: Array = keeper.call("get_pets")
+		_check(crowd.size() == 5, "%s: 5 mascotas para probar que no se encimen" % room_id)
+		var crowd_grid: PetGrid = keeper.call("get_grid")
+		var spawn_cells := {}
+		for pet in crowd:
+			spawn_cells[crowd_grid.cell_of(pet.call("get_position_m"))] = true
+		_check(spawn_cells.size() == crowd.size(), "%s: al aparecer cada mascota tiene su casilla (%d de %d)" % [room_id, spawn_cells.size(), crowd.size()])
+		_simulation.emit_signal("saturation_changed", true)
+		for i in 1500:
+			for pet in crowd:
+				pet.call("step", STEP)
+		var shelter_cells := {}
+		for pet in crowd:
+			shelter_cells[crowd_grid.cell_of(pet.call("get_position_m"))] = true
+		_check(shelter_cells.size() == crowd.size(), "%s: en el refugio cada mascota tiene su casilla (%d de %d)" % [room_id, shelter_cells.size(), crowd.size()])
+		_simulation.emit_signal("saturation_changed", false)
+		_game_state.set("pets", [&"gato", &"perro"] as Array[StringName])
+		_game_state.emit_signal("pets_changed")
 		# Comprar una más la agrega al cuarto en vivo.
 		_game_state.call("add_pet", &"gato")
 		_check(keeper.call("get_pets").size() == 3, "%s: una compra nueva aparece al momento" % room_id)

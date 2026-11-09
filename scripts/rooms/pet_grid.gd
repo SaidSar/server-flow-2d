@@ -83,6 +83,28 @@ func nearest_free_cell(cell: Vector2i) -> Vector2i:
 	return best
 
 
+## Casilla libre más cercana a `origin` (a la que se llega caminando) que no esté en `taken`.
+## Sirve para que las mascotas no se encimen al aparecer ni en el refugio. Si todas están tomadas, devuelve la más cercana.
+func nearest_open_cell(origin: Vector2i, taken: Array[Vector2i]) -> Vector2i:
+	var start := nearest_free_cell(origin)
+	if start.x < 0:
+		return start
+	var seen := {start: true}
+	var queue: Array[Vector2i] = [start]
+	var head := 0
+	while head < queue.size():
+		var cell := queue[head]
+		head += 1
+		if not taken.has(cell):
+			return cell
+		for step: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var next := cell + step
+			if not seen.has(next) and is_free(next):
+				seen[next] = true
+				queue.append(next)
+	return start
+
+
 ## Casillas libres a las que se llega caminando desde `cell` (sin contar la de origen).
 func get_reachable_cells(cell: Vector2i) -> Array[Vector2i]:
 	var found: Array[Vector2i] = []
