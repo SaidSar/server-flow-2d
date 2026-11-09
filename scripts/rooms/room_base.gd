@@ -173,6 +173,12 @@ func _apply_color(layer: StringName, option_id: StringName) -> void:
 	var sprite: Sprite2D = _layer_sprites.get(layer)
 	if sprite == null:
 		return
+	# Colores pastel y texturas: no tienen PNG propio, se dibujan con shader sobre el render de su base.
+	var option := Customization.find_option(layer, option_id)
+	if option != null and option.is_procedural():
+		Customization.apply_procedural(sprite, room_id, layer, option)
+		return
+	sprite.material = null
 	# La puerta y la mesa de la oficina son los sprites del garage, desplazados.
 	var texture_room := &"garage" if room_data.reuses(layer) else room_id
 	var texture := Customization.load_layer_texture(texture_room, layer, option_id)

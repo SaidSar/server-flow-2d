@@ -54,6 +54,202 @@
     "id": "grafito",
     "nombre": "Grafito",
     "color": "#4a4f5a"
+   },
+   {
+    "id": "pastel_verde_claro",
+    "nombre": "Verde claro",
+    "color": "#b3d276",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_rosa",
+    "nombre": "Rosa",
+    "color": "#eb7a9d",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_rosa_fuerte",
+    "nombre": "Rosa fuerte",
+    "color": "#e4598d",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_coral",
+    "nombre": "Coral",
+    "color": "#fa7b62",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_naranja",
+    "nombre": "Naranja",
+    "color": "#f08b31",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_amarillo",
+    "nombre": "Amarillo",
+    "color": "#fce081",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_verde_manzana",
+    "nombre": "Verde manzana",
+    "color": "#a3d369",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_menta_fresca",
+    "nombre": "Menta fresca",
+    "color": "#86d2c1",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_lila",
+    "nombre": "Lila",
+    "color": "#c5adcc",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_celeste",
+    "nombre": "Celeste",
+    "color": "#89c7e7",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_azul_pastel",
+    "nombre": "Azul pastel",
+    "color": "#c6d7e8",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "pastel_rosa_pastel",
+    "nombre": "Rosa pastel",
+    "color": "#f8c3d3",
+    "tipo": "tinte",
+    "precio": 50,
+    "base": "blanco_hueso",
+    "mascara": "grafito"
+   },
+   {
+    "id": "patron_rayas_pastel",
+    "nombre": "Rayas pastel",
+    "color": "#dde1d1",
+    "tipo": "patron",
+    "precio": 100,
+    "base": "blanco_hueso",
+    "mascara": "grafito",
+    "patron": "rayas_pastel",
+    "escala_m": 1.0
+   },
+   {
+    "id": "patron_lunares",
+    "nombre": "Lunares",
+    "color": "#f4e6ed",
+    "tipo": "patron",
+    "precio": 100,
+    "base": "blanco_hueso",
+    "mascara": "grafito",
+    "patron": "lunares",
+    "escala_m": 1.0
+   },
+   {
+    "id": "patron_flores",
+    "nombre": "Flores",
+    "color": "#f5e1d0",
+    "tipo": "patron",
+    "precio": 150,
+    "base": "blanco_hueso",
+    "mascara": "grafito",
+    "patron": "flores",
+    "escala_m": 1.0
+   },
+   {
+    "id": "patron_ondas",
+    "nombre": "Ondas",
+    "color": "#9cd0db",
+    "tipo": "patron",
+    "precio": 100,
+    "base": "blanco_hueso",
+    "mascara": "grafito",
+    "patron": "ondas",
+    "escala_m": 1.0
+   },
+   {
+    "id": "patron_rombos",
+    "nombre": "Rombos",
+    "color": "#f9caa8",
+    "tipo": "patron",
+    "precio": 150,
+    "base": "blanco_hueso",
+    "mascara": "grafito",
+    "patron": "rombos",
+    "escala_m": 1.0
+   },
+   {
+    "id": "patron_vichy_celeste",
+    "nombre": "Vichy celeste",
+    "color": "#e1f1f9",
+    "tipo": "patron",
+    "precio": 100,
+    "base": "blanco_hueso",
+    "mascara": "grafito",
+    "patron": "vichy_celeste",
+    "escala_m": 1.0
+   },
+   {
+    "id": "patron_hojas",
+    "nombre": "Hojas",
+    "color": "#d5ebc2",
+    "tipo": "patron",
+    "precio": 150,
+    "base": "blanco_hueso",
+    "mascara": "grafito",
+    "patron": "hojas",
+    "escala_m": 1.0
+   },
+   {
+    "id": "patron_escamas_pastel",
+    "nombre": "Arcoíris",
+    "color": "#d5cfc8",
+    "tipo": "patron",
+    "precio": 150,
+    "base": "blanco_hueso",
+    "mascara": "grafito",
+    "patron": "escamas_pastel",
+    "escala_m": 1.0
    }
   ],
   "piso": [
@@ -71,6 +267,66 @@
     "id": "concreto_oscuro",
     "nombre": "Concreto pulido oscuro",
     "color": "#6e747c"
+   },
+   {
+    "id": "piso_tablones_claros",
+    "nombre": "Tablones claros",
+    "color": "#dec39d",
+    "tipo": "patron",
+    "precio": 100,
+    "base": "concreto_gris",
+    "patron": "tablones_claros",
+    "escala_m": 1.0
+   },
+   {
+    "id": "piso_tablones_nogal",
+    "nombre": "Tablones nogal",
+    "color": "#866746",
+    "tipo": "patron",
+    "precio": 100,
+    "base": "concreto_gris",
+    "patron": "tablones_nogal",
+    "escala_m": 1.0
+   },
+   {
+    "id": "piso_parquet_miel",
+    "nombre": "Parquet miel",
+    "color": "#d0af84",
+    "tipo": "patron",
+    "precio": 150,
+    "base": "concreto_gris",
+    "patron": "parquet_miel",
+    "escala_m": 1.0
+   },
+   {
+    "id": "piso_damero_salvia",
+    "nombre": "Damero salvia",
+    "color": "#c1cbb0",
+    "tipo": "patron",
+    "precio": 100,
+    "base": "concreto_gris",
+    "patron": "damero_salvia",
+    "escala_m": 1.0
+   },
+   {
+    "id": "piso_azulejo_celeste",
+    "nombre": "Azulejo celeste",
+    "color": "#c9e5f4",
+    "tipo": "patron",
+    "precio": 100,
+    "base": "concreto_gris",
+    "patron": "azulejo_celeste",
+    "escala_m": 1.0
+   },
+   {
+    "id": "piso_mosaico_pastel",
+    "nombre": "Mosaico pastel",
+    "color": "#c4c9cd",
+    "tipo": "patron",
+    "precio": 150,
+    "base": "concreto_gris",
+    "patron": "mosaico_pastel",
+    "escala_m": 1.0
    }
   ],
   "puerta": [
@@ -120,6 +376,73 @@
     "id": "blanca",
     "nombre": "Blanca",
     "color": "#e9e4d8"
+   }
+  ],
+  "camiseta": [
+   {
+    "id": "original",
+    "nombre": "Original",
+    "color": "#4887f8"
+   },
+   {
+    "id": "cam_verde_claro",
+    "nombre": "Verde claro",
+    "color": "#b3d276"
+   },
+   {
+    "id": "cam_rosa",
+    "nombre": "Rosa",
+    "color": "#eb7a9d"
+   },
+   {
+    "id": "cam_rosa_fuerte",
+    "nombre": "Rosa fuerte",
+    "color": "#e4598d"
+   },
+   {
+    "id": "cam_coral",
+    "nombre": "Coral",
+    "color": "#fa7b62"
+   },
+   {
+    "id": "cam_naranja",
+    "nombre": "Naranja",
+    "color": "#f08b31"
+   },
+   {
+    "id": "cam_amarillo",
+    "nombre": "Amarillo",
+    "color": "#fce081"
+   },
+   {
+    "id": "cam_verde_manzana",
+    "nombre": "Verde manzana",
+    "color": "#a3d369"
+   },
+   {
+    "id": "cam_menta_fresca",
+    "nombre": "Menta fresca",
+    "color": "#86d2c1"
+   },
+   {
+    "id": "cam_lila",
+    "nombre": "Lila",
+    "color": "#c5adcc"
+   },
+   {
+    "id": "cam_celeste",
+    "nombre": "Celeste",
+    "color": "#89c7e7"
+   },
+   {
+    "id": "cam_azul_pastel",
+    "nombre": "Azul pastel",
+    "color": "#c6d7e8"
+   },
+   {
+    "id": "cam_rosa_pastel",
+    "nombre": "Rosa pastel",
+    "color": "#f8c3d3"
    }
   ]
  },

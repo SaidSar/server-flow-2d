@@ -10,6 +10,8 @@ signal changed
 signal color_changed(layer: StringName, option_id: StringName)
 ## Cambió el inventario de decoración o lo colocado en algún cuarto.
 signal decor_changed
+## Se desbloqueó (compró) una opción de personalización.
+signal unlocks_changed
 ## Empezó una partida (nueva o cargada).
 signal session_started
 
@@ -23,6 +25,8 @@ var avatar_name := ""
 var company_name := ""
 ## Capa → id de color (ver Customization.get_all_layers()).
 var colors: Dictionary[StringName, StringName] = {}
+## Ids de las opciones de pago de personalización ya compradas (sirven en todas las capas y cuartos).
+var unlocked_options: Array[StringName] = []
 ## Decoración comprada y guardada (un id por objeto; se repite si hay varios).
 var decor_inventory: Array[StringName] = []
 ## Cuarto → objetos colocados: {id, ori, x, y} con (x, y) la esquina mínima de la huella en metros.
@@ -40,6 +44,7 @@ func start_new_game(new_avatar_name: String, new_company_name: String, new_avata
 	_set_avatar(new_avatar_id)
 	avatar_name = new_avatar_name
 	company_name = new_company_name
+	unlocked_options.clear()
 	colors = Customization.sanitize_colors(Customization.DEFAULT_COLORS)
 	decor_inventory.clear()
 	decor_placed.clear()
@@ -55,8 +60,9 @@ func restore(data: Dictionary) -> void:
 	_set_avatar(StringName(str(data.get("avatar_id", AvatarData.DEFAULT_ID))))
 	avatar_name = str(data.get("avatar_name", ""))
 	company_name = str(data.get("company_name", ""))
+	_restore_unlocked(data.get("unlocked_options", []))
 	var saved_colors: Dictionary = data.get("colors", {})
-	colors = Customization.sanitize_colors(saved_colors)
+	colors = Customization.sanitize_colors(saved_colors, unlocked_options)
 	_restore_decor(data.get("decor_inventory", []), data.get("decor_placed", {}), data.get("decor_initial_granted", []))
 	tutorial_step = maxi(int(data.get("tutorial_step", TUTORIAL_DONE)), TUTORIAL_DONE)
 	_begin_session()
@@ -73,6 +79,7 @@ func to_save_data() -> Dictionary:
 		"avatar_name": avatar_name,
 		"company_name": company_name,
 		"colors": colors.duplicate(),
+		"unlocked_options": unlocked_options.duplicate(),
 		"decor_inventory": decor_inventory.duplicate(),
 		"decor_placed": decor_placed.duplicate(true),
 		"decor_initial_granted": decor_initial_granted.duplicate(),
@@ -108,6 +115,29 @@ func set_color(layer: StringName, option_id: StringName) -> void:
 func apply_colors(new_colors: Dictionary[StringName, StringName]) -> void:
 	for layer: StringName in new_colors:
 		set_color(layer, new_colors[layer])
+
+
+## ¿Se puede usar la opción? Las gratuitas siempre; las de pago, una vez compradas.
+func is_option_unlocked(option: CustomizationOption) -> bool:
+	return option.price <= 0 or unlocked_options.has(option.id)
+
+
+## Compra opciones de pago con las monedas de la partida. Todo o nada: false si no alcanzan o no hay partida.
+func purchase_options(options: Array[CustomizationOption]) -> bool:
+	var pending: Array[CustomizationOption] = []
+	for option: CustomizationOption in options:
+		if not is_option_unlocked(option) and not pending.has(option):
+			pending.append(option)
+	if pending.is_empty():
+		return true
+	var total := Customization.get_total_price(pending)
+	if not is_active or not Simulation.has_session() or Simulation.coins < total:
+		return false
+	Simulation.adjust_coins(-total)
+	for option: CustomizationOption in pending:
+		unlocked_options.append(option.id)
+	unlocks_changed.emit()
+	return true
 
 
 #region Decoración
@@ -195,6 +225,15 @@ func count_owned(decor_id: StringName) -> int:
 
 
 ## Ids desconocidos se descartan; las partidas sin decoración empiezan vacías.
+func _restore_unlocked(raw: Variant) -> void:
+	unlocked_options.clear()
+	if raw is Array or raw is PackedStringArray:
+		for option_id: Variant in raw:
+			var id := StringName(str(option_id))
+			if id != &"" and not unlocked_options.has(id):
+				unlocked_options.append(id)
+
+
 func _restore_decor(raw_inventory: Variant, raw_placed: Variant, raw_granted: Variant = []) -> void:
 	decor_inventory.clear()
 	decor_placed.clear()

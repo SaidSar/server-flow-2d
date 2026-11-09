@@ -268,6 +268,66 @@
    "id": "antiestatico",
    "nombre": "Antiestático",
    "color": "#3a3f4a"
+  },
+  {
+   "id": "piso_tablones_claros",
+   "nombre": "Tablones claros",
+   "color": "#dec39d",
+   "tipo": "patron",
+   "precio": 100,
+   "base": "tecnico_gris",
+   "patron": "tablones_claros",
+   "escala_m": 1.0
+  },
+  {
+   "id": "piso_tablones_nogal",
+   "nombre": "Tablones nogal",
+   "color": "#866746",
+   "tipo": "patron",
+   "precio": 100,
+   "base": "tecnico_gris",
+   "patron": "tablones_nogal",
+   "escala_m": 1.0
+  },
+  {
+   "id": "piso_parquet_miel",
+   "nombre": "Parquet miel",
+   "color": "#d0af84",
+   "tipo": "patron",
+   "precio": 150,
+   "base": "tecnico_gris",
+   "patron": "parquet_miel",
+   "escala_m": 1.0
+  },
+  {
+   "id": "piso_damero_salvia",
+   "nombre": "Damero salvia",
+   "color": "#c1cbb0",
+   "tipo": "patron",
+   "precio": 100,
+   "base": "tecnico_gris",
+   "patron": "damero_salvia",
+   "escala_m": 1.0
+  },
+  {
+   "id": "piso_azulejo_celeste",
+   "nombre": "Azulejo celeste",
+   "color": "#c9e5f4",
+   "tipo": "patron",
+   "precio": 100,
+   "base": "tecnico_gris",
+   "patron": "azulejo_celeste",
+   "escala_m": 1.0
+  },
+  {
+   "id": "piso_mosaico_pastel",
+   "nombre": "Mosaico pastel",
+   "color": "#c4c9cd",
+   "tipo": "patron",
+   "precio": 150,
+   "base": "tecnico_gris",
+   "patron": "mosaico_pastel",
+   "escala_m": 1.0
   }
  ],
  "capas_offsets": {
