@@ -21,6 +21,7 @@ var _frame := 0
 var _is_stressed := false
 var _alert_tween: Tween
 var _alert_rest_y := 0.0
+var _shirt_material: ShaderMaterial
 
 
 func _ready() -> void:
@@ -28,6 +29,7 @@ func _ready() -> void:
 	_frame_timer.timeout.connect(_on_frame_timer_timeout)
 	if _typing_textures.is_empty():
 		set_avatar(AvatarData.find(AvatarData.DEFAULT_ID))
+	GameState.color_changed.connect(_on_color_changed)
 
 
 func set_avatar(data: AvatarData) -> void:
@@ -35,6 +37,38 @@ func set_avatar(data: AvatarData) -> void:
 	_stressed_texture = data.load_stressed_texture()
 	_frame = 0
 	_refresh_texture()
+	_setup_shirt(data)
+
+
+## Color de la camiseta: se recolorea la sudadera con un shader (ver assets/shaders/camiseta.gdshader).
+func set_shirt(option_id: StringName) -> void:
+	if _shirt_material == null:
+		return
+	var option := Customization.find_option(&"camiseta", option_id)
+	# "Original" (o un id desconocido) deja el render tal cual.
+	var recolor := option != null and option_id != Customization.get_default_option(&"camiseta")
+	_shirt_material.set_shader_parameter(&"recolor", recolor)
+	if recolor:
+		_shirt_material.set_shader_parameter(&"target", option.color)
+
+
+func is_shirt_recolored() -> bool:
+	return _shirt_material != null and bool(_shirt_material.get_shader_parameter(&"recolor"))
+
+
+func _setup_shirt(data: AvatarData) -> void:
+	if _shirt_material == null:
+		_shirt_material = ShaderMaterial.new()
+		_shirt_material.shader = load(Paths.SHIRT_SHADER) as Shader
+		_sprite.material = _shirt_material
+	_shirt_material.set_shader_parameter(&"base_hue", data.shirt_hue)
+	_shirt_material.set_shader_parameter(&"base_sv", Vector2(data.shirt_saturation, data.shirt_value))
+	set_shirt(GameState.get_color(&"camiseta"))
+
+
+func _on_color_changed(layer: StringName, option_id: StringName) -> void:
+	if layer == &"camiseta":
+		set_shirt(option_id)
 
 
 func set_display_name(display_name: String) -> void:

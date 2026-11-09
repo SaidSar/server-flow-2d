@@ -1,12 +1,14 @@
 class_name CustomizationCatalog
 extends Resource
 ## Catálogo de colores del cuarto, agrupado como en paleta.json
-## ("pared", "piso", "puerta", "mesa").
+## ("pared", "piso", "puerta", "mesa", "camiseta").
 
 @export var walls: Array[CustomizationOption] = []
 @export var floors: Array[CustomizationOption] = []
 @export var doors: Array[CustomizationOption] = []
 @export var desks: Array[CustomizationOption] = []
+## Colores de la camiseta del avatar (gratis).
+@export var shirts: Array[CustomizationOption] = []
 
 
 ## Construye el catálogo a partir de paleta.json.
@@ -27,6 +29,7 @@ static func from_palette_json(json_path: String) -> CustomizationCatalog:
 	catalog.floors = parse_options(palette.get("piso", []))
 	catalog.doors = parse_options(palette.get("puerta", []))
 	catalog.desks = parse_options(palette.get("mesa", []))
+	catalog.shirts = parse_options(palette.get("camiseta", []))
 	return catalog
 
 
@@ -41,6 +44,8 @@ func get_group(group: StringName) -> Array[CustomizationOption]:
 			return doors
 		&"mesa":
 			return desks
+		&"camiseta":
+			return shirts
 	var empty: Array[CustomizationOption] = []
 	return empty
 
@@ -66,5 +71,17 @@ static func parse_options(raw: Variant) -> Array[CustomizationOption]:
 			continue
 		option.display_name = str(data.get("nombre", option.id))
 		option.color = Color.from_string(str(data.get("color", "")), Color.MAGENTA)
+		option.price = maxi(int(data.get("precio", 0)), 0)
+		match str(data.get("tipo", "render")):
+			"tinte":
+				option.kind = "tinte"
+			"patron":
+				option.kind = "patron"
+			_:
+				option.kind = "render"
+		option.base_id = StringName(str(data.get("base", "")))
+		option.mask_id = StringName(str(data.get("mascara", "")))
+		option.pattern = str(data.get("patron", ""))
+		option.tile_m = maxf(float(data.get("escala_m", 1.0)), 0.1)
 		options.append(option)
 	return options

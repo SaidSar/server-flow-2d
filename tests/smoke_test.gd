@@ -68,16 +68,19 @@ func _run() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SETTINGS_PATH))
 
 	# Catálogo
-	_check(customization.call("get_options", &"pared_izq").size() == 10, "10 colores de pared izquierda")
-	_check(customization.call("get_options", &"pared_der").size() == 10, "10 colores de pared derecha")
-	_check(customization.call("get_options", &"piso_garage").size() == 3, "3 pisos en el garage")
-	_check(customization.call("get_options", &"piso_oficina").size() == 3, "3 pisos en la oficina")
-	_check(customization.call("get_options", &"piso_data_center").size() == 3, "3 pisos en el data center")
-	_check(customization.call("get_options", &"puerta").size() == 6, "6 puertas")
-	_check(customization.call("get_options", &"mesa").size() == 3, "3 mesas")
+	# Los colores con PNG de Blender; los pastel y las texturas se dibujan con shader (ver test_customization.gd).
+	_check(_render_count(customization, &"pared_izq") == 10, "10 colores de pared izquierda")
+	_check(_render_count(customization, &"pared_der") == 10, "10 colores de pared derecha")
+	_check(_render_count(customization, &"piso_garage") == 3, "3 pisos en el garage")
+	_check(_render_count(customization, &"piso_oficina") == 3, "3 pisos en la oficina")
+	_check(_render_count(customization, &"piso_data_center") == 3, "3 pisos en el data center")
+	_check(_render_count(customization, &"puerta") == 6, "6 puertas")
+	_check(_render_count(customization, &"mesa") == 3, "3 mesas")
 	for room_id: StringName in Paths.ROOM_IDS:
 		for layer: StringName in customization.call("get_room_layers", room_id):
 			for option: CustomizationOption in customization.call("get_options", layer):
+				if option.is_procedural() or layer == &"camiseta":
+					continue
 				var path: String = customization.call("get_layer_texture_path", room_id, layer, option.id)
 				# La puerta y la mesa de la oficina y del data center son las del garage.
 				if room_id != &"garage" and (layer == &"puerta" or layer == &"mesa"):
@@ -183,6 +186,15 @@ func _run() -> void:
 		quit(1)
 
 
+## Opciones de la capa que tienen PNG propio (no son tinte ni patrón).
+func _render_count(customization: Node, layer: StringName) -> int:
+	var count := 0
+	for option: CustomizationOption in customization.call("get_options", layer):
+		if not option.is_procedural():
+			count += 1
+	return count
+
+
 ## Capas recortadas: cada sprite debe quedar en su offset de layer_offsets.json.
 ## El JSON se lee aquí directamente para no validar Customization consigo mismo.
 func _test_layer_offsets(game_state: Node, customization: Node) -> void:
@@ -194,6 +206,8 @@ func _test_layer_offsets(game_state: Node, customization: Node) -> void:
 	# Todas las variantes del catálogo tienen offset y su PNG mide lo que dice el JSON.
 	for layer: StringName in layer_order:
 		for option: CustomizationOption in customization.call("get_options", layer):
+			if option.is_procedural() or layer == &"camiseta":
+				continue
 			var path: String = customization.call("get_layer_texture_path", &"garage", layer, option.id)
 			var entry: Dictionary = offsets.get(_layer_key(path), {})
 			_check(not entry.is_empty(), "offset de %s" % path)
