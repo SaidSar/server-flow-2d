@@ -22,8 +22,10 @@ extends Resource
 @export var pattern: String = ""
 ## Metros del cuarto que cubre un repetido del patrón.
 @export var tile_m := 1.0
+## Archivo de la ilustración en assets/art/fondos/ (sin .png). Solo fondo; vacío = sin ilustración (fondo liso).
+@export var image: String = ""
 
 
 ## ¿Se dibuja con el shader en lugar de un PNG propio?
 func is_procedural() -> bool:
-	return kind != "render"
+	return kind == "tinte" or kind == "patron"
