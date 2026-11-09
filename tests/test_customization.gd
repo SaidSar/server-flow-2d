@@ -165,11 +165,13 @@ func _test_backdrop() -> void:
 	_check(_customization.call("get_default_option", &"fondo") == &"oscuro", "el fondo por defecto es el liso")
 	for room_id in ROOMS:
 		_check((_customization.call("get_room_layers", room_id) as Array).has(&"fondo"), "el panel de %s trae el fondo" % room_id)
-	# Un guardado sin fondo (versión anterior) o con un id desconocido usa el liso.
+	# Un guardado sin fondo (versión anterior) usa el liso.
 	var old: Dictionary = _customization.call("sanitize_colors", {&"pared_izq": &"blanco_hueso"})
 	_check(old[&"fondo"] == &"oscuro", "guardado viejo: fondo liso")
-	var bad: Dictionary = _customization.call("sanitize_colors", {&"fondo": &"no_existe_fondo"})
-	_check(bad[&"fondo"] == &"oscuro", "fondo desconocido vuelve al liso")
+	# Un id desconocido no es una opción válida, así que sanitize_colors lo cambia por el liso (esa vuelta al
+	# valor por defecto ya la cubre smoke_test con mesa/no_existe; aquí no se repite para no emitir otro warning).
+	_check(not _customization.call("is_valid_option", &"fondo", &"no_existe_fondo"), "fondo desconocido no es válido")
+	_check(_customization.call("find_option", &"fondo", &"no_existe_fondo") == null, "fondo desconocido no tiene opción")
 	var ok: Dictionary = _customization.call("sanitize_colors", {&"fondo": &"ciudad_noche"})
 	_check(ok[&"fondo"] == &"ciudad_noche", "el fondo elegido se conserva")
 	# El nodo del fondo muestra y oculta la ilustración.
