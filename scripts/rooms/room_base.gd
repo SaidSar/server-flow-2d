@@ -55,6 +55,8 @@ var _pc_enabled := true
 var _camera_tween: Tween
 ## Destello rojo de la pantalla del monitor mientras hay saturación.
 var _pc_glow: PcAlertGlow
+## Fondo exterior (ciudad de día o de noche) detrás del cuarto.
+var _backdrop: RoomBackdrop
 
 
 func _ready() -> void:
@@ -69,6 +71,9 @@ func _ready() -> void:
 		&"puerta": %Door as Sprite2D,
 		&"mesa": %Desk as Sprite2D,
 	}
+	_backdrop = RoomBackdrop.new()
+	add_child(_backdrop)
+	_apply_backdrop(GameState.get_color(&"fondo"))
 	_build_racks()
 	_place_ysort_holders()
 
@@ -169,7 +174,14 @@ func _place_ysort_holders() -> void:
 		holder.visible = i == 0 or room_data.reuses(slot)
 
 
+func _apply_backdrop(option_id: StringName) -> void:
+	_backdrop.apply(Customization.find_option(&"fondo", option_id))
+
+
 func _apply_color(layer: StringName, option_id: StringName) -> void:
+	if layer == &"fondo":
+		_apply_backdrop(option_id)
+		return
 	var sprite: Sprite2D = _layer_sprites.get(layer)
 	if sprite == null:
 		return

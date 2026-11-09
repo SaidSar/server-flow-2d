@@ -21,6 +21,7 @@ const LAYER_GROUPS := {
 	&"puerta": &"puerta",
 	&"mesa": &"mesa",
 	&"camiseta": &"camiseta",
+	&"fondo": &"fondo",
 }
 
 const LAYER_TITLES := {
@@ -29,6 +30,7 @@ const LAYER_TITLES := {
 	&"puerta": "Puerta",
 	&"mesa": "Mesa",
 	&"camiseta": "Camiseta",
+	&"fondo": "Fondo exterior",
 }
 const FLOOR_TITLE := "Piso"
 
@@ -41,6 +43,7 @@ const DEFAULT_COLORS := {
 	&"puerta": &"madera_natural",
 	&"mesa": &"roble",
 	&"camiseta": &"original",
+	&"fondo": &"oscuro",
 }
 
 var catalog: CustomizationCatalog
@@ -62,13 +65,13 @@ func get_all_layers() -> Array[StringName]:
 	var layers: Array[StringName] = [&"pared_izq", &"pared_der"]
 	for room_id: StringName in Paths.ROOM_IDS:
 		layers.append(get_floor_layer(room_id))
-	layers.append_array([&"puerta", &"mesa", &"camiseta"])
+	layers.append_array([&"puerta", &"mesa", &"camiseta", &"fondo"])
 	return layers
 
 
 ## Capas de un cuarto, en el orden en que aparecen en el panel del pincel.
 func get_room_layers(room_id: StringName) -> Array[StringName]:
-	return [&"pared_izq", &"pared_der", get_floor_layer(room_id), &"puerta", &"mesa", &"camiseta"]
+	return [&"pared_izq", &"pared_der", get_floor_layer(room_id), &"puerta", &"mesa", &"fondo", &"camiseta"]
 
 
 func get_floor_layer(room_id: StringName) -> StringName:

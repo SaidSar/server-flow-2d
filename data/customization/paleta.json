@@ -444,6 +444,27 @@
     "nombre": "Rosa pastel",
     "color": "#f8c3d3"
    }
+  ],
+  "fondo": [
+   {
+    "id": "oscuro",
+    "nombre": "Oscuro",
+    "color": "#141824"
+   },
+   {
+    "id": "ciudad_dia",
+    "nombre": "Ciudad de día",
+    "color": "#9fd8f5",
+    "tipo": "fondo",
+    "imagen": "ciudad_dia"
+   },
+   {
+    "id": "ciudad_noche",
+    "nombre": "Ciudad de noche",
+    "color": "#1a2456",
+    "tipo": "fondo",
+    "imagen": "ciudad_noche"
+   }
   ]
  },
  "orden_capas": [

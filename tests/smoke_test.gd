@@ -79,7 +79,7 @@ func _run() -> void:
 	for room_id: StringName in Paths.ROOM_IDS:
 		for layer: StringName in customization.call("get_room_layers", room_id):
 			for option: CustomizationOption in customization.call("get_options", layer):
-				if option.is_procedural() or layer == &"camiseta":
+				if option.is_procedural() or layer == &"camiseta" or layer == &"fondo":
 					continue
 				var path: String = customization.call("get_layer_texture_path", room_id, layer, option.id)
 				# La puerta y la mesa de la oficina y del data center son las del garage.
@@ -206,7 +206,7 @@ func _test_layer_offsets(game_state: Node, customization: Node) -> void:
 	# Todas las variantes del catálogo tienen offset y su PNG mide lo que dice el JSON.
 	for layer: StringName in layer_order:
 		for option: CustomizationOption in customization.call("get_options", layer):
-			if option.is_procedural() or layer == &"camiseta":
+			if option.is_procedural() or layer == &"camiseta" or layer == &"fondo":
 				continue
 			var path: String = customization.call("get_layer_texture_path", &"garage", layer, option.id)
 			var entry: Dictionary = offsets.get(_layer_key(path), {})

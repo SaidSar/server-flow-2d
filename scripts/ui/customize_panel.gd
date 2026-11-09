@@ -111,14 +111,19 @@ func _create_swatch(option: CustomizationOption, button_group: ButtonGroup) -> B
 	swatch.add_theme_stylebox_override(&"hover", _make_swatch_style(fill, DashboardColors.SWATCH_BORDER_HOVER, 3))
 	swatch.add_theme_stylebox_override(&"pressed", _make_swatch_style(fill, DashboardColors.HIGHLIGHT, 6))
 	swatch.add_theme_stylebox_override(&"hover_pressed", _make_swatch_style(fill, DashboardColors.HIGHLIGHT, 6))
+	var preview_path := ""
 	if option.kind == "patron" and option.pattern != "":
-		var tex := load(Paths.PATTERN_TEXTURE % option.pattern) as Texture2D
+		preview_path = Paths.PATTERN_TEXTURE % option.pattern
+	elif option.kind == "fondo" and option.image != "":
+		preview_path = Paths.BACKDROP_TEXTURE % option.image
+	if preview_path != "":
+		var tex := load(preview_path) as Texture2D
 		if tex != null:
 			var preview := TextureRect.new()
 			preview.texture = tex
 			# Se ve el patrón completo (un repetido) dentro del cuadro, sin salirse de él.
 			preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			preview.stretch_mode = TextureRect.STRETCH_SCALE
+			preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED if option.kind == "fondo" else TextureRect.STRETCH_SCALE
 			preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			preview.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 5)
 			preview.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS

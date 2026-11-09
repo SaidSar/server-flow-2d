@@ -34,6 +34,7 @@ func _run() -> void:
 	_test_purchase()
 	_test_save()
 	_test_shirt()
+	_test_backdrop()
 	await _test_panel()
 
 	_save_system.call("delete_save")
@@ -154,6 +155,37 @@ func _test_shirt() -> void:
 		avatar.free()
 
 
+func _test_backdrop() -> void:
+	var options := _options(&"fondo")
+	_check(options.size() == 3, "fondo: oscuro, ciudad de día y ciudad de noche (%d)" % options.size())
+	for option: CustomizationOption in options:
+		_check(option.price == 0, "fondo %s es gratis" % option.id)
+		if option.image != "":
+			_check(ResourceLoader.exists(Paths.BACKDROP_TEXTURE % option.image), "existe la ilustración %s" % option.image)
+	_check(_customization.call("get_default_option", &"fondo") == &"oscuro", "el fondo por defecto es el liso")
+	for room_id in ROOMS:
+		_check((_customization.call("get_room_layers", room_id) as Array).has(&"fondo"), "el panel de %s trae el fondo" % room_id)
+	# Un guardado sin fondo (versión anterior) usa el liso.
+	var old: Dictionary = _customization.call("sanitize_colors", {&"pared_izq": &"blanco_hueso"})
+	_check(old[&"fondo"] == &"oscuro", "guardado viejo: fondo liso")
+	# Un id desconocido no es una opción válida, así que sanitize_colors lo cambia por el liso (esa vuelta al
+	# valor por defecto ya la cubre smoke_test con mesa/no_existe; aquí no se repite para no emitir otro warning).
+	_check(not _customization.call("is_valid_option", &"fondo", &"no_existe_fondo"), "fondo desconocido no es válido")
+	_check(_customization.call("find_option", &"fondo", &"no_existe_fondo") == null, "fondo desconocido no tiene opción")
+	var ok: Dictionary = _customization.call("sanitize_colors", {&"fondo": &"ciudad_noche"})
+	_check(ok[&"fondo"] == &"ciudad_noche", "el fondo elegido se conserva")
+	# El nodo del fondo muestra y oculta la ilustración.
+	var backdrop := RoomBackdrop.new()
+	root.add_child(backdrop)
+	backdrop.apply(_customization.call("find_option", &"fondo", &"ciudad_dia"))
+	_check(backdrop.has_picture(), "ciudad de día se dibuja")
+	backdrop.apply(_customization.call("find_option", &"fondo", &"oscuro"))
+	_check(not backdrop.has_picture(), "el fondo liso no dibuja nada")
+	backdrop.apply(null)
+	_check(not backdrop.has_picture(), "sin opción no dibuja nada")
+	backdrop.free()
+
+
 func _test_panel() -> void:
 	_game_state.call("start_new_game", "Sayola", "NexusSoft", &"alex")
 	var panel: CanvasLayer = load("res://scenes/ui/customize_panel.tscn").instantiate()
@@ -179,8 +211,20 @@ func _test_panel() -> void:
 	panel.call("_on_save_pressed")
 	_check(_game_state.call("is_option_unlocked", coral), "guardar compra la opción")
 	_check(_simulation.get("coins") == 3, "guardar cobra el precio (%s)" % _simulation.get("coins"))
+	# Los fondos son gratis: elegirlos no entra al carrito.
+	panel.call("open", &"garage")
+	_game_state.call("set_color", &"fondo", &"ciudad_noche")
+	_check(_cart_has_no_backdrop(panel), "el fondo no cuesta")
+	panel.call("_on_cancel_pressed")
 	panel.queue_free()
 	await process_frame
+
+
+func _cart_has_no_backdrop(panel: CanvasLayer) -> bool:
+	for option: CustomizationOption in panel.call("get_cart"):
+		if option.kind == "fondo":
+			return false
+	return true
 
 
 func _check(condition: bool, label: String) -> void:
