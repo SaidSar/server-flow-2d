@@ -409,5 +409,22 @@
     "y": 8.84
    }
   ]
+ },
+ "mascotas": {
+  "nota": "Zona de las mascotas (metros). Los puntos son centros de casilla libres: 'descanso' = dónde se echa a dormir el gato; 'refugio' = dónde se esconde cada mascota con saturación. Usa la cuadrícula y las zonas ocupadas de 'cuadricula'.",
+  "descanso": [
+   2.75,
+   8.25
+  ],
+  "refugio": {
+   "gato": [
+    2.25,
+    4.25
+   ],
+   "perro": [
+    1.75,
+    5.75
+   ]
+  }
  }
 }
