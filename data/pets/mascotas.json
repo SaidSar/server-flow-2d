@@ -1,5 +1,5 @@
 {
- "nota": "Mascotas del cuarto. Precio y comportamiento se ajustan aquí, no en el código. Se compran y se venden en la Tienda (la misma que la decoración) y caminan por el cuarto activo. venta_pct = porcentaje del precio que se devuelve al vender.",
+ "nota": "Mascotas del cuarto (gato, perro, conejo y tortuga). refugio = clave en data/rooms/<cuarto>.json -> mascotas.refugio; vacío = se queda donde está (la tortuga). Precio y comportamiento se ajustan aquí, no en el código. Se compran y se venden en la Tienda (la misma que la decoración) y caminan por el cuarto activo. venta_pct = porcentaje del precio que se devuelve al vender.",
  "max_total": 6,
  "venta_pct": 50,
  "hoja": {
@@ -32,6 +32,30 @@
    "prob_dormir": 0.0,
    "refugio": "perro",
    "descripcion": "Más activo: recorre el cuarto sin parar. Con saturación se asusta y se refugia junto a la puerta."
+  },
+  {
+   "id": "conejo",
+   "nombre": "Conejo blanco",
+   "precio": 450,
+   "hoja": "conejo",
+   "velocidad_m_s": 1.0,
+   "velocidad_susto_m_s": 2.2,
+   "quieto_s": [1.6, 3.6],
+   "prob_dormir": 0.3,
+   "refugio": "conejo",
+   "descripcion": "Avanza a saltitos y a ratos se acurruca a dormir. Con saturación pega las orejas y se esconde en el rincón del fondo."
+  },
+  {
+   "id": "tortuga",
+   "nombre": "Tortuga verde",
+   "precio": 300,
+   "hoja": "tortuga",
+   "velocidad_m_s": 0.35,
+   "velocidad_susto_m_s": 0.35,
+   "quieto_s": [2.5, 6.0],
+   "prob_dormir": 0.4,
+   "refugio": "",
+   "descripcion": "La más lenta y la más pequeña. Con saturación no corre: se mete en su caparazón donde está y espera a que pase."
   }
  ]
 }
