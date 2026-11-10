@@ -3,7 +3,7 @@ extends CanvasLayer
 ## Panel lateral de la tienda de decoración, con dos pestañas:
 ## - Tienda: miniatura, nombre, precio, tamaño en celdas, "tienes n" y "Comprar".
 ## - Inventario: lo guardado, con "Colocar".
-## - Mascotas: gato y perro, con precio y "Comprar" (se quedan en la empresa y caminan por el cuarto).
+## - Mascotas: gato y perro, con precio, "Comprar" y "Vender" (devuelve la mitad; pide un segundo toque para confirmar).
 ## Solo emite lo que pidió el jugador; DecorPlacer compra, coloca y guarda.
 
 signal opened
@@ -11,10 +11,13 @@ signal closed
 signal buy_requested(decor_id: StringName)
 signal place_requested(decor_id: StringName)
 signal pet_buy_requested(pet_id: StringName)
+signal pet_sell_requested(pet_id: StringName)
 
 enum Tab { SHOP, INVENTORY, PETS }
 
 const THUMB_SIZE := Vector2(104, 104)
+## Segundos que espera el "¿Seguro?" de vender una mascota antes de cancelarse solo.
+const CONFIRM_SECONDS := 3.0
 ## Ancho máximo del panel: 560 px o el 30 % del ancho de la pantalla, lo que sea menor.
 const MAX_WIDTH_RATIO := 0.3
 
@@ -30,6 +33,8 @@ var _tab: Tab = Tab.SHOP
 ## id → botón de la fila visible (Comprar o Colocar), para las pruebas.
 var _row_buttons: Dictionary[StringName, Button] = {}
 var _refresh_queued := false
+## Mascota cuya venta espera el segundo toque de confirmación (&"" = ninguna).
+var _confirming_sale: StringName = &""
 
 
 func _ready() -> void:
@@ -78,6 +83,7 @@ func open(tab: Tab = Tab.SHOP) -> void:
 func close() -> void:
 	if not visible:
 		return
+	_confirming_sale = &""
 	hide()
 	closed.emit()
 
@@ -111,6 +117,8 @@ func _refresh() -> void:
 		_rows_box.remove_child(child)
 		child.queue_free()
 	_row_buttons.clear()
+	if _tab != Tab.PETS:
+		_confirming_sale = &""
 	if _tab == Tab.PETS:
 		for pet: PetData in PetData.load_catalog():
 			_rows_box.add_child(_pet_row(pet))
@@ -143,11 +151,46 @@ func _shop_row(decor: DecorData) -> Control:
 
 func _pet_row(pet: PetData) -> Control:
 	var blocked := PetShop.get_buy_block_reason(pet)
-	var info := "%s monedas · tienes %d" % [NumberFormat.thousands(pet.price), GameState.count_pets(pet.id)]
-	var button := _row_button("Comprar", not blocked.is_empty())
-	button.pressed.connect(pet_buy_requested.emit.bind(pet.id))
-	_row_buttons[pet.id] = button
-	return _row_with(pet.display_name, pet.get_frame_texture(PetData.FRAME_IDLE), info, blocked, button, pet.description)
+	var owned := GameState.count_pets(pet.id)
+	var info := "%s monedas · tienes %d" % [NumberFormat.thousands(pet.price), owned]
+	var buy_button := _row_button("Comprar", not blocked.is_empty())
+	buy_button.pressed.connect(_on_pet_buy_pressed.bind(pet.id))
+	_row_buttons[pet.id] = buy_button
+	var sell_text := "Vender +%s" % NumberFormat.thousands(pet.get_sell_price())
+	if _confirming_sale == pet.id:
+		sell_text = "¿Seguro? +%s" % NumberFormat.thousands(pet.get_sell_price())
+	var sell_button := _row_button(sell_text, owned <= 0)
+	sell_button.pressed.connect(_on_pet_sell_pressed.bind(pet.id))
+	_row_buttons[StringName("vender_%s" % pet.id)] = sell_button
+	var buttons := VBoxContainer.new()
+	buttons.add_theme_constant_override(&"separation", 8)
+	buttons.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	buttons.add_child(buy_button)
+	buttons.add_child(sell_button)
+	return _row_with(pet.display_name, pet.get_frame_texture(PetData.FRAME_IDLE), info, blocked, buttons, pet.description)
+
+
+func _on_pet_buy_pressed(pet_id: StringName) -> void:
+	_confirming_sale = &""
+	pet_buy_requested.emit(pet_id)
+
+
+## Vender pide dos toques: el primero cambia el botón a "¿Seguro?" (se cancela solo a los 3 s o al tocar otra cosa).
+func _on_pet_sell_pressed(pet_id: StringName) -> void:
+	if _confirming_sale == pet_id:
+		_confirming_sale = &""
+		pet_sell_requested.emit(pet_id)
+		_queue_refresh()
+		return
+	_confirming_sale = pet_id
+	_queue_refresh()
+	get_tree().create_timer(CONFIRM_SECONDS).timeout.connect(_cancel_confirmation.bind(pet_id))
+
+
+func _cancel_confirmation(pet_id: StringName) -> void:
+	if _confirming_sale == pet_id:
+		_confirming_sale = &""
+		_queue_refresh()
 
 
 func _inventory_row(decor: DecorData) -> Control:
@@ -162,7 +205,7 @@ func _row(decor: DecorData, info: String, blocked: String, button: Button) -> Co
 	return _row_with(decor.display_name, decor.orientations[decor.get_default_orientation()].load_texture(), info, blocked, button)
 
 
-func _row_with(title: String, picture: Texture2D, info: String, blocked: String, button: Button, extra: String = "") -> Control:
+func _row_with(title: String, picture: Texture2D, info: String, blocked: String, button: Control, extra: String = "") -> Control:
 	var row := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = DashboardColors.CARD_ALT

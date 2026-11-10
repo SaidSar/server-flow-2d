@@ -84,6 +84,7 @@ func _ready() -> void:
 	add_child(_pet_keeper)
 	_pet_keeper.setup(room_id, room_data, _ysort)
 	_shop_panel.pet_buy_requested.connect(_on_pet_buy_requested)
+	_shop_panel.pet_sell_requested.connect(_on_pet_sell_requested)
 
 	for layer: StringName in _layer_sprites:
 		_apply_color(layer, GameState.get_color(layer))
@@ -190,6 +191,12 @@ func _on_pet_buy_requested(pet_id: StringName) -> void:
 	var pet := PetData.find(pet_id)
 	if pet != null and PetShop.buy(pet):
 		# Como la decoración: se guarda al comprar, para no perder la compra si la app se cierra a la fuerza.
+		SaveSystem.save_game()
+
+
+func _on_pet_sell_requested(pet_id: StringName) -> void:
+	var pet := PetData.find(pet_id)
+	if pet != null and PetShop.sell(pet):
 		SaveSystem.save_game()
 
 
