@@ -1,6 +1,7 @@
 {
- "nota": "Mascotas del cuarto. Precio y comportamiento se ajustan aquí, no en el código. Se compran en la Tienda (la misma que la decoración) y caminan por el cuarto activo.",
+ "nota": "Mascotas del cuarto. Precio y comportamiento se ajustan aquí, no en el código. Se compran y se venden en la Tienda (la misma que la decoración) y caminan por el cuarto activo. venta_pct = porcentaje del precio que se devuelve al vender.",
  "max_total": 6,
+ "venta_pct": 50,
  "hoja": {
   "nota": "Hoja de sprites de assets/art/mascotas/<hoja>.png generada por source_art/mascotas/generar_mascotas.py: tira horizontal de cuadros de cuadro_px (lienzo 2x), pies en ancla_px.",
   "cuadro_px": [160, 128],

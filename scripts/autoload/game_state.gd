@@ -177,6 +177,16 @@ func add_pet(pet_id: StringName) -> void:
 	pets_changed.emit()
 
 
+## Quita una mascota de ese tipo (la venta). false si no hay ninguna.
+func remove_pet(pet_id: StringName) -> bool:
+	var index := pets.find(pet_id)
+	if index < 0:
+		return false
+	pets.remove_at(index)
+	pets_changed.emit()
+	return true
+
+
 func count_pets(pet_id: StringName) -> int:
 	return pets.count(pet_id)
 

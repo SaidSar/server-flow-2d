@@ -25,6 +25,7 @@ const FRAME_SCARED := 6
 
 static var _catalog: Array[PetData] = []
 static var _max_total := 6
+static var _sell_percent := 50
 static var _frame_size := Vector2i(160, 128)
 static var _anchor := Vector2(80, 112)
 static var _loaded := false
@@ -40,6 +41,7 @@ static func load_catalog() -> Array[PetData]:
 		return _catalog
 	var root: Dictionary = parsed
 	_max_total = maxi(int(root.get("max_total", _max_total)), 1)
+	_sell_percent = clampi(int(root.get("venta_pct", _sell_percent)), 0, 100)
 	var sheet_info: Dictionary = root.get("hoja", {})
 	var frame := RoomProjection.parse_vector(sheet_info.get("cuadro_px"))
 	if frame != Vector2.ZERO:
@@ -66,6 +68,12 @@ static func find(pet_id: StringName) -> PetData:
 static func get_max_total() -> int:
 	load_catalog()
 	return _max_total
+
+
+## Porcentaje del precio que se devuelve al vender una mascota (venta_pct del JSON).
+static func get_sell_percent() -> int:
+	load_catalog()
+	return _sell_percent
 
 
 static func get_frame_size() -> Vector2i:
@@ -97,6 +105,11 @@ func get_frame_texture(frame: int) -> Texture2D:
 	atlas.atlas = texture
 	atlas.region = Rect2(frame * size.x, 0, size.x, size.y)
 	return atlas
+
+
+## Monedas que se reciben al vender esta mascota.
+func get_sell_price() -> int:
+	return price * get_sell_percent() / 100
 
 
 static func _from_dict(data: Dictionary) -> PetData:

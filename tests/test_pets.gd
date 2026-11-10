@@ -256,6 +256,39 @@ func _test_shop() -> void:
 		_game_state.call("add_pet", &"perro")
 	_check(not _shop_script.call("can_buy", cat), "con el máximo de mascotas ya no se compra")
 	_check(str(_shop_script.call("get_buy_block_reason", cat)).begins_with("Máximo"), "el motivo es el máximo")
+	# Vender: devuelve venta_pct del precio y libera un lugar para comprar otra.
+	_game_state.set("pets", [] as Array[StringName])
+	_simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 100000})
+	_check(PetData.get_sell_percent() == 50, "venta_pct del JSON = 50")
+	_check(cat.get_sell_price() == 200 and dog.get_sell_price() == 250, "vender devuelve la mitad (%d / %d)" % [cat.get_sell_price(), dog.get_sell_price()])
+	_check(not _shop_script.call("can_sell", cat), "sin gatos no se puede vender uno")
+	_check(_shop_script.call("get_sell_block_reason", cat) == "No tienes ninguno", "el motivo es 'No tienes ninguno'")
+	_check(not _shop_script.call("sell", cat), "vender sin tener no hace nada")
+	_check(_simulation.get("coins") == 100000, "vender sin tener no mueve monedas")
+	for i in 3:
+		_shop_script.call("buy", cat)
+		_shop_script.call("buy", dog)
+	_check(_game_state.get("pets").size() == PetData.get_max_total(), "3 gatos y 3 perros llenan el máximo")
+	_check(not _shop_script.call("can_buy", cat), "con 6 mascotas no se compra otra")
+	var coins_before: int = _simulation.get("coins")
+	_check(_shop_script.call("sell", dog), "se vende un perro")
+	_check(_simulation.get("coins") == coins_before + dog.get_sell_price(), "vender un perro paga 250")
+	_check(_game_state.call("count_pets", &"perro") == 2 and _game_state.call("count_pets", &"gato") == 3, "quedan 3 gatos y 2 perros")
+	_check(_shop_script.call("can_buy", cat), "al vender se libera un lugar")
+	_check(_shop_script.call("buy", cat), "con el lugar libre se compra otro gato")
+	_check(_game_state.call("count_pets", &"gato") == 4, "ahora hay 4 gatos")
+	# Cambiar todos los perros por gatos hasta tener 6 gatos.
+	while _game_state.call("count_pets", &"perro") > 0:
+		_shop_script.call("sell", dog)
+	while _game_state.call("count_pets", &"gato") < PetData.get_max_total():
+		_check(_shop_script.call("buy", cat), "se compra un gato más")
+	_check(_game_state.call("count_pets", &"gato") == 6 and _game_state.call("count_pets", &"perro") == 0, "se llegó a 6 gatos y 0 perros")
+	_check(not _shop_script.call("can_sell", dog), "sin perros no se puede vender uno")
+	# Durante una oleada la tienda está cerrada, también para vender.
+	_simulation.call("start_wave")
+	_check(not _shop_script.call("can_sell", cat), "durante una oleada no se vende")
+	_simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 100000})
+	_game_state.set("pets", [] as Array[StringName])
 	# Durante una oleada la tienda está cerrada.
 	_game_state.set("pets", [] as Array[StringName])
 	_simulation.call("start_wave")
@@ -383,8 +416,73 @@ func _test_room_scene() -> void:
 		_game_state.emit_signal("pets_changed")
 		await process_frame
 		_check(keeper.call("get_pets").size() == 1, "%s: quitar mascotas las saca del cuarto" % room_id)
+		if room_id == &"oficina":
+			await _test_shop_panel_sell(scene)
 		scene.queue_free()
 		await process_frame
+
+
+## Pestaña Mascotas de la Tienda: "Vender" abre una ventana "¿Vender? Sí / No"; solo "Sí" vende y libera el lugar.
+func _test_shop_panel_sell(scene: Node) -> void:
+	_simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 1000})
+	_game_state.set("pets", [&"gato", &"gato", &"perro"] as Array[StringName])
+	_game_state.emit_signal("pets_changed")
+	var panel: CanvasLayer = scene.get_node("%ShopPanel")
+	panel.call("open", 2)
+	await process_frame
+	var sell_cat: Button = panel.call("get_row_button", &"vender_gato")
+	var sell_dog: Button = panel.call("get_row_button", &"vender_perro")
+	_check(sell_cat != null and not sell_cat.disabled, "el botón Vender del gato está activo")
+	_check(sell_cat.text.begins_with("Vender") and "200" in sell_cat.text, "el botón dice 'Vender +200' (%s)" % sell_cat.text)
+	_check(sell_dog.text.begins_with("Vender") and "250" in sell_dog.text, "el botón dice 'Vender +250' (%s)" % sell_dog.text)
+	_check(panel.call("get_sale_dialog_button", &"si") == null, "al abrir la Tienda no hay ventana de venta")
+	# Vender -> ventana -> No: no vende.
+	sell_cat.pressed.emit()
+	await process_frame
+	var yes: Button = panel.call("get_sale_dialog_button", &"si")
+	var no: Button = panel.call("get_sale_dialog_button", &"no")
+	_check(yes != null and no != null, "Vender abre la ventana con Sí y No")
+	_check(_game_state.call("count_pets", &"gato") == 2, "abrir la ventana no vende")
+	_check(yes.text.begins_with("Sí") and no.text == "No", "los botones dicen 'Sí, vender' y 'No'")
+	no.pressed.emit()
+	await process_frame
+	_check(panel.call("get_sale_dialog_button", &"si") == null, "No cierra la ventana")
+	_check(_game_state.call("count_pets", &"gato") == 2 and _simulation.get("coins") == 1000, "No no vende ni cobra")
+	# Vender -> ventana -> Sí: vende.
+	sell_cat = panel.call("get_row_button", &"vender_gato")
+	sell_cat.pressed.emit()
+	await process_frame
+	(panel.call("get_sale_dialog_button", &"si") as Button).pressed.emit()
+	await process_frame
+	await process_frame
+	_check(panel.call("get_sale_dialog_button", &"si") == null, "Sí cierra la ventana")
+	_check(_game_state.call("count_pets", &"gato") == 1, "Sí vende el gato")
+	_check(_simulation.get("coins") == 1200, "vender el gato paga 200 (%s)" % _simulation.get("coins"))
+	# Tocar fuera de la ventana (en lo oscuro) la cierra sin vender.
+	(panel.call("get_row_button", &"vender_perro") as Button).pressed.emit()
+	await process_frame
+	var dim := panel.get_node("SaleDialog/Dim") as Control
+	var tap := InputEventMouseButton.new()
+	tap.button_index = MOUSE_BUTTON_LEFT
+	tap.pressed = true
+	dim.gui_input.emit(tap)
+	await process_frame
+	_check(panel.call("get_sale_dialog_button", &"si") == null and _game_state.call("count_pets", &"perro") == 1, "tocar fuera de la ventana la cierra sin vender")
+	# Cambiar de pestaña por código cierra la ventana sin vender.
+	(panel.call("get_row_button", &"vender_perro") as Button).pressed.emit()
+	await process_frame
+	_check(panel.call("get_sale_dialog_button", &"si") != null, "Vender el perro abre la ventana")
+	panel.call("show_tab", 0)
+	await process_frame
+	_check(panel.call("get_sale_dialog_button", &"si") == null and _game_state.call("count_pets", &"perro") == 1, "cambiar de pestaña cierra la ventana sin vender")
+	panel.call("show_tab", 2)
+	await process_frame
+	# Con 0 de un tipo, el botón queda desactivado.
+	_game_state.set("pets", [&"gato"] as Array[StringName])
+	_game_state.emit_signal("pets_changed")
+	await process_frame
+	_check((panel.call("get_row_button", &"vender_perro") as Button).disabled, "sin perros el botón Vender está desactivado")
+	panel.call("close")
 
 
 func _check(condition: bool, label: String) -> void:
