@@ -118,8 +118,9 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
 - **v0.7.0 (en `main`, tag `v0.7.0`; PR #26 y #27):** tutorial de Briseida y BYTE para partidas nuevas (ver 4.1): bustos con 3 expresiones, pasos de acción con resaltado y "TAP", "Omitir paso", "Saltar tutorial" y "Ver tutorial otra vez" en Ajustes (#26); guardado v6 con `player/tutorial_step`: las partidas anteriores cargan bien pero no ven el tutorial (#26); en el teléfono, las ventanas de nombre se compactan y quedan sobre el teclado en pantalla (#26); estado en CONTEXTO.md (#27).
 - **v0.8.0 (en `main`, tag `v0.8.0`):** paleta pastel, texturas y camisetas (#31) y fondo exterior día/noche (#33).
 - **v0.9.0 (en `main`, tag `v0.9.0`; PR #38 y #39):** mascotas con pathfinding (PR E, #38; ver 7.1): gato y perro en la Tienda, rutas A*, siesta, susto con DDoS y guardado v8; estado en CONTEXTO.md (#39).
-- **v0.9.1 (PR #43):** vender mascotas, PR F (#43; ver 7.1): "Vender +N" en la Tienda → Mascotas devuelve el 50 % (`venta_pct`), con ventana de confirmación, para cambiar unas por otras hasta el máximo de 6.
-- **En revisión:** PR G — conejo y tortuga (rama `feature/conejo-tortuga`; saldrá como v0.9.2).
+- **v0.9.1 (en `main`, tag `v0.9.1`; PR #43):** vender mascotas, PR F (#43; ver 7.1): "Vender +N" en la Tienda → Mascotas devuelve el 50 % (`venta_pct`), con ventana de confirmación, para cambiar unas por otras hasta el máximo de 6.
+- **v0.9.2 (PR #47):** conejo y tortuga, PR G (#47; ver 7.1): conejo blanco (450, refugio en el rincón) y tortuga verde (300, la más lenta, sin refugio: se mete en su caparazón donde está).
+- **En revisión:** nada por ahora.
 - **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retrato de BYTE en diálogos.
 
 ## 9. Cómo trabajar
