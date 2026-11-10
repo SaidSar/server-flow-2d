@@ -18,6 +18,8 @@ enum Tab { SHOP, INVENTORY, PETS }
 const THUMB_SIZE := Vector2(104, 104)
 ## Segundos que espera el "¿Seguro?" de vender una mascota antes de cancelarse solo.
 const CONFIRM_SECONDS := 3.0
+## Tamaño de letra de los botones Comprar/Vender de las mascotas (caben "¿Seguro? +250" en media fila).
+const PET_BUTTON_FONT := 24
 ## Ancho máximo del panel: 560 px o el 30 % del ancho de la pantalla, lo que sea menor.
 const MAX_WIDTH_RATIO := 0.3
 
@@ -35,6 +37,8 @@ var _row_buttons: Dictionary[StringName, Button] = {}
 var _refresh_queued := false
 ## Mascota cuya venta espera el segundo toque de confirmación (&"" = ninguna).
 var _confirming_sale: StringName = &""
+## Cuenta cada confirmación: un temporizador viejo no cancela una confirmación nueva.
+var _confirm_token := 0
 
 
 func _ready() -> void:
@@ -162,12 +166,17 @@ func _pet_row(pet: PetData) -> Control:
 	var sell_button := _row_button(sell_text, owned <= 0)
 	sell_button.pressed.connect(_on_pet_sell_pressed.bind(pet.id))
 	_row_buttons[StringName("vender_%s" % pet.id)] = sell_button
-	var buttons := VBoxContainer.new()
-	buttons.add_theme_constant_override(&"separation", 8)
-	buttons.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	buttons.add_child(buy_button)
-	buttons.add_child(sell_button)
-	return _row_with(pet.display_name, pet.get_frame_texture(PetData.FRAME_IDLE), info, blocked, buttons, pet.description)
+	# Los dos botones van abajo, a todo lo ancho y del mismo tamaño: "¿Seguro?" no cambia el tamaño de la fila ni
+	# mueve el botón (si se moviera, el segundo toque caería en otro lado).
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override(&"separation", 10)
+	for button: Button in [buy_button, sell_button]:
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.custom_minimum_size.x = 0.0
+		button.clip_text = true
+		button.add_theme_font_size_override(&"font_size", PET_BUTTON_FONT)
+		buttons.add_child(button)
+	return _row_with(pet.display_name, pet.get_frame_texture(PetData.FRAME_IDLE), info, blocked, null, pet.description, buttons)
 
 
 func _on_pet_buy_pressed(pet_id: StringName) -> void:
@@ -183,12 +192,13 @@ func _on_pet_sell_pressed(pet_id: StringName) -> void:
 		_queue_refresh()
 		return
 	_confirming_sale = pet_id
+	_confirm_token += 1
 	_queue_refresh()
-	get_tree().create_timer(CONFIRM_SECONDS).timeout.connect(_cancel_confirmation.bind(pet_id))
+	get_tree().create_timer(CONFIRM_SECONDS).timeout.connect(_cancel_confirmation.bind(_confirm_token))
 
 
-func _cancel_confirmation(pet_id: StringName) -> void:
-	if _confirming_sale == pet_id:
+func _cancel_confirmation(token: int) -> void:
+	if _confirming_sale != &"" and token == _confirm_token:
 		_confirming_sale = &""
 		_queue_refresh()
 
@@ -205,16 +215,20 @@ func _row(decor: DecorData, info: String, blocked: String, button: Button) -> Co
 	return _row_with(decor.display_name, decor.orientations[decor.get_default_orientation()].load_texture(), info, blocked, button)
 
 
-func _row_with(title: String, picture: Texture2D, info: String, blocked: String, button: Control, extra: String = "") -> Control:
+## `button` va a la derecha de la fila; `footer` (opcional) va debajo, a todo lo ancho.
+func _row_with(title: String, picture: Texture2D, info: String, blocked: String, button: Control, extra: String = "", footer: Control = null) -> Control:
 	var row := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = DashboardColors.CARD_ALT
 	style.set_corner_radius_all(12)
 	style.set_content_margin_all(12)
 	row.add_theme_stylebox_override(&"panel", style)
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override(&"separation", 10)
+	row.add_child(rows)
 	var box := HBoxContainer.new()
 	box.add_theme_constant_override(&"separation", 14)
-	row.add_child(box)
+	rows.add_child(box)
 
 	var thumb := TextureRect.new()
 	thumb.texture = picture
@@ -233,7 +247,10 @@ func _row_with(title: String, picture: Texture2D, info: String, blocked: String,
 	if not blocked.is_empty():
 		texts.add_child(_label(blocked, 22, DashboardColors.BLOCKED))
 	box.add_child(texts)
-	box.add_child(button)
+	if button != null:
+		box.add_child(button)
+	if footer != null:
+		rows.add_child(footer)
 	return row
 
 
