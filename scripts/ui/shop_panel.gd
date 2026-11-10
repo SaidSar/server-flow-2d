@@ -3,7 +3,7 @@ extends CanvasLayer
 ## Panel lateral de la tienda de decoración, con dos pestañas:
 ## - Tienda: miniatura, nombre, precio, tamaño en celdas, "tienes n" y "Comprar".
 ## - Inventario: lo guardado, con "Colocar".
-## - Mascotas: gato y perro, con precio, "Comprar" y "Vender" (devuelve la mitad; pide un segundo toque para confirmar).
+## - Mascotas: gato y perro, con precio, "Comprar" y "Vender" (devuelve la mitad; abre una ventana "¿Vender? Sí / No").
 ## Solo emite lo que pidió el jugador; DecorPlacer compra, coloca y guarda.
 
 signal opened
@@ -16,9 +16,7 @@ signal pet_sell_requested(pet_id: StringName)
 enum Tab { SHOP, INVENTORY, PETS }
 
 const THUMB_SIZE := Vector2(104, 104)
-## Segundos que espera el "¿Seguro?" de vender una mascota antes de cancelarse solo.
-const CONFIRM_SECONDS := 3.0
-## Tamaño de letra de los botones Comprar/Vender de las mascotas (caben "¿Seguro? +250" en media fila).
+## Tamaño de letra de los botones Comprar/Vender de las mascotas.
 const PET_BUTTON_FONT := 24
 ## Ancho máximo del panel: 560 px o el 30 % del ancho de la pantalla, lo que sea menor.
 const MAX_WIDTH_RATIO := 0.3
@@ -35,10 +33,10 @@ var _tab: Tab = Tab.SHOP
 ## id → botón de la fila visible (Comprar o Colocar), para las pruebas.
 var _row_buttons: Dictionary[StringName, Button] = {}
 var _refresh_queued := false
-## Mascota cuya venta espera el segundo toque de confirmación (&"" = ninguna).
-var _confirming_sale: StringName = &""
-## Cuenta cada confirmación: un temporizador viejo no cancela una confirmación nueva.
-var _confirm_token := 0
+## Ventana "¿Vender?" abierta (null si no hay) y sus botones, para las pruebas.
+var _sale_dialog: Control
+var _sale_yes_button: Button
+var _sale_no_button: Button
 
 
 func _ready() -> void:
@@ -61,7 +59,10 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed(&"ui_cancel"):
-		close()
+		if _sale_dialog != null:
+			_close_sale_dialog()
+		else:
+			close()
 		get_viewport().set_input_as_handled()
 
 
@@ -87,12 +88,13 @@ func open(tab: Tab = Tab.SHOP) -> void:
 func close() -> void:
 	if not visible:
 		return
-	_confirming_sale = &""
+	_close_sale_dialog()
 	hide()
 	closed.emit()
 
 
 func show_tab(tab: Tab) -> void:
+	_close_sale_dialog()
 	_tab = tab
 	_shop_tab.set_pressed_no_signal(tab == Tab.SHOP)
 	_inventory_tab.set_pressed_no_signal(tab == Tab.INVENTORY)
@@ -121,8 +123,6 @@ func _refresh() -> void:
 		_rows_box.remove_child(child)
 		child.queue_free()
 	_row_buttons.clear()
-	if _tab != Tab.PETS:
-		_confirming_sale = &""
 	if _tab == Tab.PETS:
 		for pet: PetData in PetData.load_catalog():
 			_rows_box.add_child(_pet_row(pet))
@@ -160,14 +160,10 @@ func _pet_row(pet: PetData) -> Control:
 	var buy_button := _row_button("Comprar", not blocked.is_empty())
 	buy_button.pressed.connect(_on_pet_buy_pressed.bind(pet.id))
 	_row_buttons[pet.id] = buy_button
-	var sell_text := "Vender +%s" % NumberFormat.thousands(pet.get_sell_price())
-	if _confirming_sale == pet.id:
-		sell_text = "¿Seguro? +%s" % NumberFormat.thousands(pet.get_sell_price())
-	var sell_button := _row_button(sell_text, owned <= 0)
+	var sell_button := _row_button("Vender +%s" % NumberFormat.thousands(pet.get_sell_price()), owned <= 0)
 	sell_button.pressed.connect(_on_pet_sell_pressed.bind(pet.id))
 	_row_buttons[StringName("vender_%s" % pet.id)] = sell_button
-	# Los dos botones van abajo, a todo lo ancho y del mismo tamaño: "¿Seguro?" no cambia el tamaño de la fila ni
-	# mueve el botón (si se moviera, el segundo toque caería en otro lado).
+	# Los dos botones van abajo, a todo lo ancho y del mismo tamaño.
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override(&"separation", 10)
 	for button: Button in [buy_button, sell_button]:
@@ -180,27 +176,80 @@ func _pet_row(pet: PetData) -> Control:
 
 
 func _on_pet_buy_pressed(pet_id: StringName) -> void:
-	_confirming_sale = &""
 	pet_buy_requested.emit(pet_id)
 
 
-## Vender pide dos toques: el primero cambia el botón a "¿Seguro?" (se cancela solo a los 3 s o al tocar otra cosa).
+## Vender abre una ventana "¿Vender? Sí / No": la mascota se va para siempre y se devuelve solo una parte del precio.
 func _on_pet_sell_pressed(pet_id: StringName) -> void:
-	if _confirming_sale == pet_id:
-		_confirming_sale = &""
-		pet_sell_requested.emit(pet_id)
-		_queue_refresh()
+	var pet := PetData.find(pet_id)
+	if pet == null:
 		return
-	_confirming_sale = pet_id
-	_confirm_token += 1
+	_close_sale_dialog()
+	var overlay := Control.new()
+	overlay.name = "SaleDialog"
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	var dim := ColorRect.new()
+	dim.color = Color(0.0, 0.0, 0.0, 0.6)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(center)
+	var card := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = DashboardColors.CARD_ALT
+	style.set_corner_radius_all(16)
+	style.set_content_margin_all(28)
+	style.set_border_width_all(2)
+	style.border_color = DashboardColors.TEXT_SOFT
+	card.add_theme_stylebox_override(&"panel", style)
+	card.custom_minimum_size.x = minf(get_panel_width(), 520.0)
+	center.add_child(card)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override(&"separation", 16)
+	card.add_child(box)
+	var title := _label("¿Vender %s?" % pet.display_name.to_lower(), 32, DashboardColors.TEXT_TITLE)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(title)
+	var detail := _label("Se va de la empresa y recibes %s monedas." % NumberFormat.thousands(pet.get_sell_price()), 24, DashboardColors.TEXT_SOFT)
+	detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(detail)
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override(&"separation", 12)
+	box.add_child(buttons)
+	_sale_no_button = _row_button("No", false)
+	_sale_yes_button = _row_button("Sí, vender", false)
+	for button: Button in [_sale_no_button, _sale_yes_button]:
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.custom_minimum_size.x = 0.0
+		buttons.add_child(button)
+	_sale_no_button.pressed.connect(_close_sale_dialog)
+	_sale_yes_button.pressed.connect(_confirm_sale.bind(pet_id))
+	add_child(overlay)
+	_sale_dialog = overlay
+
+
+func _confirm_sale(pet_id: StringName) -> void:
+	_close_sale_dialog()
+	pet_sell_requested.emit(pet_id)
 	_queue_refresh()
-	get_tree().create_timer(CONFIRM_SECONDS).timeout.connect(_cancel_confirmation.bind(_confirm_token))
 
 
-func _cancel_confirmation(token: int) -> void:
-	if _confirming_sale != &"" and token == _confirm_token:
-		_confirming_sale = &""
-		_queue_refresh()
+func _close_sale_dialog() -> void:
+	if _sale_dialog != null:
+		_sale_dialog.queue_free()
+		_sale_dialog.hide()
+		_sale_dialog = null
+		_sale_yes_button = null
+		_sale_no_button = null
+
+
+## Botones de la ventana "¿Vender?" (&"si" o &"no"); null si no hay ventana abierta. Para las pruebas.
+func get_sale_dialog_button(which: StringName) -> Button:
+	return _sale_yes_button if which == &"si" else _sale_no_button
 
 
 func _inventory_row(decor: DecorData) -> Control:

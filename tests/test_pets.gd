@@ -422,7 +422,7 @@ func _test_room_scene() -> void:
 		await process_frame
 
 
-## Pestaña Mascotas de la Tienda: "Vender" pide un segundo toque y luego vende y libera el lugar.
+## Pestaña Mascotas de la Tienda: "Vender" abre una ventana "¿Vender? Sí / No"; solo "Sí" vende y libera el lugar.
 func _test_shop_panel_sell(scene: Node) -> void:
 	_simulation.call("load_checkpoint", {"stage": "scale_up", "wave": 1, "coins": 1000})
 	_game_state.set("pets", [&"gato", &"gato", &"perro"] as Array[StringName])
@@ -435,45 +435,38 @@ func _test_shop_panel_sell(scene: Node) -> void:
 	_check(sell_cat != null and not sell_cat.disabled, "el botón Vender del gato está activo")
 	_check(sell_cat.text.begins_with("Vender") and "200" in sell_cat.text, "el botón dice 'Vender +200' (%s)" % sell_cat.text)
 	_check(sell_dog.text.begins_with("Vender") and "250" in sell_dog.text, "el botón dice 'Vender +250' (%s)" % sell_dog.text)
-	await process_frame
-	var cat_rect := Rect2(sell_cat.global_position, sell_cat.size)
-	var dog_rect := Rect2(sell_dog.global_position, sell_dog.size)
-	_check(cat_rect.size.x > 0.0 and sell_cat.get_minimum_size().x <= sell_cat.size.x, "'Vender' cabe en su botón (%s)" % sell_cat.size)
+	_check(panel.call("get_sale_dialog_button", &"si") == null, "al abrir la Tienda no hay ventana de venta")
+	# Vender -> ventana -> No: no vende.
 	sell_cat.pressed.emit()
 	await process_frame
+	var yes: Button = panel.call("get_sale_dialog_button", &"si")
+	var no: Button = panel.call("get_sale_dialog_button", &"no")
+	_check(yes != null and no != null, "Vender abre la ventana con Sí y No")
+	_check(_game_state.call("count_pets", &"gato") == 2, "abrir la ventana no vende")
+	_check(yes.text.begins_with("Sí") and no.text == "No", "los botones dicen 'Sí, vender' y 'No'")
+	no.pressed.emit()
 	await process_frame
-	_check(_game_state.call("count_pets", &"gato") == 2, "el primer toque no vende")
+	_check(panel.call("get_sale_dialog_button", &"si") == null, "No cierra la ventana")
+	_check(_game_state.call("count_pets", &"gato") == 2 and _simulation.get("coins") == 1000, "No no vende ni cobra")
+	# Vender -> ventana -> Sí: vende.
 	sell_cat = panel.call("get_row_button", &"vender_gato")
-	sell_dog = panel.call("get_row_button", &"vender_perro")
-	_check(sell_cat.text.begins_with("¿Seguro?"), "el primer toque pide confirmar (%s)" % sell_cat.text)
-	_check(sell_cat.get_minimum_size().x <= sell_cat.size.x, "'¿Seguro? +200' cabe en su botón (min %s, tam %s)" % [sell_cat.get_minimum_size().x, sell_cat.size.x])
-	_check(Rect2(sell_cat.global_position, sell_cat.size) == cat_rect, "el botón no se mueve ni cambia de tamaño al pedir confirmar")
-	_check(Rect2(sell_dog.global_position, sell_dog.size) == dog_rect, "los demás botones tampoco se mueven")
 	sell_cat.pressed.emit()
 	await process_frame
-	_check(_game_state.call("count_pets", &"gato") == 1, "el segundo toque vende el gato")
+	(panel.call("get_sale_dialog_button", &"si") as Button).pressed.emit()
+	await process_frame
+	await process_frame
+	_check(panel.call("get_sale_dialog_button", &"si") == null, "Sí cierra la ventana")
+	_check(_game_state.call("count_pets", &"gato") == 1, "Sí vende el gato")
 	_check(_simulation.get("coins") == 1200, "vender el gato paga 200 (%s)" % _simulation.get("coins"))
-	sell_cat = panel.call("get_row_button", &"vender_gato")
-	_check(sell_cat.text.begins_with("Vender"), "después de vender el botón vuelve a 'Vender'")
-	# Un temporizador viejo no cancela una confirmación nueva.
-	var old_token: int = panel.get("_confirm_token")
+	# Cambiar de pestaña cierra la ventana sin vender.
 	(panel.call("get_row_button", &"vender_perro") as Button).pressed.emit()
 	await process_frame
-	panel.call("_cancel_confirmation", old_token)
+	_check(panel.call("get_sale_dialog_button", &"si") != null, "Vender el perro abre la ventana")
+	panel.call("show_tab", 0)
 	await process_frame
-	_check((panel.call("get_row_button", &"vender_perro") as Button).text.begins_with("¿Seguro?"), "un temporizador viejo no cancela la confirmación nueva")
-	panel.call("_cancel_confirmation", panel.get("_confirm_token"))
+	_check(panel.call("get_sale_dialog_button", &"si") == null and _game_state.call("count_pets", &"perro") == 1, "cambiar de pestaña cierra la ventana sin vender")
+	panel.call("show_tab", 2)
 	await process_frame
-	_check((panel.call("get_row_button", &"vender_perro") as Button).text.begins_with("Vender"), "el temporizador vigente sí cancela")
-	# Tocar otra cosa cancela la confirmación.
-	sell_dog = panel.call("get_row_button", &"vender_perro")
-	sell_dog.pressed.emit()
-	await process_frame
-	(panel.call("get_row_button", &"gato") as Button).pressed.emit()
-	await process_frame
-	_check(_game_state.call("count_pets", &"perro") == 1, "comprar cancela la confirmación sin vender el perro")
-	sell_dog = panel.call("get_row_button", &"vender_perro")
-	_check(sell_dog.text.begins_with("Vender"), "la confirmación se canceló (%s)" % sell_dog.text)
 	# Con 0 de un tipo, el botón queda desactivado.
 	_game_state.set("pets", [&"gato"] as Array[StringName])
 	_game_state.emit_signal("pets_changed")
