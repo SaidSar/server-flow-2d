@@ -3,7 +3,7 @@ extends CanvasLayer
 ## Panel lateral de la tienda de decoración, con dos pestañas:
 ## - Tienda: miniatura, nombre, precio, tamaño en celdas, "tienes n" y "Comprar".
 ## - Inventario: lo guardado, con "Colocar".
-## - Mascotas: gato y perro, con precio, "Comprar" y "Vender" (devuelve la mitad; abre una ventana "¿Vender? Sí / No").
+## - Mascotas: gato y perro, con precio, "Comprar" y "Vender" (devuelve la mitad; abre una ventana "¿Vender? Sí / No"; tocar fuera de ella la cierra sin vender).
 ## Solo emite lo que pidió el jugador; DecorPlacer compra, coloca y guarda.
 
 signal opened
@@ -192,7 +192,10 @@ func _on_pet_sell_pressed(pet_id: StringName) -> void:
 	var dim := ColorRect.new()
 	dim.color = Color(0.0, 0.0, 0.0, 0.6)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dim.name = "Dim"
+	# Tocar fuera de la ventana (en lo oscuro) la cierra sin vender.
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_sale_dim_input)
 	overlay.add_child(dim)
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -230,6 +233,11 @@ func _on_pet_sell_pressed(pet_id: StringName) -> void:
 	_sale_yes_button.pressed.connect(_confirm_sale.bind(pet_id))
 	add_child(overlay)
 	_sale_dialog = overlay
+
+
+func _on_sale_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_sale_dialog()
 
 
 func _confirm_sale(pet_id: StringName) -> void:

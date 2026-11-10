@@ -458,7 +458,17 @@ func _test_shop_panel_sell(scene: Node) -> void:
 	_check(panel.call("get_sale_dialog_button", &"si") == null, "Sí cierra la ventana")
 	_check(_game_state.call("count_pets", &"gato") == 1, "Sí vende el gato")
 	_check(_simulation.get("coins") == 1200, "vender el gato paga 200 (%s)" % _simulation.get("coins"))
-	# Cambiar de pestaña cierra la ventana sin vender.
+	# Tocar fuera de la ventana (en lo oscuro) la cierra sin vender.
+	(panel.call("get_row_button", &"vender_perro") as Button).pressed.emit()
+	await process_frame
+	var dim := panel.get_node("SaleDialog/Dim") as Control
+	var tap := InputEventMouseButton.new()
+	tap.button_index = MOUSE_BUTTON_LEFT
+	tap.pressed = true
+	dim.gui_input.emit(tap)
+	await process_frame
+	_check(panel.call("get_sale_dialog_button", &"si") == null and _game_state.call("count_pets", &"perro") == 1, "tocar fuera de la ventana la cierra sin vender")
+	# Cambiar de pestaña por código cierra la ventana sin vender.
 	(panel.call("get_row_button", &"vender_perro") as Button).pressed.emit()
 	await process_frame
 	_check(panel.call("get_sale_dialog_button", &"si") != null, "Vender el perro abre la ventana")
