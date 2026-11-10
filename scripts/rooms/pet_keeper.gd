@@ -109,7 +109,11 @@ func _apply_saturation(saturated: bool) -> void:
 	for pet: Pet in _pets:
 		if pet.is_scared():
 			continue
-		var shelter: Vector2 = _room.pet_shelters.get(pet.data.id, _room.pet_rest_point)
+		# Sin refugio en el cuarto (la tortuga): se queda donde está, metida en su caparazón.
+		if not _room.pet_shelters.has(pet.data.id):
+			pet.set_scared(true, pet.get_position_m())
+			continue
+		var shelter: Vector2 = _room.pet_shelters[pet.data.id]
 		var cell := _grid.nearest_open_cell(_grid.cell_of(shelter), taken)
 		taken.append(cell)
 		pet.set_scared(true, _grid.center_of(cell) if cell.x >= 0 else Vector2.INF)

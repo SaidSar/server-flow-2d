@@ -53,8 +53,12 @@ func _run() -> void:
 
 func _test_catalog() -> void:
 	var catalog := PetData.load_catalog()
-	_check(catalog.size() == 2, "el catálogo trae gato y perro (%d)" % catalog.size())
+	_check(catalog.size() == 4, "el catálogo trae gato, perro, conejo y tortuga (%d)" % catalog.size())
 	_check(PetData.find(&"gato") != null and PetData.find(&"perro") != null, "gato y perro existen")
+	_check(PetData.find(&"conejo") != null and PetData.find(&"tortuga") != null, "conejo y tortuga existen")
+	_check(PetData.find(&"conejo").price == 450 and PetData.find(&"conejo").get_sell_price() == 225, "el conejo cuesta 450 y se vende en 225")
+	_check(PetData.find(&"tortuga").price == 300 and PetData.find(&"tortuga").get_sell_price() == 150, "la tortuga cuesta 300 y se vende en 150")
+	_check(PetData.find(&"tortuga").walk_speed_m_s < PetData.find(&"gato").walk_speed_m_s, "la tortuga es la más lenta")
 	_check(PetData.find(&"no_existe") == null, "un id desconocido no existe")
 	for pet: PetData in catalog:
 		_check(pet.price > 0, "%s tiene precio" % pet.id)
@@ -62,7 +66,8 @@ func _test_catalog() -> void:
 		var sheet := pet.load_sheet()
 		var frame := PetData.get_frame_size()
 		_check(sheet != null and sheet.get_width() == frame.x * 7 and sheet.get_height() == frame.y, "la hoja de %s son 7 cuadros de %s" % [pet.id, frame])
-		_check(pet.scared_speed_m_s > pet.walk_speed_m_s, "%s corre más asustada" % pet.id)
+		if pet.id != &"tortuga":
+			_check(pet.scared_speed_m_s > pet.walk_speed_m_s, "%s corre más asustada" % pet.id)
 		_check(pet.get_frame_texture(PetData.FRAME_IDLE) != null, "%s tiene miniatura" % pet.id)
 	_check(PetData.get_max_total() >= 2, "el máximo de mascotas es razonable")
 	for decor in DecorData.load_catalog():
@@ -186,19 +191,25 @@ func _test_behavior() -> void:
 	_check(woke, "el gato se despierta")
 
 	# Susto: corre al refugio, se queda ahí y al terminar vuelve a pasear.
-	for pet_id: StringName in [&"gato", &"perro"]:
+	for pet_id: StringName in [&"gato", &"perro", &"conejo", &"tortuga"]:
 		var parts := _make_pet(pet_id, &"garage", 3, 0.0)
 		var pet: Node2D = parts[0]
 		var grid: PetGrid = parts[1]
 		var room: RoomData = parts[2]
 		for i in 90:
 			pet.call("step", STEP)
+		var turtle_cell := grid.cell_of(pet.call("get_position_m"))
 		pet.call("set_scared", true)
 		_check(pet.call("is_scared"), "%s se asusta" % pet_id)
 		for i in 900:
 			pet.call("step", STEP)
-		var shelter_cell := grid.cell_of(room.pet_shelters[pet_id])
-		_check(grid.cell_of(pet.call("get_position_m")) == shelter_cell, "%s se refugia en su casilla" % pet_id)
+		if pet_id == &"tortuga":
+			# La tortuga no tiene refugio: se mete en el caparazón donde está.
+			_check(not room.pet_shelters.has(pet_id), "la tortuga no tiene refugio")
+			_check(grid.cell_of(pet.call("get_position_m")) == turtle_cell, "la tortuga no se mueve al asustarse")
+		else:
+			var shelter_cell := grid.cell_of(room.pet_shelters[pet_id])
+			_check(grid.cell_of(pet.call("get_position_m")) == shelter_cell, "%s se refugia en su casilla" % pet_id)
 		_check(pet.call("get_target_m") == Vector2.INF, "%s se queda quieto en el refugio" % pet_id)
 		var held: Vector2 = pet.call("get_position_m")
 		for i in 300:
@@ -433,6 +444,9 @@ func _test_shop_panel_sell(scene: Node) -> void:
 	var sell_cat: Button = panel.call("get_row_button", &"vender_gato")
 	var sell_dog: Button = panel.call("get_row_button", &"vender_perro")
 	_check(sell_cat != null and not sell_cat.disabled, "el botón Vender del gato está activo")
+	for pet_id: StringName in [&"conejo", &"tortuga"]:
+		_check(panel.call("get_row_button", pet_id) != null, "la Tienda lista al %s" % pet_id)
+		_check((panel.call("get_row_button", StringName("vender_%s" % pet_id)) as Button).disabled, "sin %s su botón Vender está desactivado" % pet_id)
 	_check(sell_cat.text.begins_with("Vender") and "200" in sell_cat.text, "el botón dice 'Vender +200' (%s)" % sell_cat.text)
 	_check(sell_dog.text.begins_with("Vender") and "250" in sell_dog.text, "el botón dice 'Vender +250' (%s)" % sell_dog.text)
 	_check(panel.call("get_sale_dialog_button", &"si") == null, "al abrir la Tienda no hay ventana de venta")
