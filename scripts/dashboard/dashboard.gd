@@ -282,7 +282,7 @@ func _on_bottleneck_changed(resource: StringName, node: StringName) -> void:
 	_highlight_fixes(resource)
 	if not _warned_resources.has(resource):
 		_warned_resources[resource] = true
-		_byte.say(_byte_warning(resource))
+		_byte.say(_byte_warning(resource), _byte_mood(resource))
 
 
 func _bottleneck_text(resource: StringName, node: StringName) -> String:
@@ -292,6 +292,11 @@ func _bottleneck_text(resource: StringName, node: StringName) -> String:
 	if node == Simulation.NODE_WEB:
 		node_name = "de los servidores web" if Simulation.servers.size() > 1 else "del Servidor Web #1"
 	return "⚠ Cuello de botella: %s %s" % [RESOURCE_NAMES.get(resource, resource), node_name]
+
+
+## Expresión de BYTE al avisar: alerta roja con un ataque DDoS, preocupada con un cuello de botella.
+func _byte_mood(resource: StringName) -> StringName:
+	return &"alerta" if resource == &"ddos" else &"preocupada"
 
 
 func _byte_warning(resource: StringName) -> String:

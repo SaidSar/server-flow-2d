@@ -9,8 +9,8 @@ extends CanvasLayer
 ## - Los pasos de la otra escena se reemplazan por un aviso ("vuelve a la computadora").
 ## - En el dashboard, mientras un paso solo se lee (no hay nada que tocar) la simulación se pausa.
 
-## BYTE tiene que decir este texto en el dashboard.
-signal byte_requested(text: String)
+## BYTE tiene que decir este texto en el dashboard, con esta expresión.
+signal byte_requested(text: String, expression: StringName)
 ## La caja de Briseida apareció o se fue (el cuarto esconde su aviso de la PC mientras está).
 signal box_visibility_changed(box_visible: bool)
 ## La caja tapa la pantalla esperando un toque (el dashboard retiene los mensajes de BYTE mientras tanto).
@@ -254,7 +254,7 @@ func _show_byte(step: TutorialStep) -> void:
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_set_wants_pause(pause_simulation)
 	_emit_state()
-	byte_requested.emit(Tutorial.format(step.text))
+	byte_requested.emit(Tutorial.format(step.text), step.expression)
 
 
 func _show_briseida(step: TutorialStep, in_scene: bool) -> void:
