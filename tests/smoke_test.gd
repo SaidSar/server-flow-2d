@@ -432,6 +432,10 @@ func _test_dashboard(dashboard: Node, simulation: Node) -> void:
 	_check(monitor.call("get_server_count") == 1, "el monitor muestra 1 servidor")
 	var byte: Control = dashboard.get_node("%ByteBubble")
 	_check(byte.visible and str(byte.call("get_text")).contains("Servidor Web"), "BYTE da el tutorial de la oleada 1")
+	_check(byte.call("get_mood") == &"normal", "BYTE da el tutorial con su expresión normal")
+	# Los avisos de BYTE traen su expresión: preocupada con un cuello de botella, alerta con un ataque DDoS.
+	_check(dashboard.call("_byte_mood", &"cpu") == &"preocupada" and dashboard.call("_byte_mood", &"disk") == &"preocupada", "BYTE se preocupa con un cuello de botella")
+	_check(dashboard.call("_byte_mood", &"ddos") == &"alerta", "BYTE pone la alerta roja con un ataque DDoS")
 	await _test_settings_in_dashboard(dashboard, simulation)
 	await _test_upgrade_info(dashboard, simulation)
 	await create_timer(0.6).timeout
