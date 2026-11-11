@@ -1,7 +1,6 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/dashboard/byte_bubble.gd" id="1_byte"]
-[ext_resource type="Texture2D" path="res://assets/art/ui/byte.svg" id="2_byte"]
 
 [node name="ByteBubble" type="PanelContainer"]
 custom_minimum_size = Vector2(620, 0)
@@ -12,11 +11,11 @@ layout_mode = 2
 theme_override_constants/separation = 14
 
 [node name="Avatar" type="TextureRect" parent="Row"]
-custom_minimum_size = Vector2(72, 72)
+unique_name_in_owner = true
+custom_minimum_size = Vector2(168, 168)
 layout_mode = 2
-size_flags_vertical = 0
+size_flags_vertical = 4
 mouse_filter = 2
-texture = ExtResource("2_byte")
 expand_mode = 1
 stretch_mode = 5
 

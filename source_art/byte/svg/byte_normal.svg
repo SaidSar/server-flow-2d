@@ -1,0 +1,27 @@
+<svg viewBox="0 10 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BYTE, expresión normal">
+<defs><clipPath id="cno"><circle cx="200" cy="220" r="118"/></clipPath>
+<filter id="gno" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<g stroke="#2a1c22" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+ <!-- drill -->
+ <path d="M176 326 L224 326 L200 396 Z" fill="#ff8a1f"/><path d="M186 352 L214 352 M191 372 L209 372" stroke="#fcf9f5" stroke-width="5" fill="none"/>
+ <!-- ears -->
+ <path d="M38 40 L172 138 L90 222 Z" fill="#fcf9f5"/><path d="M38 40 L172 138 L150 160 Z" fill="#ecdfd2" stroke="none"/><path d="M38 40 L172 138 L90 222 Z" fill="none"/>
+ <path d="M62 84 L150 150 L104 196 Z" fill="#ff8a1f" stroke-width="4"/>
+ <path d="M340 66 L290 134 L336 196 Z" fill="#fcf9f5"/><path d="M332 100 L304 138 L330 172 Z" fill="#ff8a1f" stroke-width="4"/>
+ <!-- head -->
+ <circle cx="200" cy="220" r="118" fill="#fcf9f5"/>
+ <g clip-path="url(#cno)" stroke="none"><rect x="70" y="90" width="260" height="260" fill="#ecdfd2"/><circle cx="184" cy="204" r="118" fill="#fcf9f5"/>
+  <path d="M236 98 Q316 130 330 214" fill="none" stroke="#ff8a1f" stroke-width="26"/><path d="M226 112 Q304 142 316 220" fill="none" stroke="#d9650a" stroke-width="3" opacity=".6"/>
+  <path d="M82 300 Q150 340 230 336" fill="none" stroke="#ff8a1f" stroke-width="18"/></g>
+ <circle cx="200" cy="220" r="118" fill="none"/>
+ <!-- speaker -->
+ <circle cx="104" cy="170" r="14" fill="#d9d0c6" stroke-width="4"/><circle cx="104" cy="170" r="6" fill="#2b1e36" stroke="none"/><circle cx="104" cy="170" r="14" fill="none" stroke="#ff8a1f" stroke-width="2" opacity="0"/>
+ <!-- visor -->
+ <ellipse cx="200" cy="240" rx="98" ry="66" fill="#ff8a1f" stroke-width="5"/><ellipse cx="200" cy="240" rx="88" ry="57" fill="#2b1e36" stroke-width="4"/>
+ <path d="M124 214 Q146 192 184 188" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="5"/>
+ <g fill="none" stroke="#ffb04d" stroke-width="11" filter="url(#gno)"><path d="M141 248 A19 19 0 0 1 179 248" /><path d="M221 248 A19 19 0 0 1 259 248" /></g>
+ 
+</g>
+
+<ellipse cx="146" cy="136" rx="20" ry="7" transform="rotate(-38 146 136)" fill="#fff" opacity=".9"/><circle cx="168" cy="118" r="3.5" fill="#fff" opacity=".9"/>
+</svg>

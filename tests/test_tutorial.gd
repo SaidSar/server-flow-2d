@@ -13,6 +13,8 @@ const PHASE_BETWEEN_WAVES := 3
 const MAX_WAVE_STEPS := 5000
 const STEP_COUNT := 8
 const BUST_SIZE := Vector2i(533, 800)
+## Expresiones del busto de BYTE (iguales a ByteBubble.MOODS).
+const BYTE_MOODS: Array[StringName] = [&"normal", &"contenta", &"preocupada", &"alerta"]
 
 var _failures: Array[String] = []
 var _game_state: Node
@@ -38,6 +40,8 @@ func _run() -> void:
 
 	_test_script()
 	_test_bust_art()
+	_test_byte_art()
+	await _test_byte_bubble()
 	_test_state_machine()
 	_test_save_and_old_saves()
 	await _test_walkthrough()
@@ -109,6 +113,48 @@ func _test_bust_art() -> void:
 		var image := texture.get_image()
 		_check(image.get_pixel(2, 2).a == 0.0 and image.get_pixel(BUST_SIZE.x - 3, 2).a == 0.0, "%s: el fondo es transparente" % expression)
 		_check(image.get_pixel(BUST_SIZE.x / 2, BUST_SIZE.y - 3).a == 1.0, "%s: el cuerpo llega al borde de abajo (cintura)" % expression)
+
+
+## Los cuatro bustos de BYTE existen, son de 512×512 y tienen fondo transparente.
+func _test_byte_art() -> void:
+	for expression: StringName in BYTE_MOODS:
+		var path: String = Paths.BYTE_BUST % expression
+		var texture := load(path) as Texture2D
+		_check(texture != null, "existe el busto de BYTE %s" % path)
+		if texture == null:
+			continue
+		_check(texture.get_size() == Vector2(512, 512), "BYTE %s mide 512×512 (%s)" % [expression, texture.get_size()])
+		var image := texture.get_image()
+		_check(image.get_pixel(2, 2).a == 0.0 and image.get_pixel(509, 2).a == 0.0, "BYTE %s: el fondo es transparente" % expression)
+	var step := TutorialStep.from_dict({"id": "x", "speaker": "byte", "text": "hola", "expression": "alerta"})
+	_check(step.validate().is_empty(), "un paso de BYTE acepta la expresión alerta")
+	step.expression = &"enojada"
+	_check(not step.validate().is_empty(), "un paso de BYTE rechaza una expresión desconocida")
+	var briseida := TutorialStep.from_dict({"id": "y", "speaker": "briseida", "text": "hola", "expression": "alerta"})
+	_check(not briseida.validate().is_empty(), "Briseida no tiene la expresión alerta")
+
+
+## El globo de BYTE cambia de expresión por mensaje, conserva la de cada uno en la cola y cae a normal si no la conoce.
+func _test_byte_bubble() -> void:
+	var bubble := (load("res://scenes/dashboard/byte_bubble.tscn") as PackedScene).instantiate() as Control
+	root.add_child(bubble)
+	await _frames(2)
+	bubble.call("say", "Consejo uno")
+	_check(bubble.visible and bubble.call("get_mood") == &"normal", "BYTE habla normal por defecto")
+	bubble.call("say", "Cuello de botella", &"preocupada")
+	bubble.call("say", "Ataque", &"alerta")
+	_check(bubble.call("get_mood") == &"normal", "los mensajes en cola no cambian la expresión actual")
+	(bubble.get_node("%CloseButton") as Button).pressed.emit()
+	_check(bubble.call("get_text") == "Cuello de botella" and bubble.call("get_mood") == &"preocupada", "el siguiente mensaje trae su expresión (preocupada)")
+	(bubble.get_node("%CloseButton") as Button).pressed.emit()
+	_check(bubble.call("get_text") == "Ataque" and bubble.call("get_mood") == &"alerta", "el siguiente mensaje trae su expresión (alerta)")
+	var avatar := bubble.get_node("%Avatar") as TextureRect
+	_check(avatar.texture == load(Paths.BYTE_BUST % &"alerta"), "el busto de BYTE muestra la alerta")
+	bubble.call("say_tutorial", "Soy BYTE", &"enojada")
+	_check(bubble.call("get_mood") == &"normal", "una expresión desconocida cae a normal")
+	bubble.call("clear")
+	root.remove_child(bubble)
+	bubble.free()
 
 #endregion
 
@@ -254,6 +300,7 @@ func _test_walkthrough() -> void:
 	var byte: Control = dashboard.get_node("%ByteBubble")
 	_check(_simulation.get("phase") == PHASE_RUNNING, "el dashboard arranca la oleada 1")
 	_check(byte.visible and byte.call("is_showing_tutorial") and (byte.call("get_text") as String).begins_with("Soy BYTE"), "paso 4: BYTE se presenta con su globo (%s)" % byte.call("get_text"))
+	_check(byte.call("get_mood") == &"normal", "paso 4: BYTE se presenta con la expresión normal")
 	_check(not overlay_d.call("is_box_visible") and not overlay_d.call("is_bust_visible"), "paso 4: Briseida no aparece cuando habla BYTE")
 	_check(_simulation.get("paused") and overlay_d.call("is_pausing_simulation"), "paso 4: la simulación espera mientras se lee")
 	var wave_time_before: float = _simulation.get("wave_time")
