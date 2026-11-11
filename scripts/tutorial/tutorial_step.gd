@@ -7,6 +7,8 @@ const SPEAKER_BYTE := &"byte"
 const SCENE_ROOM := &"room"
 const SCENE_DASHBOARD := &"dashboard"
 const EXPRESSIONS: Array[StringName] = [&"normal", &"contenta", &"preocupada"]
+## BYTE tiene una expresión más: la alerta roja de los ataques.
+const BYTE_EXPRESSIONS: Array[StringName] = [&"normal", &"contenta", &"preocupada", &"alerta"]
 const ACTIONS: Array[StringName] = [&"none", &"tap_pc", &"buy_upgrade"]
 const EVENTS: Array[StringName] = [&"tap_pc", &"buy_upgrade", &"wave_finished"]
 const WAITS: Array[StringName] = [&"", &"wave_finished"]
@@ -78,6 +80,8 @@ func validate() -> PackedStringArray:
 		problems.append("%s: speaker desconocido (%s)" % [id, speaker])
 	if speaker == SPEAKER_BRISEIDA and not expression in EXPRESSIONS:
 		problems.append("%s: expression desconocida (%s)" % [id, expression])
+	if speaker == SPEAKER_BYTE and not expression in BYTE_EXPRESSIONS:
+		problems.append("%s: expression de BYTE desconocida (%s)" % [id, expression])
 	if not action in ACTIONS:
 		problems.append("%s: action desconocida (%s)" % [id, action])
 	for event: StringName in also_on:

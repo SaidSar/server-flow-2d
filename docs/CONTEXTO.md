@@ -43,7 +43,7 @@
 ## 3. Personajes
 - **Avatar del jugador:** se elige al iniciar ("Elige tu personaje", paso 1 de 3) entre **Alex** (sudadera azul) y **Alexa** (sudadera rosa, coleta alta). Luego el jugador escribe el nombre del avatar (paso 2) y el de la empresa (paso 3). Los textos se adaptan al género del avatar (bienvenido/bienvenida).
 - **Briseida:** CEO de la empresa (antes se llamaba Valeria; ya no se usa ese nombre). Anuncia metas, eventos y rondas de inversión. **Retrato:** `assets/art/characters/briseida/briseida_retrato.png` (ruta en `Paths.CEO_PORTRAIT`), ilustración 2D (no viene de Blender) de 512×512 con fondo transparente, recortada en círculo sobre su color (`DashboardColors.CEO`) en el `DialogBox`. Todo diálogo de Briseida debe pasar ese retrato a `show_dialog`.
-- **BYTE:** asistente de monitoreo/tutorial: da pistas y avisa cuando un recurso pasa de 85 %.
+- **BYTE:** asistente de monitoreo/tutorial: da pistas y avisa cuando un recurso pasa de 85 %. **Diseño aprobado por el equipo:** cabeza esférica blanca y naranja, visor oscuro con ojos luminosos, orejas en cono y punta de taladro; sin rótulo en la cabeza (como Briseida, sin letreros). Usa **busto** (como Briseida) tanto en el tutorial como en sus avisos: está a la izquierda de su globo (`ByteBubble`, escena `byte_bubble.tscn`). Cuatro expresiones, en `assets/art/characters/byte/byte_<expresión>.png` (`Paths.BYTE_BUST`; 512×512, fondo transparente, 2D que no viene de Blender): **normal** (consejos y tutorial), **contenta** (disponible, aún sin uso en el juego), **preocupada** (cuello de botella, `_byte_mood` en `dashboard.gd`) y **alerta** (ataque DDoS: visor y ojos rojos, borde y nombre del globo en `DashboardColors.DANGER`). `ByteBubble.say(texto, expresión)` y `say_tutorial(texto, expresión)`; los pasos del tutorial de BYTE pueden traer `expression` en `tutorial_steps.json` (acepta también `alerta`). Fuente editable: `source_art/byte/generar_byte.py` (genera los SVG y, con Playwright, los PNG).
 - **Phantom:** grupo de atacantes sin rostro (DDoS de la etapa 3).
 
 ## 4. Flujo del juego
@@ -120,8 +120,8 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
 - **v0.9.0 (en `main`, tag `v0.9.0`; PR #38 y #39):** mascotas con pathfinding (PR E, #38; ver 7.1): gato y perro en la Tienda, rutas A*, siesta, susto con DDoS y guardado v8; estado en CONTEXTO.md (#39).
 - **v0.9.1 (en `main`, tag `v0.9.1`; PR #43):** vender mascotas, PR F (#43; ver 7.1): "Vender +N" en la Tienda → Mascotas devuelve el 50 % (`venta_pct`), con ventana de confirmación, para cambiar unas por otras hasta el máximo de 6.
 - **v0.9.2 (PR #47):** conejo y tortuga, PR G (#47; ver 7.1): conejo blanco (450, refugio en el rincón) y tortuga verde (300, la más lenta, sin refugio: se mete en su caparazón donde está).
-- **En revisión:** nada por ahora.
-- **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen), retrato de BYTE en diálogos.
+- **En revisión:** PR H — busto y expresiones de BYTE (rama `feature/byte-busto`; saldrá en la v0.10.0).
+- **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen; plan en el PDF de audio del equipo), la expresión contenta de BYTE todavía no se usa.
 
 ## 9. Cómo trabajar
 1. `git checkout develop && git pull` → crea `feature/<tu-tarea>`.

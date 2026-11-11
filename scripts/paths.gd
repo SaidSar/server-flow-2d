@@ -42,6 +42,8 @@ const SHIRT_SHADER := "res://assets/shaders/camiseta.gdshader"
 const CEO_PORTRAIT := "res://assets/art/characters/briseida/briseida_retrato.png"
 ## Busto de Briseida (cintura para arriba) del tutorial: briseida_busto_<expresión>.png, 533×800, fondo transparente.
 const CEO_BUST := "res://assets/art/characters/briseida/briseida_busto_%s.png"
+## Busto de BYTE (512×512, fondo transparente): byte_<expresión>.png con normal, contenta, preocupada y alerta.
+const BYTE_BUST := "res://assets/art/characters/byte/byte_%s.png"
 
 ## Cuartos: data/rooms/<id>.json (lienzo, offsets, proyección...).
 const ROOM_IDS: Array[StringName] = [&"garage", &"oficina", &"data_center"]
