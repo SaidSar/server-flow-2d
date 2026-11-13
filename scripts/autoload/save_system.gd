@@ -7,6 +7,9 @@ extends Node
 ## de "--", variable de entorno SERVERFLOW_SAVE_PATH o, solo en builds debug, el archivo
 ## user://save_path_override.txt (en Android la app no recibe argumentos: se escribe con adb run-as).
 ## Así nunca se toca la partida real.
+## Partidas múltiples (v0.12.0): hasta MAX_SLOTS partidas. La partida 1 es el archivo de siempre (user://savegame.cfg o la ruta
+## alterna), así que las partidas anteriores no se migran ni se mueven; las demás son <nombre>_2.cfg … <nombre>_5.cfg
+## al lado de la primera. `save_path` es el archivo de la partida en curso (current_slot).
 
 signal saved
 
@@ -20,6 +23,8 @@ signal saved
 ## 4: piso por cuarto (colors/piso_<cuarto>) y decoración (sección "decor"). Las partidas
 ##    anteriores migran su "piso" al garage y empiezan sin decoración.
 const SAVE_VERSION := 8
+## Partidas guardadas que se pueden tener a la vez.
+const MAX_SLOTS := 5
 const SECTION_META := "meta"
 const SECTION_PLAYER := "player"
 const SECTION_COLORS := "colors"
@@ -32,16 +37,21 @@ const SAVE_PATH_ENV := "SERVERFLOW_SAVE_PATH"
 const SAVE_PATH_OVERRIDE_FILE := "user://save_path_override.txt"
 
 var save_path := Paths.SAVE_FILE
+## Partida en curso (1 a MAX_SLOTS): la que guardan los autoguardados y carga "Continuar".
+var current_slot := 1
+## Archivo de la partida 1 (la ruta real o la alterna); las demás partidas salen de él.
+var _base_path := Paths.SAVE_FILE
 ## true si algo leyó o escribió la partida real (Paths.SAVE_FILE). Las pruebas lo revisan.
 var real_save_accessed := false
 
 
 func _ready() -> void:
-	save_path = get_alternate_save_path()
-	if save_path.is_empty():
-		save_path = Paths.SAVE_FILE
+	_base_path = get_alternate_save_path()
+	if _base_path.is_empty():
+		_base_path = Paths.SAVE_FILE
 	elif OS.is_debug_build():
-		print("[SaveSystem] Ruta alterna de guardado: %s" % save_path)
+		print("[SaveSystem] Ruta alterna de guardado: %s" % _base_path)
+	select_slot(1)
 	# Guardado automático al empezar y al terminar cada oleada (y al pasar de etapa).
 	Simulation.checkpoint_created.connect(_on_checkpoint_created)
 
@@ -67,12 +77,133 @@ static func get_alternate_save_path() -> String:
 
 
 func is_using_real_save() -> bool:
-	return ProjectSettings.globalize_path(save_path) == ProjectSettings.globalize_path(Paths.SAVE_FILE)
+	return ProjectSettings.globalize_path(_base_path) == ProjectSettings.globalize_path(Paths.SAVE_FILE)
 
 
+## ¿Existe el archivo de la partida en curso?
 func has_save() -> bool:
 	_note_access()
 	return FileAccess.file_exists(save_path)
+
+
+#region Partidas
+
+## Archivo de una partida: la 1 es el archivo base; la n, "<base>_n.<ext>" al lado.
+func get_slot_path(slot: int) -> String:
+	if slot <= 1:
+		return _base_path
+	return "%s_%d.%s" % [_base_path.get_basename(), slot, _base_path.get_extension()]
+
+
+func slot_exists(slot: int) -> bool:
+	_note_access()
+	return slot >= 1 and slot <= MAX_SLOTS and FileAccess.file_exists(get_slot_path(slot))
+
+
+## Deja la partida `slot` como la en curso (cambia el archivo donde se guarda). No carga nada.
+func select_slot(slot: int) -> void:
+	current_slot = clampi(slot, 1, MAX_SLOTS)
+	save_path = get_slot_path(current_slot)
+
+
+func count_saves() -> int:
+	var total := 0
+	for slot in range(1, MAX_SLOTS + 1):
+		if slot_exists(slot):
+			total += 1
+	return total
+
+
+func has_any_save() -> bool:
+	return count_saves() > 0
+
+
+## Primer lugar libre (1 a MAX_SLOTS); 0 si ya están todos ocupados.
+func get_free_slot() -> int:
+	for slot in range(1, MAX_SLOTS + 1):
+		if not slot_exists(slot):
+			return slot
+	return 0
+
+
+## Partida jugada más recientemente (por la fecha de su archivo); 0 si no hay ninguna.
+func get_last_slot() -> int:
+	var best := 0
+	var best_time := -1
+	for slot in range(1, MAX_SLOTS + 1):
+		if not slot_exists(slot):
+			continue
+		var modified := int(FileAccess.get_modified_time(get_slot_path(slot)))
+		if modified > best_time:
+			best = slot
+			best_time = modified
+	return best
+
+
+## Resumen de cada partida existente para la lista: slot, empresa, avatar, etapa, oleada, monedas y fecha.
+func get_slots() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var last := get_last_slot()
+	for slot in range(1, MAX_SLOTS + 1):
+		if not slot_exists(slot):
+			continue
+		var config := ConfigFile.new()
+		if config.load(get_slot_path(slot)) != OK:
+			continue
+		result.append({
+			"slot": slot,
+			"company": str(config.get_value(SECTION_PLAYER, "company_name", "")),
+			"avatar_name": str(config.get_value(SECTION_PLAYER, "avatar_name", "")),
+			"stage": str(config.get_value(SECTION_PROGRESS, "stage", String(Paths.STAGE_ORDER[0]))),
+			"wave": int(config.get_value(SECTION_PROGRESS, "wave", 1)),
+			"coins": int(config.get_value(SECTION_PROGRESS, "coins", 0)),
+			"modified": int(FileAccess.get_modified_time(get_slot_path(slot))),
+			"is_last": slot == last,
+		})
+	return result
+
+
+## Prepara una partida nueva en el primer lugar libre. false si ya hay MAX_SLOTS (no se crea nada).
+func begin_new_slot() -> bool:
+	var free := get_free_slot()
+	if free == 0:
+		return false
+	select_slot(free)
+	return true
+
+
+## Nombre de empresa que no se repita entre las partidas guardadas: "Mi empresa", "Mi empresa 2", "Mi empresa 3"…
+func make_unique_company_name(wanted: String) -> String:
+	var base := wanted.strip_edges()
+	var taken: Array[String] = []
+	for info: Dictionary in get_slots():
+		taken.append(String(info["company"]).to_lower())
+	if not taken.has(base.to_lower()):
+		return base
+	var n := 2
+	while taken.has(("%s %d" % [base, n]).to_lower()):
+		n += 1
+	return "%s %d" % [base, n]
+
+
+## Carga la partida más reciente ("Continuar"). false si no hay o está dañada.
+func continue_last() -> bool:
+	var slot := get_last_slot()
+	return slot > 0 and load_slot(slot)
+
+
+func load_slot(slot: int) -> bool:
+	if not slot_exists(slot):
+		return false
+	select_slot(slot)
+	return load_game()
+
+
+func delete_slot(slot: int) -> void:
+	if slot_exists(slot):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(get_slot_path(slot)))
+
+#endregion
 
 
 func save_game() -> bool:
@@ -160,10 +291,12 @@ func load_game() -> bool:
 	return true
 
 
+## Borra TODAS las partidas (las pruebas empiezan siempre de cero). Para borrar una sola: delete_slot.
 func delete_save() -> void:
 	_note_access()
-	if has_save():
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+	for slot in range(1, MAX_SLOTS + 1):
+		delete_slot(slot)
+	select_slot(1)
 
 
 func _note_access() -> void:

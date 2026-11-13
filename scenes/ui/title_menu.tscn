@@ -85,6 +85,13 @@ layout_mode = 2
 size_flags_horizontal = 4
 text = "Continuar"
 
+[node name="SavesButton" type="Button" parent="Center/Menu"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(440, 76)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Partidas"
+
 [node name="OptionsButton" type="Button" parent="Center/Menu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(440, 76)
