@@ -103,6 +103,8 @@ Los archivos salen en `build/`, que no va al repo.
 
 **Al publicar una versión, subir `version/name` y `version/code` en `export_presets.cfg`.** En Android, `version/code` siempre aumenta. En Windows, `file_version` y `product_version` llevan la misma versión con un `.0` al final (p. ej. `0.3.1.0`).
 
+En el preset de Windows, `application/modify_resources` debe quedar activado (`true`): así el `.exe` muestra la versión, la empresa y el icono del juego en lugar de los de Godot. Se revisa en Propiedades → Detalles del `.exe`.
+
 ```bash
 godot --headless --path . --export-debug "Android" build/android/server-flow-2d-debug.apk
 godot --headless --path . --export-debug "Windows Desktop" build/windows/ServerFlow2D.exe
