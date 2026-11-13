@@ -125,7 +125,8 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
 - **v0.10.0 (en `main`, tag `v0.10.0`; PR #51):** busto y expresiones de BYTE, PR H (#51; ver 3): BYTE usa busto a la izquierda de su globo (`ByteBubble`) en el tutorial y en sus avisos, con cuatro expresiones (normal, contenta, preocupada y alerta): preocupada con cuello de botella y alerta roja con DDoS; se retira el icono SVG anterior.
 - **v0.11.0 (en `main`, tag `v0.11.0`; PR #55):** anexo de mascotas (#55): pollito, cerdito, pato y pingüino; máximo de 8 mascotas; emociones (contenta/triste/"z") y caricia al tocarlas (no en modo decoración); ver 7.1. Los sonidos de las 4 nuevas y de la caricia se sumaron al plan de audio.
 - **v0.12.0 (PR #59):** partidas múltiples (hasta 5; Partidas, Continuar a la última, borrar con confirmación, nombre único de empresa); ver 7.1/Guardado.
-- **En revisión:** nada por ahora.
+- **Build de Windows (PR de build, saldrá con la próxima versión):** el preset "Windows Desktop" exporta con `application/modify_resources=true`, así el `.exe` muestra producto Server Flow 2D, empresa NEXUS CODE, la versión de `export_presets.cfg`, copyright NEXUS CODE · UAdeO, la descripción "Juego educativo de gestión de servidores" y el icono del juego (`icon.svg`) en vez de los de Godot.
+- **En revisión:** PR de build del `.exe` de Windows (arriba).
 - **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen; plan en el PDF de audio del equipo), la expresión contenta de BYTE todavía no se usa.
 
 ## 9. Cómo trabajar
