@@ -1,5 +1,5 @@
 """
-Genera las hojas de sprites de las mascotas (gato, perro, conejo y tortuga) de Server Flow 2D.
+Genera las hojas de sprites de las mascotas (gato, perro, conejo, tortuga, pollito, cerdito, pato y pingüino) de Server Flow 2D.
 Estilo plano, sin contorno, como el resto del arte. Cada hoja es una tira horizontal de FRAMES cuadros de
 FRAME_W×FRAME_H px (lienzo 2x: 1 m del cuarto = 256 px de ancho). Las mascotas miran a la derecha; el juego
 las voltea con flip_h. El punto de apoyo (los pies) está en ANCHOR, la misma coordenada en todos los cuadros.
@@ -25,6 +25,11 @@ PETS = {
     # Conejo y tortuga son más pequeños: "size" escala todo el dibujo (los pies siguen en ANCHOR).
     "conejo": {"kind": "rabbit", "body": "#fbfcff", "dark": "#dfe2ec", "belly": "#ffffff", "pink": "#f6b8cf", "size": 0.8},
     "tortuga": {"kind": "turtle", "body": "#4f8a3a", "dark": "#3b6b2b", "belly": "#e8dcae", "skin": "#8cc760", "scute": "#6fb04f", "size": 0.85},
+    # Pollito, cerdito, pato y pingüino (v0.11.0) se dibujan en px del cuadro (ver PxPainter), no en unidades.
+    "pollito": {"kind": "chick"},
+    "cerdito": {"kind": "pig"},
+    "pato": {"kind": "duck"},
+    "pinguino": {"kind": "penguin"},
 }
 
 
@@ -156,7 +161,217 @@ def frame_turtle(spec, pose, phase=0.0):
     return out.resize((FRAME_W, FRAME_H), Image.LANCZOS)
 
 
+#region Mascotas v0.11.0 (coordenadas en px del cuadro de 160x128; pies en y=112)
+
+DARK = "#231b14"
+SHADOW_ALPHA = (0, 0, 0, 46)
+
+
+def px_painter(dx=0.0, dy=0.0):
+    """Painter cuyo origen es la esquina del cuadro y 1 unidad = 1 px (dx, dy desplazan todo el dibujo)."""
+    pt = Painter()
+    pt.k = float(SS)
+    pt.ox = dx * SS
+    pt.oy = dy * SS
+    return pt
+
+
+def q(p0, c, p1):
+    return bezier(p0, c, p1)
+
+
+def px_eye(pt, x, y, pose, r=3.4):
+    if pose == "scared":
+        pt.ellipse(x, y, r * 1.9, r * 1.9, "#ffffff")
+        pt.ellipse(x + 0.8, y, r * 0.8, r * 0.8, DARK)
+    elif pose == "sleep":
+        pt.stroke(q((x - 4.5, y), (x, y + 8), (x + 4.5, y)), 2.4, DARK)
+    else:
+        pt.ellipse(x, y, r, r, DARK)
+        pt.ellipse(x + 1, y - 1.2, 1.1, 1.1, "#ffffff")
+
+
+def px_blush(pt, x, y, color, rx=5, ry=3):
+    pt.ellipse(x, y, rx, ry, color + "80")
+
+
+def _finish(sh, pt, fp=None):
+    """Sombra, luego patas (si hay) y encima el cuerpo."""
+    out = sh.im if fp is None else Image.alpha_composite(sh.im, fp.im)
+    return Image.alpha_composite(out, pt.im).resize((FRAME_W, FRAME_H), Image.LANCZOS)
+
+
+def _shadow(rx):
+    sh = px_painter()
+    sh.ellipse(80, 113, rx, 6, SHADOW_ALPHA)
+    return sh
+
+
+def frame_chick(spec, pose, phase=0.0):
+    walking, scared, sleeping = pose == "walk", pose == "scared", pose == "sleep"
+    sh = _shadow(32 if sleeping else 26)
+    wing_c, belly, body = "#f1b922", "#fde98a", "#f9d43c"
+    if sleeping:
+        pt = px_painter()
+        pt.ellipse(80, 94, 30, 21, body)
+        pt.ellipse(84, 101, 17, 8, belly)
+        rot_ellipse(pt, (70, 94), (0, 0), 12, 10, -10, wing_c)
+        for x, ry, yy in ((76, 5, 73), (81, 6, 71), (86, 5, 73)):
+            pt.ellipse(x, yy, 2.5, ry, wing_c)
+        pt.poly([(107, 92), (114, 94), (107, 97)], "#f08a24")
+        px_eye(pt, 98, 89, "sleep")
+        px_blush(pt, 97, 97, "#ff9d7a")
+        return _finish(sh, pt)
+    hop = abs(math.sin(phase)) * 5 if walking else 0.0
+    swing = math.sin(phase) * 4 if walking else 0.0
+    fp = px_painter()                                            # patas (no suben con el salto)
+    for fx, sgn in ((74, 1), (88, -1)):
+        lift = max(0.0, swing * sgn) * 0.9
+        fp.stroke([(fx + swing * sgn * 0.5, 98 - hop), (fx + swing * sgn, 111 - lift)], 3.5, "#f08a24")
+        fp.stroke([(fx - 5 + swing * sgn, 111 - lift), (fx + 4 + swing * sgn, 111 - lift)], 3.5, "#f08a24")
+    pt = px_painter(0, -hop)
+    r = 29 if scared else 26
+    pt.ellipse(80, 82, r, r, body)
+    pt.ellipse(84, 91, 15, 12, belly)
+    rot_ellipse(pt, (68, 84), (0, 0), 11, 14, -20, wing_c)
+    if scared:
+        for x, y, ry, a in ((70, 56, 7, -50), (76, 52, 8, -24), (82, 50, 9, 0), (88, 52, 8, 24), (94, 56, 7, 50)):
+            rot_ellipse(pt, (x, y), (0, 0), 2.5, ry, a, wing_c)
+    else:
+        for x, y, ry, a in ((76, 57, 6, -25), (81, 55, 7, 0), (86, 57, 6, 25)):
+            rot_ellipse(pt, (x, y), (0, 0), 2.5, ry, a, wing_c)
+    pt.poly([(80 + r - 2, 78), (80 + r + 11, 82), (80 + r - 2, 87)], "#f08a24")
+    px_eye(pt, 98, 75, pose)
+    px_blush(pt, 95, 85, "#ff9d7a")
+    return _finish(sh, pt, fp)
+
+
+def frame_pig(spec, pose, phase=0.0):
+    walking, scared, sleeping = pose == "walk", pose == "scared", pose == "sleep"
+    sh = _shadow(40)
+    snout, nostril, ear, dark, body, belly = "#ff8fb3", "#b9446a", "#f48fb2", "#ee7fa6", "#ffa3c2", "#ffc7da"
+    if sleeping:
+        pt = px_painter()
+        pt.stroke(q((31, 98), (18, 95), (22, 84)) + q((22, 84), (28, 77), (33, 85)), 3.5, "#f080a8")
+        pt.rrect(44, 106, 12, 7, dark)
+        pt.rrect(98, 106, 12, 7, dark)
+        pt.ellipse(72, 96, 42, 20, body)
+        pt.ellipse(74, 104, 26, 7, belly)
+        pt.ellipse(112, 97, 18, 18, body)
+        pt.poly(q((104, 84), (108, 74), (120, 80)) + q((120, 80), (114, 88), (104, 84)), ear)
+        pt.ellipse(127, 101, 8, 7, snout)
+        pt.ellipse(126, 101, 1.5, 2.4, nostril)
+        pt.ellipse(131, 101, 1.5, 2.4, nostril)
+        px_eye(pt, 118, 92, "sleep")
+        px_blush(pt, 110, 104, "#ff6d96")
+        return _finish(sh, pt)
+    bob = abs(math.sin(phase)) * 2.2 if walking else 0.0
+    sw = math.sin(phase) * 5 if walking else 0.0
+    fp = px_painter()                                            # patas: el par lejano oscuro/ cercano claro
+    for x, c, sg in ((40, dark, 1), (54, dark, -1), (88, ear, -1), (102, ear, 1)):
+        lift = max(0.0, sw * sg) * 0.8
+        fp.rrect(x + sw * sg, 96 - bob, 11, 17 - lift + bob, c)
+    pt = px_painter(0, -bob)
+    if scared:
+        pt.stroke([(31, 84), (14, 70)], 3.5, "#f080a8")
+    else:
+        pt.stroke(q((31, 86), (18, 83), (22, 72)) + q((22, 72), (28, 65), (33, 73)), 3.5, "#f080a8")
+    pt.ellipse(72, 86, 42, 27, body)
+    pt.ellipse(74, 98, 26, 9, belly)
+    pt.ellipse(114, 80, 21, 21, body)
+    pt.poly(q((104, 64), (106, 50), (121, 56)) + q((121, 56), (115, 66), (104, 64)), ear)
+    pt.ellipse(131, 84, 9, 8, snout)
+    pt.ellipse(129.5, 84, 1.6, 2.6, nostril)
+    pt.ellipse(135, 84, 1.6, 2.6, nostril)
+    px_eye(pt, 120, 76, pose)
+    px_blush(pt, 111, 88, "#ff6d96")
+    return _finish(sh, pt, fp)
+
+
+def frame_duck(spec, pose, phase=0.0):
+    walking, scared, sleeping = pose == "walk", pose == "scared", pose == "sleep"
+    sh = _shadow(38)
+    gray, dgray, belly, green, bill, orange = "#aab1bc", "#8a92a1", "#dfe3ea", "#2e9f5e", "#f6c23a", "#f59a23"
+    if sleeping:
+        pt = px_painter()
+        pt.poly([(40, 92), (22, 86), (30, 102)], "#3b4252")
+        pt.ellipse(76, 96, 38, 20, gray)
+        pt.ellipse(80, 104, 24, 8, belly)
+        rot_ellipse(pt, (68, 94), (0, 0), 22, 12, -8, dgray)
+        pt.ellipse(98, 84, 15, 15, green)
+        pt.stroke(q((84, 94), (89, 100), (106, 94)), 3.5, "#ffffff")
+        pt.poly(q((92, 90), (76, 86), (70, 92)) + q((70, 92), (78, 98), (92, 95)), bill)
+        px_eye(pt, 103, 81, "sleep")
+        return _finish(sh, pt)
+    sway = math.sin(phase) * 2.5 if walking else 0.0
+    sw = math.sin(phase) * 5 if walking else 0.0
+    fp = px_painter()
+    for fx, sg in ((72, 1), (92, -1)):
+        lift = max(0.0, sw * sg) * 0.9
+        x = fx + sw * sg
+        fp.stroke([(fx + sway * 0.5, 98), (x, 108 - lift)], 3.5, orange)
+        fp.poly([(x - 8, 108 - lift), (x + 6, 108 - lift), (x + 3, 113 - lift), (x - 11, 113 - lift)], orange)
+    pt = px_painter(sway)
+    pt.poly([(40, 80), (21, 70), (30, 92)], "#3b4252")
+    if scared:
+        rot_ellipse(pt, (68, 66), (0, 0), 9, 22, -38, dgray)
+    pt.ellipse(76, 86, 38, 22, gray)
+    pt.ellipse(80, 95, 24, 10, belly)
+    rot_ellipse(pt, (68, 84), (0, 0), 22, 13, -8, dgray)
+    pt.ellipse(104, 66, 11, 18, green)
+    pt.stroke(q((94, 79), (104, 85), (114, 79)), 3.5, "#ffffff")
+    pt.ellipse(108, 50, 18, 18, green)
+    rot_ellipse(pt, (103, 43), (0, 0), 7, 4, -25, (76, 194, 122, 179))
+    pt.poly(q((122, 49), (140, 47), (142, 53)) + q((142, 53), (140, 59), (122, 58)), bill)
+    pt.ellipse(133, 52, 1.2, 1.2, "#d99b1c")
+    px_eye(pt, 113, 45, pose)
+    return _finish(sh, pt, fp)
+
+
+def frame_penguin(spec, pose, phase=0.0):
+    walking, scared, sleeping = pose == "walk", pose == "scared", pose == "sleep"
+    sh = _shadow(30)
+    navy, dnavy, white, orange = "#2c3a52", "#1f2b40", "#f4f7fb", "#f59a23"
+    if sleeping:
+        pt = px_painter()
+        pt.ellipse(68, 110, 11, 4.5, orange)
+        pt.ellipse(92, 110, 11, 4.5, orange)
+        rot_ellipse(pt, (54, 84), (0, 0), 8, 20, 14, dnavy)
+        pt.ellipse(80, 82, 30, 30, navy)
+        pt.ellipse(88, 88, 18, 22, white)
+        pt.ellipse(93, 58, 12, 10, white)
+        pt.poly([(102, 62), (116, 68), (102, 70)], "#f6a21d")
+        px_eye(pt, 95, 57, "sleep")
+        rot_ellipse(pt, (68, 88), (0, 0), 7, 18, 10, dnavy)
+        px_blush(pt, 99, 65, "#ff9fb4", 4, 2.5)
+        return _finish(sh, pt)
+    sway = math.sin(phase) * 2.5 if walking else 0.0
+    sw = math.sin(phase) * 5 if walking else 0.0
+    fp = px_painter()
+    for fx, sg in ((68, 1), (92, -1)):
+        lift = max(0.0, sw * sg) * 0.9
+        fp.ellipse(fx + sw * sg, 110 - lift, 11, 4.5, orange)
+    pt = px_painter(sway)
+    rot_ellipse(pt, (54, 74), (0, 0), 8, 24, 14, dnavy)         # aleta lejana
+    pt.ellipse(80, 72, 30, 38, navy)
+    pt.ellipse(88, 80, 18, 29, white)
+    pt.ellipse(93, 44, 12, 11, white)
+    pt.poly([(102, 46), (118, 50), (102, 55)], "#f6a21d")
+    px_eye(pt, 95, 42, pose)
+    px_blush(pt, 99, 52, "#ff9fb4", 4, 2.5)
+    a = -58 if scared else (sw * 2.4 if walking else 0)           # aleta cercana: sube al asustarse, bate al caminar
+    ar = math.radians(a)
+    c = (66 - 20 * math.sin(ar), 58 + 20 * math.cos(ar))          # centro de la aleta girado alrededor del hombro (66, 58)
+    rot_ellipse(pt, c, (0, 0), 7, 22, 10 + a, dnavy)
+    return _finish(sh, pt, fp)
+
+#endregion
+
+
 def frame(spec, pose, phase=0.0):
+    fn = {"chick": frame_chick, "pig": frame_pig, "duck": frame_duck, "penguin": frame_penguin}.get(spec["kind"])
+    if fn:
+        return fn(spec, pose, phase)
     if spec["kind"] == "rabbit":
         return frame_rabbit(spec, pose, phase)
     if spec["kind"] == "turtle":
