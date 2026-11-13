@@ -71,7 +71,11 @@ func _on_avatar_confirmed(_avatar_name: String) -> void:
 func _on_company_confirmed(company_name: String) -> void:
 	if SceneRouter.is_changing():
 		return
-	GameState.start_new_game(_avatar_prompt.get_value(), company_name, _character_select.get_selected_id())
+	# La partida nueva va al primer lugar libre y su empresa no repite el nombre de otra guardada ("Mi empresa 2").
+	if not SaveSystem.begin_new_slot():
+		SceneRouter.goto(Paths.TITLE_MENU)
+		return
+	GameState.start_new_game(_avatar_prompt.get_value(), SaveSystem.make_unique_company_name(company_name), _character_select.get_selected_id())
 	SaveSystem.save_game()
 	SceneRouter.goto_current_room()
 
