@@ -24,11 +24,13 @@ const FRAME_SCARED := 6
 @export_range(0.0, 1.0) var sleep_chance := 0.0
 
 static var _catalog: Array[PetData] = []
-static var _max_total := 6
+static var _max_total := 8
 static var _sell_percent := 50
 static var _frame_size := Vector2i(160, 128)
 static var _anchor := Vector2(80, 112)
 static var _loaded := false
+## Parámetros de emociones (bloque "emociones" del JSON); los valores por defecto cubren un JSON viejo.
+static var _emotions: Dictionary = {"contenta_s": 2.3, "triste_s": 3.2, "caricia_espera_s": 3.0, "sla_contenta": 95.0, "sla_triste": 90.0}
 
 
 static func load_catalog() -> Array[PetData]:
@@ -42,6 +44,11 @@ static func load_catalog() -> Array[PetData]:
 	var root: Dictionary = parsed
 	_max_total = maxi(int(root.get("max_total", _max_total)), 1)
 	_sell_percent = clampi(int(root.get("venta_pct", _sell_percent)), 0, 100)
+	var emotions: Variant = root.get("emociones")
+	if emotions is Dictionary:
+		for key: Variant in (emotions as Dictionary).keys():
+			if (emotions as Dictionary)[key] is float or (emotions as Dictionary)[key] is int:
+				_emotions[str(key)] = float((emotions as Dictionary)[key])
 	var sheet_info: Dictionary = root.get("hoja", {})
 	var frame := RoomProjection.parse_vector(sheet_info.get("cuadro_px"))
 	if frame != Vector2.ZERO:
@@ -74,6 +81,12 @@ static func get_max_total() -> int:
 static func get_sell_percent() -> int:
 	load_catalog()
 	return _sell_percent
+
+
+## Parámetro de emociones del JSON (contenta_s, triste_s, caricia_espera_s, sla_contenta, sla_triste).
+static func get_emotion_value(key: String) -> float:
+	load_catalog()
+	return float(_emotions.get(key, 0.0))
 
 
 static func get_frame_size() -> Vector2i:
