@@ -4,6 +4,12 @@ extends Node
 ## de rutas al día con la decoración y les avisa de la saturación (se asustan).
 ## Se crea en RoomBase; las mascotas van dentro del YSort para ordenarse con los muebles.
 
+## Una mascota recibió una caricia (para el sonido).
+signal pet_petted(pet_id: StringName)
+
+## Último informe de oleada al que ya reaccionaron las mascotas (para no repetir al volver al cuarto).
+static var _last_reacted_report: WaveReport
+
 var room_id: StringName
 var _room: RoomData
 var _grid: PetGrid
@@ -22,6 +28,7 @@ func setup(room_identifier: StringName, room_data: RoomData, holder: Node2D) -> 
 	GameState.decor_changed.connect(_on_decor_changed)
 	Simulation.saturation_changed.connect(_on_saturation_changed)
 	sync()
+	_react_to_last_wave()
 
 
 func get_pets() -> Array[Pet]:
@@ -117,3 +124,44 @@ func _apply_saturation(saturated: bool) -> void:
 		var cell := _grid.nearest_open_cell(_grid.cell_of(shelter), taken)
 		taken.append(cell)
 		pet.set_scared(true, _grid.center_of(cell) if cell.x >= 0 else Vector2.INF)
+
+
+## Caricia: toca la mascota que esté bajo ese punto de la pantalla (la más cercana a la cámara si hay varias).
+## true si había una mascota ahí (aunque esté en su pausa y no reaccione); el cuarto consume el toque.
+func try_pet(screen_point: Vector2) -> bool:
+	var best: Pet = null
+	for pet: Pet in _pets:
+		if pet.contains_screen_point(screen_point) and (best == null or pet.position.y > best.position.y):
+			best = pet
+	if best == null:
+		return false
+	if best.pet_it():
+		pet_petted.emit(best.data.id)
+	return true
+
+
+## Emoción de las mascotas según cómo terminó una oleada: contentas con SLA alto, tristes con SLA bajo o si falló.
+## Entre los dos umbrales (sla_triste <= SLA < sla_contenta) no reaccionan. Función pura (la usan las pruebas).
+static func mood_for_report(report: WaveReport) -> Pet.Emotion:
+	if report == null or report.outcome == WaveReport.Outcome.IN_PROGRESS:
+		return Pet.Emotion.NONE
+	if report.outcome == WaveReport.Outcome.SLA_ZERO or report.outcome == WaveReport.Outcome.GOAL_MISSED:
+		return Pet.Emotion.SAD
+	if report.sla_end >= PetData.get_emotion_value("sla_contenta"):
+		return Pet.Emotion.HAPPY
+	if report.sla_end < PetData.get_emotion_value("sla_triste"):
+		return Pet.Emotion.SAD
+	return Pet.Emotion.NONE
+
+
+## Al entrar al cuarto, reaccionan (una sola vez) al informe de la última oleada.
+func _react_to_last_wave() -> void:
+	var report: WaveReport = Simulation.pending_stage_report if Simulation.pending_stage_report != null else Simulation.report
+	if report == null or report == _last_reacted_report:
+		return
+	var emotion := mood_for_report(report)
+	if emotion == Pet.Emotion.NONE:
+		return
+	_last_reacted_report = report
+	for pet: Pet in _pets:
+		pet.feel(emotion)
