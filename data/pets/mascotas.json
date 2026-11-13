@@ -1,7 +1,15 @@
 {
- "nota": "Mascotas del cuarto (gato, perro, conejo y tortuga). refugio = clave en data/rooms/<cuarto>.json -> mascotas.refugio; vacío = se queda donde está (la tortuga). Precio y comportamiento se ajustan aquí, no en el código. Se compran y se venden en la Tienda (la misma que la decoración) y caminan por el cuarto activo. venta_pct = porcentaje del precio que se devuelve al vender.",
- "max_total": 6,
+ "nota": "Mascotas del cuarto (gato, perro, conejo, tortuga, pollito, cerdito, pato y pingüino). refugio = clave en data/rooms/<cuarto>.json -> mascotas.refugio; vacío = se queda donde está (la tortuga). Precio y comportamiento se ajustan aquí, no en el código. Se compran y se venden en la Tienda (la misma que la decoración) y caminan por el cuarto activo. venta_pct = porcentaje del precio que se devuelve al vender.",
+ "max_total": 8,
  "venta_pct": 50,
+ "emociones": {
+  "nota": "Reacciones de las mascotas (efectos dibujados sobre el cuadro quieto, sin cuadros nuevos). contenta_s = duración de los corazones; triste_s = duración de la gota; caricia_espera_s = pausa entre caricias de una misma mascota; sla_contenta / sla_triste = SLA al terminar una oleada para que todas se pongan contentas (>=) o tristes (<). Acariciar (tocar la mascota) funciona siempre menos con la tienda o la decoración abiertas.",
+  "contenta_s": 2.3,
+  "triste_s": 3.2,
+  "caricia_espera_s": 3.0,
+  "sla_contenta": 95,
+  "sla_triste": 90
+ },
  "hoja": {
   "nota": "Hoja de sprites de assets/art/mascotas/<hoja>.png generada por source_art/mascotas/generar_mascotas.py: tira horizontal de cuadros de cuadro_px (lienzo 2x), pies en ancla_px.",
   "cuadro_px": [160, 128],
@@ -56,6 +64,54 @@
    "prob_dormir": 0.4,
    "refugio": "",
    "descripcion": "La más lenta y la más pequeña. Con saturación no corre: se mete en su caparazón donde está y espera a que pase."
+  },
+  {
+   "id": "pollito",
+   "nombre": "Pollito amarillo",
+   "precio": 250,
+   "hoja": "pollito",
+   "velocidad_m_s": 0.8,
+   "velocidad_susto_m_s": 2.1,
+   "quieto_s": [1.2, 2.8],
+   "prob_dormir": 0.25,
+   "refugio": "pollito",
+   "descripcion": "Pequeño y saltarín: picotea de aquí para allá. Con saturación se esponja entero y corre a esconderse."
+  },
+  {
+   "id": "cerdito",
+   "nombre": "Cerdito rosa",
+   "precio": 550,
+   "hoja": "cerdito",
+   "velocidad_m_s": 0.7,
+   "velocidad_susto_m_s": 1.9,
+   "quieto_s": [2.0, 4.5],
+   "prob_dormir": 0.3,
+   "refugio": "cerdito",
+   "descripcion": "Trota tranquilo y le gusta echarse a dormir. Con saturación enrosca la cola y se mete en su rincón."
+  },
+  {
+   "id": "pato",
+   "nombre": "Pato real",
+   "precio": 350,
+   "hoja": "pato",
+   "velocidad_m_s": 0.75,
+   "velocidad_susto_m_s": 2.0,
+   "quieto_s": [1.8, 4.0],
+   "prob_dormir": 0.2,
+   "refugio": "pato",
+   "descripcion": "Se bambolea al caminar. Con saturación abre las alas y huye graznando hacia el fondo."
+  },
+  {
+   "id": "pinguino",
+   "nombre": "Pingüino",
+   "precio": 650,
+   "hoja": "pinguino",
+   "velocidad_m_s": 0.6,
+   "velocidad_susto_m_s": 1.8,
+   "quieto_s": [2.0, 4.5],
+   "prob_dormir": 0.2,
+   "refugio": "pinguino",
+   "descripcion": "El más elegante (y el más caro): camina como en un desfile. Con saturación levanta una aleta y se refugia."
   }
  ]
 }

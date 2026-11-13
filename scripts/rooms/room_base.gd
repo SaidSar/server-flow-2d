@@ -187,6 +187,17 @@ func get_pet_keeper() -> PetKeeper:
 	return _pet_keeper
 
 
+## Caricia: un toque sobre una mascota la pone contenta. No funciona con la decoración, la tienda o el
+## panel de personalizar abiertos (ahí un toque es para colocar o elegir objetos).
+func _unhandled_input(event: InputEvent) -> void:
+	if not _pc_enabled or _decor_placer.is_busy() or _pet_keeper == null:
+		return
+	if event is InputEventMouseButton:
+		var click := event as InputEventMouseButton
+		if click.pressed and click.button_index == MOUSE_BUTTON_LEFT and _pet_keeper.try_pet(click.position):
+			get_viewport().set_input_as_handled()
+
+
 func _on_pet_buy_requested(pet_id: StringName) -> void:
 	var pet := PetData.find(pet_id)
 	if pet != null and PetShop.buy(pet):

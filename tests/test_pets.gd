@@ -38,6 +38,7 @@ func _run() -> void:
 	_test_decor_blocks()
 	_test_behavior()
 	_test_shop()
+	_test_emotions()
 	_test_save()
 	await _test_room_scene()
 
@@ -53,7 +54,20 @@ func _run() -> void:
 
 func _test_catalog() -> void:
 	var catalog := PetData.load_catalog()
-	_check(catalog.size() == 4, "el catálogo trae gato, perro, conejo y tortuga (%d)" % catalog.size())
+	_check(catalog.size() == 8, "el catálogo trae las 8 mascotas (%d)" % catalog.size())
+	for new_id: StringName in [&"pollito", &"cerdito", &"pato", &"pinguino"]:
+		_check(PetData.find(new_id) != null, "%s existe" % new_id)
+		_check(PetData.find(new_id).load_sheet() != null, "%s tiene su hoja de sprites" % new_id)
+	_check(PetData.find(&"pollito").price == 250 and PetData.find(&"pollito").get_sell_price() == 125, "el pollito cuesta 250 y se vende en 125")
+	_check(PetData.find(&"cerdito").price == 550 and PetData.find(&"cerdito").get_sell_price() == 275, "el cerdito cuesta 550 y se vende en 275")
+	_check(PetData.find(&"pato").price == 350 and PetData.find(&"pato").get_sell_price() == 175, "el pato cuesta 350 y se vende en 175")
+	_check(PetData.find(&"pinguino").price == 650 and PetData.find(&"pinguino").get_sell_price() == 325, "el pingüino cuesta 650 y se vende en 325")
+	var priciest := catalog[0]
+	for entry in catalog:
+		if entry.price > priciest.price:
+			priciest = entry
+	_check(priciest.id == &"pinguino", "el pingüino es la mascota más cara")
+	_check(PetData.get_emotion_value("contenta_s") > 0.0 and PetData.get_emotion_value("sla_contenta") > PetData.get_emotion_value("sla_triste"), "las emociones se leen del JSON")
 	_check(PetData.find(&"gato") != null and PetData.find(&"perro") != null, "gato y perro existen")
 	_check(PetData.find(&"conejo") != null and PetData.find(&"tortuga") != null, "conejo y tortuga existen")
 	_check(PetData.find(&"conejo").price == 450 and PetData.find(&"conejo").get_sell_price() == 225, "el conejo cuesta 450 y se vende en 225")
@@ -69,7 +83,7 @@ func _test_catalog() -> void:
 		if pet.id != &"tortuga":
 			_check(pet.scared_speed_m_s > pet.walk_speed_m_s, "%s corre más asustada" % pet.id)
 		_check(pet.get_frame_texture(PetData.FRAME_IDLE) != null, "%s tiene miniatura" % pet.id)
-	_check(PetData.get_max_total() >= 2, "el máximo de mascotas es razonable")
+	_check(PetData.get_max_total() == 8, "el máximo de mascotas es 8")
 	for decor in DecorData.load_catalog():
 		_check(decor.id != &"gato" and decor.id != &"perro", "el id %s no choca con la decoración" % decor.id)
 
@@ -191,7 +205,7 @@ func _test_behavior() -> void:
 	_check(woke, "el gato se despierta")
 
 	# Susto: corre al refugio, se queda ahí y al terminar vuelve a pasear.
-	for pet_id: StringName in [&"gato", &"perro", &"conejo", &"tortuga"]:
+	for pet_id: StringName in [&"gato", &"perro", &"conejo", &"tortuga", &"pollito", &"cerdito", &"pato", &"pinguino"]:
 		var parts := _make_pet(pet_id, &"garage", 3, 0.0)
 		var pet: Node2D = parts[0]
 		var grid: PetGrid = parts[1]
@@ -276,24 +290,24 @@ func _test_shop() -> void:
 	_check(_shop_script.call("get_sell_block_reason", cat) == "No tienes ninguno", "el motivo es 'No tienes ninguno'")
 	_check(not _shop_script.call("sell", cat), "vender sin tener no hace nada")
 	_check(_simulation.get("coins") == 100000, "vender sin tener no mueve monedas")
-	for i in 3:
+	for i in PetData.get_max_total() / 2:
 		_shop_script.call("buy", cat)
 		_shop_script.call("buy", dog)
-	_check(_game_state.get("pets").size() == PetData.get_max_total(), "3 gatos y 3 perros llenan el máximo")
-	_check(not _shop_script.call("can_buy", cat), "con 6 mascotas no se compra otra")
+	_check(_game_state.get("pets").size() == PetData.get_max_total(), "4 gatos y 4 perros llenan el máximo")
+	_check(not _shop_script.call("can_buy", cat), "con 8 mascotas no se compra otra")
 	var coins_before: int = _simulation.get("coins")
 	_check(_shop_script.call("sell", dog), "se vende un perro")
 	_check(_simulation.get("coins") == coins_before + dog.get_sell_price(), "vender un perro paga 250")
-	_check(_game_state.call("count_pets", &"perro") == 2 and _game_state.call("count_pets", &"gato") == 3, "quedan 3 gatos y 2 perros")
+	_check(_game_state.call("count_pets", &"perro") == 3 and _game_state.call("count_pets", &"gato") == 4, "quedan 4 gatos y 3 perros")
 	_check(_shop_script.call("can_buy", cat), "al vender se libera un lugar")
 	_check(_shop_script.call("buy", cat), "con el lugar libre se compra otro gato")
-	_check(_game_state.call("count_pets", &"gato") == 4, "ahora hay 4 gatos")
-	# Cambiar todos los perros por gatos hasta tener 6 gatos.
+	_check(_game_state.call("count_pets", &"gato") == 5, "ahora hay 5 gatos")
+	# Cambiar todos los perros por gatos hasta tener el máximo de gatos.
 	while _game_state.call("count_pets", &"perro") > 0:
 		_shop_script.call("sell", dog)
 	while _game_state.call("count_pets", &"gato") < PetData.get_max_total():
 		_check(_shop_script.call("buy", cat), "se compra un gato más")
-	_check(_game_state.call("count_pets", &"gato") == 6 and _game_state.call("count_pets", &"perro") == 0, "se llegó a 6 gatos y 0 perros")
+	_check(_game_state.call("count_pets", &"gato") == 8 and _game_state.call("count_pets", &"perro") == 0, "se llegó a 8 gatos y 0 perros")
 	_check(not _shop_script.call("can_sell", dog), "sin perros no se puede vender uno")
 	# Durante una oleada la tienda está cerrada, también para vender.
 	_simulation.call("start_wave")
@@ -422,6 +436,21 @@ func _test_room_scene() -> void:
 			for pet in keeper.call("get_pets"):
 				var at: Vector2 = pet.call("get_position_m")
 				_check(grid.is_free(grid.cell_of(at)), "%s: ninguna mascota quedó sobre el sillón" % room_id)
+		_test_room_petting(scene, keeper, room_id)
+		# Las 8 mascotas juntas no se encimen en el refugio.
+		_game_state.set("pets", [&"gato", &"perro", &"conejo", &"tortuga", &"pollito", &"cerdito", &"pato", &"pinguino"] as Array[StringName])
+		_game_state.emit_signal("pets_changed")
+		var all_eight: Array = keeper.call("get_pets")
+		_check(all_eight.size() == 8, "%s: caben las 8 mascotas" % room_id)
+		_simulation.emit_signal("saturation_changed", true)
+		for i in 1500:
+			for pet in all_eight:
+				pet.call("step", STEP)
+		var eight_cells := {}
+		for pet in all_eight:
+			eight_cells[crowd_grid.cell_of(pet.call("get_position_m"))] = true
+		_check(eight_cells.size() == 8, "%s: las 8 en su refugio, cada una en su casilla (%d de 8)" % [room_id, eight_cells.size()])
+		_simulation.emit_signal("saturation_changed", false)
 		# Quitar mascotas las saca del cuarto.
 		_game_state.set("pets", [&"perro"] as Array[StringName])
 		_game_state.emit_signal("pets_changed")
@@ -444,7 +473,7 @@ func _test_shop_panel_sell(scene: Node) -> void:
 	var sell_cat: Button = panel.call("get_row_button", &"vender_gato")
 	var sell_dog: Button = panel.call("get_row_button", &"vender_perro")
 	_check(sell_cat != null and not sell_cat.disabled, "el botón Vender del gato está activo")
-	for pet_id: StringName in [&"conejo", &"tortuga"]:
+	for pet_id: StringName in [&"conejo", &"tortuga", &"pollito", &"cerdito", &"pato", &"pinguino"]:
 		_check(panel.call("get_row_button", pet_id) != null, "la Tienda lista al %s" % pet_id)
 		_check((panel.call("get_row_button", StringName("vender_%s" % pet_id)) as Button).disabled, "sin %s su botón Vender está desactivado" % pet_id)
 	_check(sell_cat.text.begins_with("Vender") and "200" in sell_cat.text, "el botón dice 'Vender +200' (%s)" % sell_cat.text)
@@ -497,6 +526,96 @@ func _test_shop_panel_sell(scene: Node) -> void:
 	await process_frame
 	_check((panel.call("get_row_button", &"vender_perro") as Button).disabled, "sin perros el botón Vender está desactivado")
 	panel.call("close")
+
+
+## Emociones: caricia (corazones, pausa, despierta), reacción a la oleada (contenta/triste) y sus reglas.
+func _test_emotions() -> void:
+	var happy: int = _pet_script.Emotion.HAPPY
+	var sad: int = _pet_script.Emotion.SAD
+	var none: int = _pet_script.Emotion.NONE
+	var parts := _make_pet(&"pinguino", &"garage", 5, 0.0)
+	var pet: Node2D = parts[0]
+	_check(pet.call("get_emotion") == none, "al aparecer no tiene emoción")
+	_check(pet.call("pet_it"), "acariciar la pone contenta")
+	_check(pet.call("get_emotion") == happy, "la caricia da la emoción contenta")
+	_check(not pet.call("pet_it"), "no se acaricia dos veces seguidas (pausa)")
+	for i in int((PetData.get_emotion_value("contenta_s") + 0.3) / STEP):
+		pet.call("step", STEP)
+	_check(pet.call("get_emotion") == none, "los corazones se acaban solos")
+	for i in int(PetData.get_emotion_value("caricia_espera_s") / STEP) + 5:
+		pet.call("step", STEP)
+	_check(pet.call("pet_it"), "pasada la pausa se vuelve a acariciar")
+	# Dormida: la caricia la despierta.
+	var sleeper_parts := _make_pet(&"gato", &"garage", 7, 1.0)
+	var sleeper: Node2D = sleeper_parts[0]
+	var asleep := false
+	for i in 3000:
+		sleeper.call("step", STEP)
+		if sleeper.call("is_sleeping"):
+			asleep = true
+			break
+	_check(asleep, "el gato llega a dormir para probar la caricia")
+	sleeper.call("feel", sad)
+	_check(sleeper.call("get_emotion") == none, "una dormida no se entera de la oleada")
+	_check(sleeper.call("pet_it") and not sleeper.call("is_sleeping"), "acariciar a una dormida la despierta")
+	# Asustada: no se entera de la oleada, pero la caricia sí cuenta y no la saca del susto.
+	var scared_parts := _make_pet(&"perro", &"garage", 9, 0.0)
+	var scared: Node2D = scared_parts[0]
+	scared.call("set_scared", true)
+	scared.call("feel", happy)
+	_check(scared.call("get_emotion") == none, "una asustada no se entera de la oleada")
+	_check(scared.call("pet_it") and scared.call("is_scared"), "la caricia cuenta aunque esté asustada y sigue asustada")
+	# Oleada: contentas con SLA alto, tristes con SLA bajo, nada entre los dos umbrales.
+	var calm := _make_pet(&"cerdito", &"garage", 11, 0.0)[0] as Node2D
+	calm.call("feel", sad)
+	_check(calm.call("get_emotion") == sad, "feel(triste) pone la gota")
+	for i in int((PetData.get_emotion_value("triste_s") + 0.3) / STEP):
+		calm.call("step", STEP)
+	_check(calm.call("get_emotion") == none, "la gota se acaba sola")
+	var keeper_script: GDScript = load("res://scripts/rooms/pet_keeper.gd")
+	var report := WaveReport.new()
+	report.outcome = WaveReport.Outcome.SURVIVED
+	report.sla_end = 100.0
+	_check(keeper_script.call("mood_for_report", report) == happy, "SLA 100: contentas")
+	report.sla_end = PetData.get_emotion_value("sla_contenta")
+	_check(keeper_script.call("mood_for_report", report) == happy, "SLA justo en el umbral: contentas")
+	report.sla_end = (PetData.get_emotion_value("sla_contenta") + PetData.get_emotion_value("sla_triste")) * 0.5
+	_check(keeper_script.call("mood_for_report", report) == none, "SLA intermedio: sin reacción")
+	report.sla_end = PetData.get_emotion_value("sla_triste") - 1.0
+	_check(keeper_script.call("mood_for_report", report) == sad, "SLA bajo: tristes")
+	report.outcome = WaveReport.Outcome.GOAL_MISSED
+	report.sla_end = 100.0
+	_check(keeper_script.call("mood_for_report", report) == sad, "meta no alcanzada: tristes")
+	report.outcome = WaveReport.Outcome.IN_PROGRESS
+	_check(keeper_script.call("mood_for_report", report) == none, "oleada en curso: sin reacción")
+	_check(keeper_script.call("mood_for_report", null) == none, "sin informe: sin reacción")
+	for node: Node2D in [pet, sleeper, scared, calm]:
+		node.queue_free()
+
+
+## Caricia en el cuarto: un clic sobre la mascota la acaricia, salvo con decoración o paneles abiertos.
+func _test_room_petting(scene: Node, keeper: Node, room_id: StringName) -> void:
+	var pets: Array = keeper.call("get_pets")
+	var pet: Node2D = pets[0]
+	var point: Vector2 = pet.get_global_transform_with_canvas().origin + Vector2(0.0, -20.0)
+	var heard: Array[StringName] = []
+	keeper.connect("pet_petted", func(pet_id: StringName) -> void: heard.append(pet_id))
+	_check(not keeper.call("try_pet", Vector2(-5000.0, -5000.0)), "%s: un toque lejos de las mascotas no acaricia" % room_id)
+	_check(keeper.call("try_pet", point), "%s: un toque sobre la mascota la acaricia" % room_id)
+	_check(pet.call("get_emotion") == _pet_script.Emotion.HAPPY and heard.size() == 1, "%s: queda contenta y avisa (para el sonido)" % room_id)
+	_check(keeper.call("try_pet", point) and heard.size() == 1, "%s: en su pausa el toque se consume pero no repite el aviso" % room_id)
+	# Con decoración o panel abierto (el cuarto bloquea la PC) no se acaricia.
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = point
+	pet.set("_pet_cooldown", 0.0)
+	scene.set("_pc_enabled", false)
+	scene.call("_unhandled_input", press)
+	_check(heard.size() == 1, "%s: con decoración o paneles abiertos no se acaricia" % room_id)
+	scene.set("_pc_enabled", true)
+	scene.call("_unhandled_input", press)
+	_check(heard.size() == 2, "%s: el clic del cuarto acaricia al reabrir el cuarto" % room_id)
 
 
 func _check(condition: bool, label: String) -> void:
