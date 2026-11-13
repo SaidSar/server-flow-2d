@@ -121,9 +121,9 @@ HUD (empresa · etapa; bloque de **progreso de la oleada**: oleada, monedas, usu
 - **v0.9.0 (en `main`, tag `v0.9.0`; PR #38 y #39):** mascotas con pathfinding (PR E, #38; ver 7.1): gato y perro en la Tienda, rutas A*, siesta, susto con DDoS y guardado v8; estado en CONTEXTO.md (#39).
 - **v0.9.1 (en `main`, tag `v0.9.1`; PR #43):** vender mascotas, PR F (#43; ver 7.1): "Vender +N" en la Tienda → Mascotas devuelve el 50 % (`venta_pct`), con ventana de confirmación, para cambiar unas por otras hasta el máximo de 6.
 - **v0.9.2 (en `main`, tag `v0.9.2`; PR #47):** conejo y tortuga, PR G (#47; ver 7.1): conejo blanco (450, refugio en el rincón) y tortuga verde (300, la más lenta, sin refugio: se mete en su caparazón donde está).
-- **v0.10.0 (PR #51):** busto y expresiones de BYTE, PR H (#51; ver 3): BYTE usa busto a la izquierda de su globo (`ByteBubble`) en el tutorial y en sus avisos, con cuatro expresiones (normal, contenta, preocupada y alerta): preocupada con cuello de botella y alerta roja con DDoS; se retira el icono SVG anterior.
-- **v0.11.0 (en revisión, PR "Anexo de mascotas"):** pollito, cerdito, pato y pingüino; máximo de 8 mascotas; emociones (contenta/triste/"z") y caricia al tocarlas (no en modo decoración); ver 7.1. Los sonidos de las 4 nuevas y de la caricia se sumaron al plan de audio.
-- **En revisión:** v0.11.0 (arriba).
+- **v0.10.0 (en `main`, tag `v0.10.0`; PR #51):** busto y expresiones de BYTE, PR H (#51; ver 3): BYTE usa busto a la izquierda de su globo (`ByteBubble`) en el tutorial y en sus avisos, con cuatro expresiones (normal, contenta, preocupada y alerta): preocupada con cuello de botella y alerta roja con DDoS; se retira el icono SVG anterior.
+- **v0.11.0 (PR #55):** anexo de mascotas (#55): pollito, cerdito, pato y pingüino; máximo de 8 mascotas; emociones (contenta/triste/"z") y caricia al tocarlas (no en modo decoración); ver 7.1. Los sonidos de las 4 nuevas y de la caricia se sumaron al plan de audio.
+- **En revisión:** nada por ahora.
 - **Pendiente:** catálogo de referencias personales del equipo (en espera de que cada integrante mande las suyas); balance fino de la etapa 2; audio (los buses Music/SFX ya existen; plan en el PDF de audio del equipo), la expresión contenta de BYTE todavía no se usa.
 
 ## 9. Cómo trabajar
